@@ -1,6 +1,5 @@
 use bindgen;
 use cmake;
-use pkg_config;
 use std::path::{Path, PathBuf};
 
 fn main() {
@@ -23,7 +22,28 @@ fn main() {
         .write_to_file(out.join("bindings.rs"))
         .expect("failed to write bindings.rs");
 
-    // Link to the system-installed library (using pkg-config) or build it manually (using cmake).
+    // Build OpenVINO using CMake.
+    let build_path = cmake::Config::new("../upstream")
+        .define("NGRAPH_ONNX_IMPORT_ENABLE", "ON")
+        .define("ENABLE_OPENCV", "OFF")
+        .cxxflag("-Wno-pessimizing-move")
+        .cxxflag("-Wno-redundant-move")
+        .very_verbose(true)
+        .build();
+
+    // Set up the link search path to the manually-built library. It would be preferable to use
+    // pkg-config here to retrieve the libraries if they were installed system-wide (see initial
+    // commit), but OpenVINO relies on a `plugin.xml` file for finding target-specific libraries
+    // and it is unclear how pkg-config where this would be in the system-install scenario.
+    let library_path = build_path.join("deployment_tools/inference_engine/lib/intel64");
+    println!("cargo:rustc-link-search=native={}", library_path.display());
+    let third_party_path = build_path.join("lib64");
+    println!(
+        "cargo:rustc-link-search=native={}",
+        third_party_path.display()
+    );
+
+    // Dynamically link the OpenVINO libraries.
     let libraries = vec![
         "inference_engine",
         "inference_engine_legacy",
@@ -31,32 +51,12 @@ fn main() {
         "ngraph",
         "inference_engine_c_api",
     ];
-    if let Ok(lib) = pkg_config::probe_library(libraries[0]) {
-        if let Some(path) = lib.link_paths.get(0) {
-            println!("cargo:rustc-link-search=native={}", path.display());
-        }
-    } else {
-        let path = cmake::Config::new("../upstream")
-            .define("NGRAPH_ONNX_IMPORT_ENABLE", "ON")
-            .define("ENABLE_OPENCV", "OFF")
-            .cxxflag("-Wno-pessimizing-move")
-            .cxxflag("-Wno-redundant-move")
-            .very_verbose(true)
-            .build();
-
-        println!(
-            "cargo:rustc-link-search=native={}",
-            path.join("deployment_tools/inference_engine/lib/intel64")
-                .display()
-        );
-        println!(
-            "cargo:rustc-link-search=native={}",
-            path.join("lib64").display()
-        );
-    }
     for library in &libraries {
         println!("cargo:rustc-link-lib=dylib={}", library);
     }
+
+    // Output the location of the libraries to the environment.
+    println!("cargo:rustc-env=LIBRARY_PATH={}", library_path.display());
 }
 
 /// Canonicalize a path as well as verify that it exists.
