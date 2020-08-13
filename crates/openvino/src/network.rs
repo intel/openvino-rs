@@ -102,6 +102,7 @@ pub struct ExecutableNetwork {
 drop_using_function!(ExecutableNetwork, ie_exec_network_free);
 
 impl ExecutableNetwork {
+    /// Create an [InferRequest].
     pub fn create_infer_request(&mut self) -> Result<InferRequest> {
         let mut instance = std::ptr::null_mut();
         try_unsafe!(ie_exec_network_create_infer_request(
