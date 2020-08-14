@@ -33,8 +33,6 @@ fn main() {
     let build_path = cmake::Config::new("../upstream")
         .define("NGRAPH_ONNX_IMPORT_ENABLE", "ON")
         .define("ENABLE_OPENCV", "OFF")
-        .cxxflag("-Wno-pessimizing-move")
-        .cxxflag("-Wno-redundant-move")
         .very_verbose(true)
         .build();
 
