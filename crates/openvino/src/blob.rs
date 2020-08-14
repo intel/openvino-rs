@@ -1,5 +1,6 @@
 use crate::tensor_desc::TensorDesc;
 use crate::{drop_using_function, try_unsafe, util::Result};
+use crate::{Layout, Precision};
 use openvino_sys::{
     self, dimensions_t, ie_blob_buffer__bindgen_ty_1, ie_blob_buffer_t, ie_blob_byte_size,
     ie_blob_free, ie_blob_get_buffer, ie_blob_get_dims, ie_blob_get_layout, ie_blob_get_precision,
@@ -47,7 +48,7 @@ impl Blob {
     pub fn tensor_desc(&self) -> Result<TensorDesc> {
         let blob = self.instance as *const ie_blob_t;
 
-        let mut layout: u32 = 0;
+        let mut layout = Layout::ANY;
         try_unsafe!(ie_blob_get_layout(blob, &mut layout as *mut _))?;
 
         let mut dimensions = dimensions_t {
@@ -56,10 +57,10 @@ impl Blob {
         };
         try_unsafe!(ie_blob_get_dims(blob, &mut dimensions as *mut _))?;
 
-        let mut precision = 0;
+        let mut precision = Precision::UNSPECIFIED;
         try_unsafe!(ie_blob_get_precision(blob, &mut precision as *mut _))?;
 
-        Ok(TensorDesc::new(precision, &dimensions.dims, precision))
+        Ok(TensorDesc::new(layout, &dimensions.dims, precision))
     }
 
     /// Get the number of elements contained in the [Blob].

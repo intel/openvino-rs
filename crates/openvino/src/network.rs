@@ -4,12 +4,12 @@
 
 use crate::request::InferRequest;
 use crate::{cstr, drop_using_function, try_unsafe, util::Result};
+use crate::{Layout, Precision, ResizeAlgorithm};
 use openvino_sys::{
     ie_exec_network_create_infer_request, ie_exec_network_free, ie_executable_network_t,
     ie_network_free, ie_network_get_input_name, ie_network_get_output_name, ie_network_name_free,
     ie_network_set_input_layout, ie_network_set_input_precision,
-    ie_network_set_input_resize_algorithm, ie_network_set_output_precision, ie_network_t, layout_e,
-    precision_e, resize_alg_e,
+    ie_network_set_input_resize_algorithm, ie_network_set_output_precision, ie_network_t,
 };
 use std::ffi::CStr;
 
@@ -55,7 +55,7 @@ impl CNNNetwork {
     pub fn set_input_resize_algorithm(
         &mut self,
         input_name: &str,
-        algorithm: resize_alg_e,
+        algorithm: ResizeAlgorithm,
     ) -> Result<()> {
         try_unsafe!(ie_network_set_input_resize_algorithm(
             self.instance,
@@ -65,7 +65,7 @@ impl CNNNetwork {
     }
 
     /// Configure a layout for the input tensor at `input_name`.
-    pub fn set_input_layout(&mut self, input_name: &str, layout: layout_e) -> Result<()> {
+    pub fn set_input_layout(&mut self, input_name: &str, layout: Layout) -> Result<()> {
         try_unsafe!(ie_network_set_input_layout(
             self.instance,
             cstr!(input_name),
@@ -74,7 +74,7 @@ impl CNNNetwork {
     }
 
     /// Configure the precision for the input tensor at `input_name`.
-    pub fn set_input_precision(&mut self, input_name: &str, precision: precision_e) -> Result<()> {
+    pub fn set_input_precision(&mut self, input_name: &str, precision: Precision) -> Result<()> {
         try_unsafe!(ie_network_set_input_precision(
             self.instance,
             cstr!(input_name),
@@ -83,11 +83,7 @@ impl CNNNetwork {
     }
 
     /// Configure the precision for the output tensor at `output_name`.
-    pub fn set_output_precision(
-        &mut self,
-        output_name: &str,
-        precision: precision_e,
-    ) -> Result<()> {
+    pub fn set_output_precision(&mut self, output_name: &str, precision: Precision) -> Result<()> {
         try_unsafe!(ie_network_set_output_precision(
             self.instance,
             cstr!(output_name),

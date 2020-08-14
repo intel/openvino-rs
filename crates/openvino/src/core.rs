@@ -6,6 +6,7 @@ use crate::blob::Blob;
 use crate::network::{CNNNetwork, ExecutableNetwork};
 use crate::tensor_desc::TensorDesc;
 use crate::{cstr, drop_using_function, try_unsafe, util::Result};
+use crate::{Layout, Precision};
 use openvino_sys::{
     self, ie_config_t, ie_core_create, ie_core_free, ie_core_load_network, ie_core_read_network,
     ie_core_read_network_from_memory, ie_core_t,
@@ -55,11 +56,8 @@ impl Core {
         weights_content: &[u8],
     ) -> Result<CNNNetwork> {
         let mut instance = std::ptr::null_mut();
-        let weights_desc = TensorDesc::new(
-            openvino_sys::layout_e_ANY,
-            &[weights_content.len() as u64],
-            openvino_sys::precision_e_U8,
-        );
+        let weights_desc =
+            TensorDesc::new(Layout::ANY, &[weights_content.len() as u64], Precision::U8);
         let weights_blob = Blob::new(weights_desc, weights_content)?;
         try_unsafe!(ie_core_read_network_from_memory(
             self.instance,

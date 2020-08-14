@@ -1,4 +1,5 @@
-use openvino_sys::{dimensions_t, layout_e, precision_e, tensor_desc_t};
+use crate::{Layout, Precision};
+use openvino_sys::{dimensions_t, tensor_desc_t};
 
 /// See [TensorDesc](https://docs.openvinotoolkit.org/latest/classInferenceEngine_1_1TensorDesc.html).
 pub struct TensorDesc {
@@ -7,7 +8,7 @@ pub struct TensorDesc {
 
 impl TensorDesc {
     /// Construct a new [TensorDesc] from its C API components.
-    pub fn new(layout: layout_e, dimensions: &[u64], precision: precision_e) -> Self {
+    pub fn new(layout: Layout, dimensions: &[u64], precision: Precision) -> Self {
         // Setup dimensions.
         assert!(dimensions.len() < 8);
         let mut dims = [0; 8];

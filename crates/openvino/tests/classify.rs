@@ -6,7 +6,7 @@ mod fixture;
 use fixture::Fixture;
 use opencv;
 use opencv::core::{MatTrait, MatTraitManual};
-use openvino::{Blob, Core, TensorDesc};
+use openvino::{Blob, Core, Layout, Precision, ResizeAlgorithm, TensorDesc};
 
 #[test]
 fn classification() {
@@ -25,16 +25,14 @@ fn classification() {
 
     // Prepare inputs and outputs.
     network
-        .set_input_resize_algorithm(input_name, openvino_sys::resize_alg_e_RESIZE_BILINEAR)
+        .set_input_resize_algorithm(input_name, ResizeAlgorithm::RESIZE_BILINEAR)
+        .unwrap();
+    network.set_input_layout(input_name, Layout::NHWC).unwrap();
+    network
+        .set_input_precision(input_name, Precision::U8)
         .unwrap();
     network
-        .set_input_layout(input_name, openvino_sys::layout_e_NHWC)
-        .unwrap();
-    network
-        .set_input_precision(input_name, openvino_sys::precision_e_U8)
-        .unwrap();
-    network
-        .set_output_precision(output_name, openvino_sys::precision_e_FP32)
+        .set_output_precision(output_name, Precision::FP32)
         .unwrap();
 
     // Load the network.
@@ -49,14 +47,14 @@ fn classification() {
     )
     .unwrap();
     let desc = TensorDesc::new(
-        openvino_sys::layout_e_NHWC,
+        Layout::NHWC,
         &[
             1,
             mat.channels().unwrap() as u64,
             mat.size().unwrap().height as u64,
             mat.size().unwrap().width as u64, // TODO .try_into().unwrap()
         ], // {1, (size_t)img.mat_channels, (size_t)img.mat_height, (size_t)img.mat_width}
-        openvino_sys::precision_e_U8,
+        Precision::U8,
     );
 
     // Extract the OpenCV mat bytes and place them in an OpenVINO blob.
