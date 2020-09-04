@@ -35,9 +35,6 @@ mod tests {
 
     #[test]
     fn check_version() {
-        assert_eq!(
-            version(),
-            "2.1.custom_master_a0581d3d8f004c27d7ce118a91be18b7c8cafb87"
-        )
+        assert!(version().starts_with("2.1"),)
     }
 }
