@@ -13,8 +13,8 @@ classification in [classify.rs](../classify.rs). The following list describes ho
 
 - Using OpenVINO's [model-optimizer documentation], convert the model into OpenVINO IR (i.e. `frozen_inference_graph*`):
   ```shell script
-  pip install --user -r ../../upstream/model-optimizer/requirements_tf.txt 
-  ../../upstream/model-optimizer/mo_tf.py --input_model model/frozen_inference_graph.pb --transformations_config ../../upstream/model-optimizer/extensions/front/tf/ssd_v2_support.json --tensorflow_object_detection_api_pipeline_config model/pipeline.config 
+  pip install --user -r $OPENVINO_REPOSITORY/model-optimizer/requirements_tf.txt 
+  ../../upstream/model-optimizer/mo_tf.py --input_model model/frozen_inference_graph.pb --transformations_config $OPENVINO_REPOSITORY/model-optimizer/extensions/front/tf/ssd_v2_support.json --tensorflow_object_detection_api_pipeline_config model/pipeline.config 
   ```
 
 [model-optimizer documentation]: https://docs.openvinotoolkit.org/latest/_docs_MO_DG_prepare_model_convert_model_tf_specific_Convert_Object_Detection_API_Models.html
@@ -28,5 +28,19 @@ classification in [classify.rs](../classify.rs). The following list describes ho
 - Optionally, build the OpenVINO example classifier (i.e. `hello_classification`) and verify that the results match
 those in `example.rs`:
   ```shell script
-  ../../upstream/bin/intel64/Release/hello_classification frozen_inference_graph.xml val2017/000000231527.jpg CPU
+  $OPENVINO_REPOSITORY/bin/intel64/Release/hello_classification frozen_inference_graph.xml val2017/000000231527.jpg CPU
+  ```
+
+- The image must be decoded into a format OpenVINO understands. We could do this by importing the `opencv` Rust library
+but finicky build issues make this not so desirable. Instead, we decode the image manually here using ImageMagick:
+  ```shell script
+  # Possibly install ImageMagick, e.g.: dnf install ImageMagick
+  # Optionally examine the image to convert:
+  identify val2017/000000062808.jpg
+  # Convert the image. Note that we force the size and precision (i.e. depth) to match the input in 
+  # `frozen_inference_graph.xml` and note that the file extension is necessary for informing ImageMagick of the 
+  # encoding format:
+  convert val2017/000000062808.jpg tensor-1x3x640x481-u8.bgr
+  # Optionally examine the converted tensor:
+  identify -size "640x481" -depth 8 tensor-1x3x640x481-u8.bgr
   ```

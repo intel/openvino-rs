@@ -4,9 +4,8 @@
 mod fixture;
 
 use fixture::Fixture;
-use opencv;
-use opencv::core::{MatTrait, MatTraitManual};
 use openvino::{Blob, Core, Layout, Precision, ResizeAlgorithm, TensorDesc};
+use std::fs;
 
 #[test]
 fn classification() {
@@ -41,25 +40,39 @@ fn classification() {
     // TODO eventually, this should not panic: infer_request.set_batch_size(1).unwrap();
 
     // Read the image.
+    let tensor_data = fs::read(Fixture::tensor()).unwrap();
+    let tensor_desc = TensorDesc::new(Layout::NHWC, &[1, 3, 481, 640], Precision::U8);
+    let blob = Blob::new(tensor_desc, &tensor_data).unwrap();
+
+    // If opencv were available, this image could dynamically be read.
+    /*
+    use opencv;
+    use opencv::core::{MatTrait, MatTraitManual};
     let mat = opencv::imgcodecs::imread(
-        &*Fixture::image().to_string_lossy(),
+        "tests/fixture/val2017/000000062808.jpg",
         opencv::imgcodecs::IMREAD_COLOR,
     )
     .unwrap();
-    let desc = TensorDesc::new(
+    let mat_channels = mat.channels().unwrap();
+    assert_eq!(mat_channels, 3);
+    let mat_size = mat.size().unwrap();
+    assert_eq!(mat_size.height, 481);
+    assert_eq!(mat_size.width, 640);
+    let tensor_desc = TensorDesc::new(
         Layout::NHWC,
         &[
             1,
-            mat.channels().unwrap() as u64,
-            mat.size().unwrap().height as u64,
-            mat.size().unwrap().width as u64, // TODO .try_into().unwrap()
-        ], // {1, (size_t)img.mat_channels, (size_t)img.mat_height, (size_t)img.mat_width}
+            mat_channels as u64,
+            mat_size.height as u64,
+            mat_size.width as u64,
+        ],
         Precision::U8,
     );
-
     // Extract the OpenCV mat bytes and place them in an OpenVINO blob.
-    let data = unsafe { std::slice::from_raw_parts(mat.data().unwrap() as *const u8, desc.len()) };
-    let blob = Blob::new(desc, data).unwrap();
+    let tensor_data =
+        unsafe { std::slice::from_raw_parts(mat.data().unwrap() as *const u8, tensor_desc.len()) };
+    let blob = Blob::new(tensor_desc, tensor_data).unwrap();
+     */
 
     // Execute inference.
     infer_request.set_blob(input_name, blob).unwrap();

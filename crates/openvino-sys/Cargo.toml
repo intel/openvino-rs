@@ -6,7 +6,7 @@ edition = "2018"
 links = "inference_engine_c_api"
 
 [build-dependencies]
-bindgen = "0.54.1"
+bindgen = "0.55.1"
 cmake = "0.1.44"
 
 [features]

@@ -7,8 +7,3 @@ edition = "2018"
 [dependencies]
 openvino-sys = { path = "../openvino-sys", version = "0.1.0" }
 thiserror = "1.0.20"
-
-[dev-dependencies]
-# FIXME The features below are too system-specific, see https://github.com/twistedfall/opencv-rust; this library
-# is only used in testing OpenVINO classification of image files.
-opencv = {version = "0.43", default-features = false, features = ["opencv-34", "buildtime-bindgen", "clang-runtime"]}

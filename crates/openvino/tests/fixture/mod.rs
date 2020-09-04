@@ -16,7 +16,7 @@ impl Fixture {
     pub fn weights() -> PathBuf {
         Fixture::dir().join("frozen_inference_graph.bin")
     }
-    pub fn image() -> PathBuf {
-        Fixture::dir().join("val2017/000000062808.jpg")
+    pub fn tensor() -> PathBuf {
+        Fixture::dir().join("tensor-1x3x640x481-u8.bgr")
     }
 }
