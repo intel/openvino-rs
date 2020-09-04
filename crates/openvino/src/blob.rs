@@ -82,10 +82,14 @@ impl Blob {
         let mut buffer = Blob::empty_buffer();
         try_unsafe!(ie_blob_get_buffer(self.instance, &mut buffer as *mut _))?;
 
-        let size = self.len()?;
+        // This is very unsafe, but very convenient: by allowing users to specify T, they can
+        // retrieve the buffer in whatever shape they prefer. But we must ensure that they cannot
+        // read too many bytes, so we manually calculate the resulting slice `size`.
+        let size = self.byte_len()? / std::mem::size_of::<T>();
         let slice = unsafe {
             std::slice::from_raw_parts_mut(buffer.__bindgen_anon_1.buffer as *mut T, size)
         };
+
         Ok(slice)
     }
 
@@ -100,5 +104,44 @@ impl Blob {
                 buffer: std::ptr::null_mut(),
             },
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic]
+    fn invalid_blob_size() {
+        let desc = TensorDesc::new(Layout::NHWC, &[1, 2, 2, 2], Precision::U8);
+        // Blob should be 1x2x2x2 = 8 bytes but we pass in 7 bytes:
+        let _ = Blob::new(desc, &[0; 7]).unwrap();
+    }
+
+    #[test]
+    fn buffer_conversion() {
+        const LEN: usize = 200 * 100;
+        let desc = TensorDesc::new(Layout::HW, &[200, 100], Precision::U16);
+
+        // Provide a u8 slice to create a u16 blob (twice as many items).
+        let mut blob = Blob::new(desc, &[0; LEN * 2]).unwrap();
+
+        assert_eq!(blob.len().unwrap(), LEN);
+        assert_eq!(
+            blob.byte_len().unwrap(),
+            LEN * 2,
+            "we should have twice as many bytes (u16 = u8 * 2)"
+        );
+        assert_eq!(
+            blob.buffer::<u8>().unwrap().len(),
+            LEN * 2,
+            "we should have twice as many items (u16 = u8 * 2)"
+        );
+        assert_eq!(
+            blob.buffer::<f32>().unwrap().len(),
+            LEN / 2,
+            "we should have half as many items (u16 = f32 / 2)"
+        );
     }
 }
