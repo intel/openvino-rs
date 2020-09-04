@@ -1,6 +1,6 @@
 # openvino-rs
 
-[![Build Status](https://github.com/abrown/openvino-rs/workflows/Rust/badge.svg)][ci]
+[![Build Status](https://github.com/abrown/openvino-rs/workflows/CI/badge.svg)][ci]
 [![Documentation Status](https://docs.rs/openvino-rs/badge.svg)][docs]
 
 This repository exposes both [low-level bindings][openvino-sys] and [high-level, ergonomic, Rust bindings][openvino] for 
@@ -10,7 +10,7 @@ OpenVINO.
 [openvino]: crates/openvino
 [upstream]: crates/openvino-sys/upstream
 [docs]: https://docs.rs/openvino-rs
-[ci]: https://github.com/abrown/openvino-rs/actions?query=workflow%3ARust
+[ci]: https://github.com/abrown/openvino-rs/actions?query=workflow%3ACI
 
 
 ### Prerequisites
