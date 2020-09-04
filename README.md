@@ -20,7 +20,7 @@ The [openvino-sys] crate creates bindings to the OpenVINO C API using `bindgen`;
 
 
 
-### Build From OpenVINO Installation
+### Build from an OpenVINO installation
 
 ```shell script
 git submodule update --init --recursive
