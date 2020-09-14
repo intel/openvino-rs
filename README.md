@@ -3,13 +3,13 @@
 [![Build Status](https://github.com/abrown/openvino-rs/workflows/CI/badge.svg)][ci]
 [![Documentation Status](https://docs.rs/openvino-rs/badge.svg)][docs]
 
-This repository exposes both [low-level bindings][openvino-sys] and [high-level, ergonomic, Rust bindings][openvino] for 
-OpenVINO.
+This repository contains the [openvino-sys] crate (low-level, unsafe bindings) and the [openvino] crate (high-level, 
+ergonomic bindings) for accessing OpenVINO functionality in Rust.
 
 [openvino-sys]: crates/openvino-sys
 [openvino]: crates/openvino
 [upstream]: crates/openvino-sys/upstream
-[docs]: https://docs.rs/openvino-rs
+[docs]: https://docs.rs/openvino
 [ci]: https://github.com/abrown/openvino-rs/actions?query=workflow%3ACI
 
 
