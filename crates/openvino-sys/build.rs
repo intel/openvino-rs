@@ -89,8 +89,9 @@ fn main() {
         visit_dirs(&tbb_libraries, &|from: PathBuf| {
             let to = openvino_libraries.join(from.file_name().unwrap());
             println!("Copying {} to {}", from.display(), to.display());
-            std::fs::copy(from, to);
-        });
+            std::fs::copy(from, to).expect("failed copying TBB libraries");
+        })
+        .expect("failed visiting TBB directory");
 
         vec![openvino_libraries]
     };
@@ -166,26 +167,22 @@ fn add_runtime_library_paths(paths: &[PathBuf]) {
 
 /// Canonicalize a path as well as verify that it exists.
 fn file<P: AsRef<Path>>(path: P) -> PathBuf {
-    let canonicalized = path
-        .as_ref()
-        .canonicalize()
-        .expect("to be able to canonicalize the path");
-    if !canonicalized.exists() || !canonicalized.is_file() {
-        panic!("Unable to find file: {}", canonicalized.display())
+    let path = path.as_ref();
+    if !path.exists() || !path.is_file() {
+        panic!("Unable to find file: {}", path.display())
     }
-    canonicalized
+    path.canonicalize()
+        .expect("to be able to canonicalize the path")
 }
 
 /// Canonicalize a path as well as verify that it exists.
 fn dir<P: AsRef<Path>>(path: P) -> PathBuf {
-    let canonicalized = path
-        .as_ref()
-        .canonicalize()
-        .expect("to be able to canonicalize the path");
-    if !canonicalized.exists() || !canonicalized.is_dir() {
-        panic!("Unable to find directory: {}", canonicalized.display())
+    let path = path.as_ref();
+    if !path.exists() || !path.is_dir() {
+        panic!("Unable to find directory: {}", path.display())
     }
-    canonicalized
+    path.canonicalize()
+        .expect("to be able to canonicalize the path")
 }
 
 /// Helper for recursively visiting the files in this directory; see https://doc.rust-lang.org/std/fs/fn.read_dir.html.
