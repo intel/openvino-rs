@@ -1,7 +1,11 @@
 [package]
 name = "openvino"
 version = "0.1.0"
-authors = ["Andrew Brown <andrew.brown@intel.com>"]
+license = "Apache-2.0"
+description = "High-level bindings for OpenVINO."
+authors = ["OpenVINO Project Developers"]
+repository = "https://github.com/openvinotoolkit/openvino-rs"
+documentation = "https://docs.rs/openvino"
 edition = "2018"
 
 [dependencies]
