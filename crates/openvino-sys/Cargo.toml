@@ -10,6 +10,7 @@ edition = "2018"
 exclude = [
     "upstream/bin",
     "upstream/build",
+    "upstream/inference-engine/temp",
     "upstream/ngraph/test/models/tensorflow", # This directory contains unused models with names too long for Cargo to package.
 ]
 # Note: OpenVINO downloads dependendies during its CMake build which change files outside of OUT_DIR; this means the crate must be published with --no-verify.
