@@ -1,13 +1,18 @@
 [package]
 name = "openvino"
-version = "0.1.0"
+version = "0.1.5"
 license = "Apache-2.0"
 description = "High-level bindings for OpenVINO."
+readme = "README.md"
 authors = ["OpenVINO Project Developers"]
-repository = "https://github.com/openvinotoolkit/openvino-rs"
+repository = "https://github.com/abrown/openvino-rs"
 documentation = "https://docs.rs/openvino"
 edition = "2018"
+exclude = [
+    "/tests"
+]
+
 
 [dependencies]
-openvino-sys = { path = "../openvino-sys", version = "0.1.0" }
+openvino-sys = { path = "../openvino-sys", version = "0.1.5" }
 thiserror = "1.0.20"

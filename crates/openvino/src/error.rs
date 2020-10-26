@@ -29,14 +29,14 @@ pub enum InferenceError {
     InferNotStarted,
     #[error("network not ready")]
     NetworkNotReady,
-    #[error("undefined")]
-    Undefined,
+    #[error("undefined error code: {0}")]
+    Undefined(i32),
 }
 
 impl InferenceError {
-    pub fn from(e: i32) -> Result<(), InferenceError> {
+    pub fn from(error_code: i32) -> Result<(), InferenceError> {
         use InferenceError::*;
-        match e {
+        match error_code {
             openvino_sys::IEStatusCode_OK => Ok(()),
             openvino_sys::IEStatusCode_GENERAL_ERROR => Err(GeneralError),
             openvino_sys::IEStatusCode_NOT_IMPLEMENTED => Err(NotImplemented),
@@ -50,7 +50,7 @@ impl InferenceError {
             openvino_sys::IEStatusCode_NOT_ALLOCATED => Err(NotAllocated),
             openvino_sys::IEStatusCode_INFER_NOT_STARTED => Err(InferNotStarted),
             openvino_sys::IEStatusCode_NETWORK_NOT_READ => Err(NetworkNotReady),
-            _ => Err(Undefined),
+            _ => Err(Undefined(error_code)),
         }
     }
 }

@@ -5,10 +5,10 @@ pub struct Fixture;
 #[allow(dead_code)]
 impl Fixture {
     fn dir() -> PathBuf {
-        // This seems a bit brittle but works better than `PathBuf::from(file!()).parent()` which is
-        // relative to the workspace; when the integration tests are run they are run in the
-        // `crates/openvino` directory.
-        PathBuf::from("tests/fixture").canonicalize().unwrap()
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixture")
+            .canonicalize()
+            .unwrap()
     }
     pub fn graph() -> PathBuf {
         Fixture::dir().join("frozen_inference_graph.xml")

@@ -19,9 +19,12 @@ RUN wget https://apt.repos.intel.com/openvino/2020/GPG-PUB-KEY-INTEL-OPENVINO-20
 # Install build dependencies (for bindgen).
 RUN apt install -y clang libclang-dev
 
-# Build openvino libraries.
+# Copy in OpenVINO source
 WORKDIR /usr/src/openvino
 COPY . .
+
+# Build openvino libraries.
+WORKDIR /usr/src/openvino/inference-engine/ie_bridges/rust
 RUN OPENVINO_INSTALL_DIR=/opt/intel/openvino cargo build -vv
 
 # Test; note that we need to setup the library paths before using them since the OPENVINO_INSTALL_DIR can only affect
