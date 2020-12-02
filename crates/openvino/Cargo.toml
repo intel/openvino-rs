@@ -16,3 +16,6 @@ exclude = [
 [dependencies]
 openvino-sys = { path = "../openvino-sys", version = "0.1.5" }
 thiserror = "1.0.20"
+
+[dev-dependencies]
+float-cmp = "0.8"

@@ -19,6 +19,9 @@ RUN wget https://apt.repos.intel.com/openvino/2020/GPG-PUB-KEY-INTEL-OPENVINO-20
 # Install build dependencies (for bindgen).
 RUN apt install -y clang libclang-dev
 
+# Install OpenCV (for openvino-tensor-converter).
+RUN apt install -y libopencv-dev libopencv-core3.2
+
 # Copy in OpenVINO source
 WORKDIR /usr/src/openvino
 COPY . .

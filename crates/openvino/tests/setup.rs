@@ -1,7 +1,7 @@
 //! These tests demonstrate how to setup OpenVINO networks.
-mod fixture;
+mod fixtures;
 
-use fixture::Fixture;
+use fixtures::alexnet::Fixture;
 use openvino::Core;
 use std::fs;
 

@@ -1,0 +1,14 @@
+[package]
+name = "openvino-tensor-converter"
+version = "0.1.0"
+authors = ["OpenVINO Project Developers"]
+edition = "2018"
+publish = false
+
+[dependencies]
+log = "0.4"
+pretty_env_logger = "0.4"
+structopt = { version = "0.3", default-features = false }
+# Note: the features below are very system-specific, see https://github.com/twistedfall/opencv-rust.
+opencv = {version = "0.45", default-features = false, features = ["opencv-32", "buildtime-bindgen", "clang-runtime"]}
+
