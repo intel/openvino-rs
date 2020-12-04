@@ -1,11 +1,11 @@
 [package]
 name = "openvino"
-version = "0.1.5"
+version = "0.1.6"
 license = "Apache-2.0"
 description = "High-level bindings for OpenVINO."
 readme = "README.md"
 authors = ["OpenVINO Project Developers"]
-repository = "https://github.com/abrown/openvino-rs"
+repository = "https://github.com/intel/openvino-rs"
 documentation = "https://docs.rs/openvino"
 edition = "2018"
 exclude = [

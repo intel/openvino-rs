@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# This script publishes the OpenVINO crates; it depends on having logged in to Cargo with `cargo login`.
+# This script publishes the OpenVINO crates; it depends on having logged in to Cargo with `cargo
+# login`.
 set -e
 PROJECT_DIR=$(dirname "$0" | xargs dirname)
 

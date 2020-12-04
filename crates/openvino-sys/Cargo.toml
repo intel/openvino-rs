@@ -1,11 +1,11 @@
 [package]
 name = "openvino-sys"
-version = "0.1.5"
+version = "0.1.6"
 license = "Apache-2.0"
 description = "Low-level bindings for OpenVINO (use the `openvino` crate for easier-to-use bindings)."
 readme = "README.md"
 authors = ["OpenVINO Project Developers"]
-repository = "https://github.com/abrown/openvino-rs"
+repository = "https://github.com/intel/openvino-rs"
 documentation = "https://docs.rs/openvino-sys"
 edition = "2018"
 include = [
