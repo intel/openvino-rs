@@ -16,11 +16,11 @@
 set -e
 PROJECT_DIR=$(dirname "$0" | xargs dirname)
 DRY_RUN=${DRY_RUN:-0}
-if [ $DRY_RUN ]; then
+if [[ "$DRY_RUN" != 0 ]]; then
   CARGO_WORKSPACE_OPTIONS="--no-git-commit"
   CARGO_PUBLISH_OPTIONS="--dry-run --allow-dirty"
 else
-  CARGO_WORKSPACE_OPTIONS="--no-git-push"
+  CARGO_WORKSPACE_OPTIONS="--no-git-commit"
   CARGO_PUBLISH_OPTIONS=""
 fi
 
@@ -53,10 +53,12 @@ if [ $(get_version openvino) != $(get_version openvino-sys) ]; then
 fi
 
 # Update the use of openvino-sys as a dependency to the latest version.
-sed -i "s/openvino-sys .* version = \"\([0-9.]*\)\".*/openvino-sys = { path = \"..\/openvino-sys\", version = \"$(get_version openvino)\" }/g" crates/openvino/Cargo.toml
+VERSION=$(get_version openvino)
+sed -i "s/openvino-sys .* version = \"\([0-9.]*\)\".*/openvino-sys = { path = \"..\/openvino-sys\", version = \"$VERSION\" }/g" crates/openvino/Cargo.toml
 cargo fetch
 if [[ "$DRY_RUN" == 0 ]]; then
-  git commit --amend
+  git commit -a -m "Release v$VERSION"
+  git tag v$VERSION
 fi
 
 # Check that openvino-sys is used with the latest version.
@@ -74,5 +76,5 @@ sleep 10
 publish openvino
 
 echo ""
-echo "Successfully published version $(get_version openvino)"
+echo "Successfully published version $VERSION"
 echo "Do not forget to check the 'git log' and pushing the version commit and tags with 'git push && git push --tags'"
