@@ -61,6 +61,19 @@ can be quite slow and there are quite a few dependencies. Some notes:
 
 
 
+### Build without linking to OpenVINO™
+
+```shell script
+OPENVINO_SKIP_LINKING=1 cargo build -vv
+```
+
+In some environments it may be necessary to build the [openvino-sys] crate without linking to the
+OpenVINO libraries (e.g. for *docs.rs* builds). In these cases, use the `OPENVINO_SKIP_LINKING`
+environment variable to skip linking entirely. The compiled crate will likely not work as expected
+(e.g., for inference), but it should build.
+
+
+
 ### Use
 
 After building:
