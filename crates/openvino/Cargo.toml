@@ -12,9 +12,8 @@ exclude = [
     "/tests"
 ]
 
-
 [dependencies]
-openvino-sys = { path = "../openvino-sys", version = "0.1.5" }
+openvino-sys = { path = "../openvino-sys", version = "0.1.6" }
 thiserror = "1.0.20"
 
 [dev-dependencies]
