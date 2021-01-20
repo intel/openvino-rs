@@ -1,6 +1,6 @@
 # openvino-rs
 
-[![Build Status](https://github.com/abrown/openvino-rs/workflows/CI/badge.svg)][ci]
+[![Build Status](https://github.com/intel/openvino-rs/workflows/CI/badge.svg)][ci]
 [![Documentation Status](https://docs.rs/openvino/badge.svg)][docs]
 
 This repository contains the [openvino-sys] crate (low-level, unsafe bindings) and the [openvino] crate (high-level, 
