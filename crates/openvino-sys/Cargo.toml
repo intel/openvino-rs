@@ -1,6 +1,6 @@
 [package]
 name = "openvino-sys"
-version = "0.1.7"
+version = "0.1.8"
 license = "Apache-2.0"
 description = "Low-level bindings for OpenVINO (use the `openvino` crate for easier-to-use bindings)."
 readme = "README.md"

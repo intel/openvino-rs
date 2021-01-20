@@ -315,7 +315,7 @@ dependencies = [
 
 [[package]]
 name = "openvino"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "float-cmp",
  "openvino-sys",
@@ -324,7 +324,7 @@ dependencies = [
 
 [[package]]
 name = "openvino-sys"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "bindgen",
  "cmake",
