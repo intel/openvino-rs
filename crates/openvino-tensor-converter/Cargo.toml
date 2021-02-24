@@ -11,4 +11,3 @@ pretty_env_logger = "0.4"
 structopt = { version = "0.3", default-features = false }
 # Note: the features below are very system-specific, see https://github.com/twistedfall/opencv-rust.
 opencv = {version = "0.45", default-features = false, features = ["opencv-32", "buildtime-bindgen", "clang-runtime"]}
-
