@@ -32,7 +32,7 @@ unzip -Z1 val2017.zip | head -n 10 | xargs unzip val2017.zip
 popd
 
 # Convert an image to raw tensor format
-cargo run -p openvino-tensor-converter $TMP_DIR/val2017/000000062808.jpg $FIXTURE_DIR/tensor-1x3x640x481-u8.bgr 481x640x3xu8
+cargo run -p openvino-tensor-converter -- $TMP_DIR/val2017/000000062808.jpg $FIXTURE_DIR/tensor-1x3x640x481-u8.bgr 481x640x3xu8
 
 # Clean up.
-#rm -rf $TMP_DIR
+rm -rf $TMP_DIR
