@@ -11,23 +11,19 @@ PYTHON=${PYTHON:-python3}
 pushd $TMP_DIR
 
 # Retrieve the Inception model from the TensorFlow 
-wget --no-clobber https://storage.googleapis.com/download.tensorflow.org/models/inception_v3_2016_08_28_frozen.pb.tar.gz
-tar xzvf inception_*.tar.gz
+wget --no-clobber http://download.tensorflow.org/models/object_detection/ssd_inception_v2_coco_2018_01_28.tar.gz
+tar xzvf ssd_*.tar.gz
+ln -sf ssd_inception_v2_coco_2018_01_28 model
 
-# Convert the model to OpenVINO IR using the model-optimizer; see
-# https://github.com/openvinotoolkit/open_model_zoo/blob/master/models/public/googlenet-v3/model.yml.
+# Convert the model to OpenVINO IR using the model-optimizer.
 pip install --user -r $OPENVINO_DIR/model-optimizer/requirements_tf.txt 
 $PYTHON $OPENVINO_DIR/model-optimizer/mo_tf.py \
-  --reverse_input_channels \
-  --input_shape=[1,299,299,3] \
-  --input=input \
-  --mean_values=input[127.5,127.5,127.5] \
-  --scale_values=input[127.5] \
-  --output=InceptionV3/Predictions/Softmax \
-  --input_model=inception_v3_2016_08_28_frozen.pb
-cp $TMP_DIR/inception_v3_2016_08_28_frozen.bin $FIXTURE_DIR/inception.bin
-cp $TMP_DIR/inception_v3_2016_08_28_frozen.mapping $FIXTURE_DIR/inception.mapping
-cp $TMP_DIR/inception_v3_2016_08_28_frozen.xml $FIXTURE_DIR/inception.xml
+  --input_model model/frozen_inference_graph.pb \
+  --transformations_config $OPENVINO_DIR/model-optimizer/extensions/front/tf/ssd_v2_support.json \
+  --tensorflow_object_detection_api_pipeline_config model/pipeline.config 
+cp $TMP_DIR/frozen_inference_graph.bin $FIXTURE_DIR/inception-ssd.bin
+cp $TMP_DIR/frozen_inference_graph.mapping $FIXTURE_DIR/inception-ssd.mapping
+cp $TMP_DIR/frozen_inference_graph.xml $FIXTURE_DIR/inception-ssd.xml
 
 # Retrieve the first 10 images of the COCO dataset.
 wget --no-clobber http://images.cocodataset.org/zips/val2017.zip
@@ -36,7 +32,7 @@ unzip -Z1 val2017.zip | head -n 10 | xargs unzip val2017.zip
 popd
 
 # Convert an image to raw tensor format
-cargo run -p openvino-tensor-converter -- $TMP_DIR/val2017/000000062808.jpg $FIXTURE_DIR/tensor-1x3x299x299-fp32.bgr 299x299x3xfp32
+cargo run -p openvino-tensor-converter -- $TMP_DIR/val2017/000000062808.jpg $FIXTURE_DIR/tensor-1x3x640x481-u8.bgr 481x640x3xu8
 
 # Clean up.
 rm -rf $TMP_DIR
