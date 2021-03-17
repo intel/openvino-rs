@@ -17,6 +17,6 @@ impl Fixture {
         Fixture::dir().join("inception.bin")
     }
     pub fn tensor() -> PathBuf {
-        Fixture::dir().join("tensor-1x3x299x299-fp32.bgr")
+        Fixture::dir().join("tensor-1x3x299x299-f32.bgr")
     }
 }
