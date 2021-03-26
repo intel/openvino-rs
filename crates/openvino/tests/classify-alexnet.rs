@@ -1,11 +1,12 @@
 //! Demonstrates using `openvino-rs` to classify an image using an AlexNet model and a prepared input tensor. See
 //! [README](fixtures/alexnet/README.md) for details on how this test fixture was prepared.
 mod fixtures;
+mod util;
 
 use fixtures::alexnet::Fixture;
-use float_cmp::approx_eq;
 use openvino::{Blob, Core, Layout, Precision, TensorDesc};
 use std::fs;
+use util::{Prediction, Predictions};
 
 #[test]
 fn classify_alexnet() {
@@ -38,20 +39,20 @@ fn classify_alexnet() {
     let buffer = unsafe { results.buffer_mut_as_type::<f32>().unwrap().to_vec() };
 
     // Sort results.
-    let mut results: Results = buffer
+    let mut results: Predictions = buffer
         .iter()
         .enumerate()
-        .map(|(c, p)| Result(c, *p))
+        .map(|(c, p)| Prediction::new(c, *p))
         .collect();
-    results.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+    results.sort();
 
-    // Compare results using approximate FP comparisons; annotated with classification tag from
+    // Compare results using approximate FP comparisons; annotated with classification tags from
     // https://gist.github.com/yrevar/942d3a0ac09ec9e5eb3a.
-    results[0].assert_approx_eq(&Result(963, 0.5321184)); // pizza
-    results[1].assert_approx_eq(&Result(923, 0.1050855)); // plate
-    results[2].assert_approx_eq(&Result(926, 0.1022315)); // hot pot
-    results[3].assert_approx_eq(&Result(909, 0.0614674)); // wok
-    results[4].assert_approx_eq(&Result(762, 0.0549604)); // restaurant
+    results[0].assert_approx_eq((963, 0.5321184)); // pizza
+    results[1].assert_approx_eq((923, 0.1050855)); // plate
+    results[2].assert_approx_eq((926, 0.1022315)); // hot pot
+    results[3].assert_approx_eq((909, 0.0614674)); // wok
+    results[4].assert_approx_eq((762, 0.0549604)); // restaurant
 
     // This above results match the output of running OpenVINO's `hello_classification` with the same inputs:
     // $ bin/intel64/Debug/hello_classification /tmp/alexnet/bvlc_alexnet.xml /tmp/alexnet/val2017/000000062808.jpg CPU
@@ -69,26 +70,4 @@ fn classify_alexnet() {
     // 118     0.0143028
     // 935     0.0130160
     // 965     0.0094148
-}
-
-/// A structure for holding the `(category, probability)` pair extracted from the output tensor of
-/// the OpenVINO classification.
-#[derive(Debug, PartialEq)]
-struct Result(usize, f32);
-type Results = Vec<Result>;
-
-impl Result {
-    fn assert_approx_eq(&self, expected: &Result) {
-        assert_eq!(
-            self.0, expected.0,
-            "Expected class ID {} but found {}",
-            expected.0, self.0
-        );
-        let approx_matches = approx_eq!(f32, self.1, expected.1, ulps = 2, epsilon = 0.01);
-        assert!(
-            approx_matches,
-            "Expected probability {} but found {} (outside of tolerance)",
-            expected.1, self.1
-        );
-    }
 }
