@@ -1,10 +1,12 @@
 //! Demonstrates using `openvino-rs` to classify an image using an Inception SSD model and a prepared input tensor. See
 //! [README](fixtures/inception/README.md) for details on how this test fixture was prepared.
 mod fixtures;
+mod util;
 
 use fixtures::inception::Fixture;
-use openvino::{Blob, Core, Layout, Precision, ResizeAlgorithm, TensorDesc};
+use openvino::{Blob, Core, Layout, Precision, TensorDesc};
 use std::fs;
+use util::{Prediction, Predictions};
 
 #[test]
 fn classify_inception() {
@@ -37,23 +39,19 @@ fn classify_inception() {
     let buffer = unsafe { results.buffer_mut_as_type::<f32>().unwrap().to_vec() };
 
     // Sort results.
-    let mut results: Results = buffer
+    let mut results: Predictions = buffer
         .iter()
         .enumerate()
-        .map(|(c, p)| Result(c, *p))
+        .map(|(c, p)| Prediction::new(c, *p))
         .collect();
-    results.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+    results.sort();
 
-    assert_eq!(
-        &results[..5],
-        &[
-            Result(964, 0.9648312),
-            Result(763, 0.0015633557),
-            Result(412, 0.0007776478),
-            Result(814, 0.0006391522),
-            Result(924, 0.0006150733),
-        ][..]
-    )
+    // Note that these results appear to be off-by-one: pizza should be ID 963.
+    results[0].assert_approx_eq((964, 0.9648312));
+    results[1].assert_approx_eq((763, 0.0015633557));
+    results[2].assert_approx_eq((412, 0.0007776478));
+    results[3].assert_approx_eq((814, 0.0006391522));
+    results[4].assert_approx_eq((924, 0.0006150733));
 
     // The results above almost match the output of OpenVINO's `hello_classification` with similar
     // inputs:
@@ -73,9 +71,3 @@ fn classify_inception() {
     // 927     0.0003644
     // 923     0.0002908
 }
-
-/// A structure for holding the `(category, probability)` pair extracted from the output tensor of
-/// the OpenVINO classification.
-#[derive(Debug, PartialEq)]
-struct Result(usize, f32);
-type Results = Vec<Result>;

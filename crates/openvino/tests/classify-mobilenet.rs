@@ -2,11 +2,12 @@
 //! input tensor. See [README](fixtures/inception/README.md) for details on how this test fixture
 //! was prepared.
 mod fixtures;
+mod util;
 
 use fixtures::mobilenet::Fixture;
-use float_cmp::approx_eq;
 use openvino::{Blob, Core, Layout, Precision, TensorDesc};
 use std::fs;
+use util::{Prediction, Predictions};
 
 #[test]
 fn classify_mobilenet() {
@@ -41,21 +42,21 @@ fn classify_mobilenet() {
     // Sort results. It is unclear why the MobileNet output indices are "off by one" but the
     // `.skip(1)` below seems necessary to get results that make sense (e.g. 763 = "revolver" vs 762
     // = "restaurant").
-    let mut results: Results = buffer
+    let mut results: Predictions = buffer
         .iter()
         .skip(1)
         .enumerate()
-        .map(|(c, p)| Result(c, *p))
+        .map(|(c, p)| Prediction::new(c, *p))
         .collect();
-    results.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+    results.sort();
 
-    // Compare results using approximate FP comparisons; annotated with classification tag from
+    // Compare results using approximate FP comparisons; annotated with classification tags from
     // https://gist.github.com/yrevar/942d3a0ac09ec9e5eb3a.
-    results[0].assert_approx_eq(&Result(963, 0.7134405)); // pizza
-    results[1].assert_approx_eq(&Result(762, 0.0715866)); // restaurant
-    results[2].assert_approx_eq(&Result(909, 0.0360171)); // wok
-    results[3].assert_approx_eq(&Result(926, 0.0160412)); // hot pot
-    results[4].assert_approx_eq(&Result(567, 0.0152781)); // frying pan
+    results[0].assert_approx_eq((963, 0.7134405)); // pizza
+    results[1].assert_approx_eq((762, 0.0715866)); // restaurant
+    results[2].assert_approx_eq((909, 0.0360171)); // wok
+    results[3].assert_approx_eq((926, 0.0160412)); // hot pot
+    results[4].assert_approx_eq((567, 0.0152781)); // frying pan
 
     // This above results almost match (see "off by one" comment above) the output of running
     // OpenVINO's `hello_classification` with the same inputs:
@@ -73,26 +74,4 @@ fn classify_mobilenet() {
     // 468     0.0073142
     // 965     0.0058377
     // 545     0.0043731
-}
-
-/// A structure for holding the `(category, probability)` pair extracted from the output tensor of
-/// the OpenVINO classification.
-#[derive(Debug, PartialEq)]
-struct Result(usize, f32);
-type Results = Vec<Result>;
-
-impl Result {
-    fn assert_approx_eq(&self, expected: &Result) {
-        assert_eq!(
-            self.0, expected.0,
-            "Expected class ID {} but found {}",
-            expected.0, self.0
-        );
-        let approx_matches = approx_eq!(f32, self.1, expected.1, ulps = 2, epsilon = 0.01);
-        assert!(
-            approx_matches,
-            "Expected probability {} but found {} (outside of tolerance)",
-            expected.1, self.1
-        );
-    }
 }
