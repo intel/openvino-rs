@@ -1,7 +1,7 @@
 # This Dockerfile demonstrates how to build the openvino bindings using an installation of OpenVINO. For instructions
 # to install OpenVINO see the OpenVINO documentation, e.g.
 # https://docs.openvinotoolkit.org/latest/openvino_docs_install_guides_installing_openvino_apt.html.
-FROM rust:1.45
+FROM rust:1.50
 
 # Setup Rust.
 RUN rustup component add rustfmt
@@ -25,6 +25,9 @@ RUN apt install -y libopencv-dev libopencv-core3.2
 # Copy in OpenVINO source
 WORKDIR /usr/src/openvino
 COPY . .
+
+# Hack to allow the opencv crate to build with an older version of the OpenCV libraries (FIXME).
+RUN sed -i 's/"opencv-4"/"opencv-32"/g' crates/openvino-tensor-converter/Cargo.toml
 
 # Build openvino libraries.
 WORKDIR /usr/src/openvino/inference-engine/ie_bridges/rust

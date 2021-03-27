@@ -22,7 +22,7 @@ jobs:
 
   build:
     name: Build from OpenVINO source
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
       with:
@@ -31,7 +31,7 @@ jobs:
     - name: Checkout LFS obects
       run: git lfs checkout
     - name: Install system dependencies
-      run: sudo apt update && sudo apt install -y clang cmake libclang-dev gnupg2 libdrm2 libglib2.0-0 libusb-1.0 lsb-release libgtk-3-0 libtool libopencv-dev libopencv-core3.2 udev unzip dos2unix
+      run: sudo apt update && sudo apt install -y clang cmake libclang-dev gnupg2 libdrm2 libglib2.0-0 libusb-1.0-0-dev lsb-release libgtk-3-0 libtool libopencv-dev libopencv-core4.2 udev unzip dos2unix
     - name: Build (openvino-sys from source)
       run: cargo build --verbose
     - name: Run tests
