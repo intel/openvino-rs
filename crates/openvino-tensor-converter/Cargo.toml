@@ -9,5 +9,6 @@ publish = false
 log = "0.4"
 pretty_env_logger = "0.4"
 structopt = { version = "0.3", default-features = false }
-# Note: the features below are very system-specific, see https://github.com/twistedfall/opencv-rust.
-opencv = {version = "0.45", default-features = false, features = ["opencv-32", "buildtime-bindgen", "clang-runtime"]}
+# Note: by default this will attempt to find a 4.x version of OpenCV libraries (e.g.
+# `libopencv-dev`).
+opencv = {version = "0.49", default-features = false, features = ["opencv-4", "buildtime-bindgen", "clang-runtime"]}
