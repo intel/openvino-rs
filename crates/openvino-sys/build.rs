@@ -189,8 +189,12 @@ fn build_from_source_using_cmake() -> Vec<PathBuf> {
             .define("NGRAPH_ONNX_IMPORT_ENABLE", "ON")
             .define("ENABLE_OPENCV", "OFF")
             .define("ENABLE_CPPLINT", "OFF")
-            // Because OpenVINO by default wants to build its binaries in its own tree, we must specify
-            // that we actually want them in Cargo's output directory.
+            // As described in https://github.com/intel/openvino-rs/issues/8, the OpenVINO source
+            // includes redundant moves. These were previously warnings but newer compilers treat
+            // them as errors.
+            .cxxflag("-Wno-error=redundant-move")
+            // Because OpenVINO by default wants to build its binaries in its own tree, we must
+            // specify that we actually want them in Cargo's output directory.
             .define("OUTPUT_ROOT", out_dir);
         config
     }
