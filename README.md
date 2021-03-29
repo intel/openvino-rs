@@ -67,7 +67,8 @@ cargo test
 ```
 
 [openvino] and [openvino-sys] can also be built directly from OpenVINO™'s source code using CMake.
-This build process can be quite slow and there are quite a few dependencies. Some notes:
+This is not tested across all OS and OpenVINO™ versions--use at your own risk! Also, this build
+process can be quite slow and there are quite a few dependencies. Some notes:
  - first, install the necessary packages to build OpenVINO™; steps are included in the [CI
    workflow](.github/workflows)
    but reference the [OpenVINO™ build documentation](https://github.com/openvinotoolkit/openvino/blob/master/build-instruction.md)

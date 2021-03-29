@@ -1,38 +1,28 @@
-# This Dockerfile demonstrates how to build the openvino bindings using an installation of OpenVINO. For instructions
-# to install OpenVINO see the OpenVINO documentation, e.g.
+# This Dockerfile demonstrates how to build the openvino bindings using an installation of OpenVINO.
+# For instructions to install OpenVINO see the OpenVINO documentation, e.g.
 # https://docs.openvinotoolkit.org/latest/openvino_docs_install_guides_installing_openvino_apt.html.
-FROM rust:1.50
+ARG OS=ubuntu18
+ARG VERSION=2020.4
+FROM openvino/${OS}_runtime:${VERSION} AS builder
 
-# Setup Rust.
+# OpenVINO's images use a default user, `openvino`, that disallows root access.
+USER root
+
+# Install Rust.
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal
+ENV PATH=/root/.cargo/bin:$PATH
 RUN rustup component add rustfmt
 
-# Install OpenVINO.
-WORKDIR /tmp
-RUN wget https://apt.repos.intel.com/openvino/2020/GPG-PUB-KEY-INTEL-OPENVINO-2020 && \
-    echo '5f5cff8a2d26ba7de91942bd0540fa4d  GPG-PUB-KEY-INTEL-OPENVINO-2020' > CHECKSUM && \
-    md5sum --check CHECKSUM && \
-    apt-key add GPG-PUB-KEY-INTEL-OPENVINO-2020 && \
-    echo "deb https://apt.repos.intel.com/openvino/2020 all main" | tee /etc/apt/sources.list.d/intel-openvino-2020.list && \
-    apt update && \
-    apt install -y intel-openvino-runtime-ubuntu18-2020.4.287
-
 # Install build dependencies (for bindgen).
-RUN apt install -y clang libclang-dev
+RUN apt update && apt install -y clang libclang-dev
 
-# Install OpenCV (for openvino-tensor-converter).
-RUN apt install -y libopencv-dev libopencv-core3.2
-
-# Copy in OpenVINO source
-WORKDIR /usr/src/openvino
+# Copy in source code.
+WORKDIR /usr/src/openvino-rs
 COPY . .
 
-# Hack to allow the opencv crate to build with an older version of the OpenCV libraries (FIXME).
-RUN sed -i 's/"opencv-4"/"opencv-32"/g' crates/openvino-tensor-converter/Cargo.toml
-
 # Build openvino libraries.
-WORKDIR /usr/src/openvino/inference-engine/ie_bridges/rust
 RUN OPENVINO_INSTALL_DIR=/opt/intel/openvino cargo build -vv
 
-# Test; note that we need to setup the library paths before using them since the OPENVINO_INSTALL_DIR can only affect
-# the build library search path.
+# Test; note that we need to setup the library paths before using them since the
+# OPENVINO_INSTALL_DIR can only affect the build library search path.
 RUN ["/bin/bash", "-c", "source /opt/intel/openvino/bin/setupvars.sh && OPENVINO_INSTALL_DIR=/opt/intel/openvino cargo test -v"]
