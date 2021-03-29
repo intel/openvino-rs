@@ -1,2 +1,2 @@
 [workspace]
-members = ["crates/openvino", "crates/openvino-sys", "crates/openvino-tensor-converter"]
+members = ["crates/openvino", "crates/openvino-sys"]

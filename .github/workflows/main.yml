@@ -49,3 +49,21 @@ jobs:
       run: git lfs checkout
     - name: Build the Docker image
       run: docker build . --tag openvino-rs:$(date +%s)
+
+  converter:
+    name: Build and test the openvino-tensor-converter tool
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: crates/openvino-tensor-converter
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Install OpenCV
+      run: sudo apt update && sudo apt install libopencv-dev libopencv-core4.2
+    - name: Build
+      run: cargo build -v
+    - name: test
+      run: cargo test -v
+
