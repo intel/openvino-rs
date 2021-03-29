@@ -19,9 +19,11 @@ jobs:
         submodules: true
     - run: rustup component add rustfmt
     - run: cargo fmt --all -- --check
+    - run: cd crates/openvino-tensor-converter && cargo fmt --all -- --check
 
-  build:
-    name: Build from OpenVINO source
+  # Build and test from the git-submodule-included OpenVINO source code. 
+  source:
+    name: From source
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
@@ -31,15 +33,25 @@ jobs:
     - name: Checkout LFS obects
       run: git lfs checkout
     - name: Install system dependencies
-      run: sudo apt update && sudo apt install -y clang cmake libclang-dev gnupg2 libdrm2 libglib2.0-0 libusb-1.0-0-dev lsb-release libgtk-3-0 libtool libopencv-dev libopencv-core4.2 udev unzip dos2unix
+      run: sudo apt update && sudo apt install -y clang cmake libclang-dev gnupg2 libdrm2 libglib2.0-0 libusb-1.0-0-dev lsb-release libgtk-3-0 libtool udev unzip dos2unix
     - name: Build (openvino-sys from source)
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
 
+  # Build and test from an existing OpenVINO installation inside a Docker image (i.e. download the
+  # binaries, then compile against these).
   docker:
-    name: Build from OpenVINO installation inside a Docker image
+    name: From binaries
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu18, ubuntu20]
+        version: [2020.4, 2021.1, 2021.2, 2021.3]
+        exclude:
+        - os: ubuntu20
+          version: 2020.4
     steps:
     - uses: actions/checkout@v2
       with:
@@ -48,10 +60,13 @@ jobs:
     - name: Checkout LFS obects
       run: git lfs checkout
     - name: Build the Docker image
-      run: docker build . --tag openvino-rs:$(date +%s)
+      run: docker build . --tag openvino-rs:${{ matrix.OS }}-${{ matrix.version }}-$(date +%s) --build-arg OS=${{ matrix.os }} --build-arg VERSION=${{ matrix.version }}
 
+  # Build and test the openvino-tensor-converter tool separately from the regular library builds;
+  # the OpenCV dependency is a bit fragile so the crate is not included by the default workspace
+  # commands.
   converter:
-    name: Build and test the openvino-tensor-converter tool
+    name: Converter tool
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -61,7 +76,7 @@ jobs:
       with:
         submodules: recursive
     - name: Install OpenCV
-      run: sudo apt update && sudo apt install libopencv-dev libopencv-core4.2
+      run: sudo apt update && sudo apt install libclang-dev libopencv-dev libopencv-core4.2
     - name: Build
       run: cargo build -v
     - name: test
