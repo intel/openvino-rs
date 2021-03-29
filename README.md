@@ -18,7 +18,26 @@ crate (high-level, ergonomic bindings) for accessing OpenVINO™ functionality i
 The [openvino-sys] crate creates bindings to the OpenVINO™ C API using `bindgen`; this requires a
 local installation of `libclang`. Also, be sure to retrieve all Git submodules.
 
+This repo currently uses [git-lfs](https://git-lfs.github.com/) for large file storage.
 
+You can install it like so:
+```shell
+curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
+apt-get -y install git-lfs
+```
+
+If you cloned this repo with git-lfs already installed, it should have everything.
+
+You can check with this command:
+```shell
+find crates/openvino -name *.bin | xargs ls -lhr
+```
+
+If the .bin files are tens of megabytes, you have the right ones already. If they are ~100 bytes, you need to do this:
+```shell
+git lfs fetch
+git lfs checkout
+```
 
 ### Build from an OpenVINO™ installation
 
