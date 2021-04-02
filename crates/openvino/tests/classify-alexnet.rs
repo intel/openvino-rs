@@ -11,7 +11,7 @@ use util::{Prediction, Predictions};
 #[test]
 fn classify_alexnet() {
     let mut core = Core::new(None).unwrap();
-    let network = core
+    let mut network = core
         .read_network_from_file(
             &Fixture::graph().to_string_lossy(),
             &Fixture::weights().to_string_lossy(),
@@ -20,6 +20,7 @@ fn classify_alexnet() {
 
     let input_name = &network.get_input_name(0).unwrap();
     assert_eq!(input_name, "data");
+    network.set_input_layout(input_name, Layout::NHWC).unwrap();
     let output_name = &network.get_output_name(0).unwrap();
     assert_eq!(output_name, "prob");
 
