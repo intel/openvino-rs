@@ -36,6 +36,10 @@ fn main() {
         file("upstream/inference-engine/ie_bridges/c/include/c_api/ie_c_api.h");
     let bindings = bindgen::Builder::default()
         .header(openvino_c_api_header.to_string_lossy())
+        .allowlist_function("ie_.*")
+        .blocklist_type("__uint8_t")
+        .blocklist_type("__int64_t")
+        .size_t_is_usize(true)
         // While understanding the warnings in https://docs.rs/bindgen/0.36.0/bindgen/struct.Builder.html#method.rustified_enum
         // that these enums could result in unspecified behavior if constructed from an invalid
         // value, the expectation here is that OpenVINO only returns valid layout and precision
@@ -43,6 +47,7 @@ fn main() {
         .rustified_enum("layout_e")
         .rustified_enum("precision_e")
         .rustified_enum("resize_alg_e")
+        .rustified_enum("colorformat_e")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .generate()
         .expect("generate C API bindings");
