@@ -21,8 +21,8 @@ include = [
 ]
 
 [build-dependencies]
-bindgen = "0.55.1"
-cmake = "0.1.44"
+bindgen = "0.58.1"
+cmake = "0.1.45"
 
 [features]
 default = ["cpu"]
