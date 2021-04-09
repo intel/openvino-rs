@@ -56,13 +56,12 @@ impl Core {
         weights_content: &[u8],
     ) -> Result<CNNNetwork> {
         let mut instance = std::ptr::null_mut();
-        let weights_desc =
-            TensorDesc::new(Layout::ANY, &[weights_content.len() as u64], Precision::U8);
+        let weights_desc = TensorDesc::new(Layout::ANY, &[weights_content.len()], Precision::U8);
         let weights_blob = Blob::new(weights_desc, weights_content)?;
         try_unsafe!(ie_core_read_network_from_memory(
             self.instance,
             model_content as *const _ as *const u8,
-            model_content.len() as u64,
+            model_content.len(),
             weights_blob.instance,
             &mut instance as *mut *mut _,
         ))?;

@@ -24,7 +24,7 @@ impl CNNNetwork {
         let mut cname = std::ptr::null_mut();
         try_unsafe!(ie_network_get_input_name(
             self.instance,
-            index as u64,
+            index,
             &mut cname as *mut *mut _
         ))?;
         let name = unsafe { CStr::from_ptr(cname) }
@@ -40,7 +40,7 @@ impl CNNNetwork {
         let mut cname = std::ptr::null_mut();
         try_unsafe!(ie_network_get_output_name(
             self.instance,
-            index as u64,
+            index,
             &mut cname as *mut *mut _
         ))?;
         let name = unsafe { CStr::from_ptr(cname) }
