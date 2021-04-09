@@ -14,7 +14,7 @@ drop_using_function!(InferRequest, ie_infer_request_free);
 impl InferRequest {
     /// Set the batch size of the inference requests.
     pub fn set_batch_size(&mut self, size: usize) -> Result<()> {
-        try_unsafe!(ie_infer_request_set_batch(self.instance, size as u64))
+        try_unsafe!(ie_infer_request_set_batch(self.instance, size))
     }
 
     /// Assign a [Blob] to the input (i.e. `name`) on the network.

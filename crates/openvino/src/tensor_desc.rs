@@ -8,7 +8,7 @@ pub struct TensorDesc {
 
 impl TensorDesc {
     /// Construct a new [TensorDesc] from its C API components.
-    pub fn new(layout: Layout, dimensions: &[u64], precision: Precision) -> Self {
+    pub fn new(layout: Layout, dimensions: &[usize], precision: Precision) -> Self {
         // Setup dimensions.
         assert!(dimensions.len() < 8);
         let mut dims = [0; 8];
@@ -19,7 +19,7 @@ impl TensorDesc {
             instance: tensor_desc_t {
                 layout,
                 dims: dimensions_t {
-                    ranks: dimensions.len() as u64,
+                    ranks: dimensions.len(),
                     dims,
                 },
                 precision,
