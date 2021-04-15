@@ -13,6 +13,8 @@ use openvino_sys::{
 };
 use std::ffi::CStr;
 
+/// See
+/// [CNNNetwork](https://docs.openvinotoolkit.org/latest/classInferenceEngine_1_1CNNNetwork.html).
 pub struct CNNNetwork {
     pub(crate) instance: *mut ie_network_t,
 }
@@ -92,6 +94,8 @@ impl CNNNetwork {
     }
 }
 
+/// See
+/// [ExecutableNetwork](https://docs.openvinotoolkit.org/latest/classInferenceEngine_1_1ExecutableNetwork.html).
 pub struct ExecutableNetwork {
     pub(crate) instance: *mut ie_executable_network_t,
 }
