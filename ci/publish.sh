@@ -11,10 +11,11 @@
 #  - publish `openvino-sys` (ensuring that it will fit within 10MB!), then publish `openvino`
 #  - push the commit and tag (this is left for the user)
 #
-# Also can be run in dry-run mode: `DRY_RUN=1 ci/publish.sh`.
+# Also can be run in dry-run mode: `DRY_RUN=1 ci/publish.sh [optional version]`.
 
 set -e
 PROJECT_DIR=$(dirname "$0" | xargs dirname)
+VERSION=${1:-0}
 DRY_RUN=${DRY_RUN:-0}
 if [[ "$DRY_RUN" != 0 ]]; then
   CARGO_WORKSPACE_OPTIONS="--no-git-commit"
@@ -42,7 +43,11 @@ function publish {
 }
 
 # Bump the versions of the Cargo.toml files.
-cargo workspaces version patch --force openvino* $CARGO_WORKSPACE_OPTIONS
+if [[ "$VERSION" != 0 ]]; then
+  cargo workspaces version custom $VERSION --force openvino* $CARGO_WORKSPACE_OPTIONS 
+else
+  cargo workspaces version patch --force openvino* $CARGO_WORKSPACE_OPTIONS 
+fi
 
 # Check that the versions of openvino and openvino-sys match.
 if [ $(get_version openvino) != $(get_version openvino-sys) ]; then
@@ -56,6 +61,8 @@ fi
 VERSION=$(get_version openvino)
 sed -i "s/openvino-sys .* version = \"\([0-9.]*\)\".*/openvino-sys = { path = \"..\/openvino-sys\", version = \"$VERSION\" }/g" crates/openvino/Cargo.toml
 cargo fetch
+
+# Add a Git commit.
 if [[ "$DRY_RUN" == 0 ]]; then
   git commit -a -m "Release v$VERSION"
   git tag v$VERSION
