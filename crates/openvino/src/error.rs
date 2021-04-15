@@ -1,8 +1,12 @@
 use thiserror::Error;
 
-/// See [IEStatusCode](https://docs.openvinotoolkit.org/latest/ie_c_api/ie__c__api_8h.html#a391683b1e8e26df8b58d7033edd9ee83).
-/// TODO Replace this in bindgen with [newtype_enum](https://docs.rs/bindgen/0.54.1/bindgen/struct.Builder.html#method.newtype_enum)
-/// or [rustified_enum](https://docs.rs/bindgen/0.54.1/bindgen/struct.Builder.html#method.rustified_enum).
+/// See
+/// [IEStatusCode](https://docs.openvinotoolkit.org/latest/ie_c_api/ie__c__api_8h.html#a391683b1e8e26df8b58d7033edd9ee83).
+///
+/// TODO Replace this in bindgen with
+/// [newtype_enum](https://docs.rs/bindgen/0.54.1/bindgen/struct.Builder.html#method.newtype_enum)
+/// or
+/// [rustified_enum](https://docs.rs/bindgen/0.54.1/bindgen/struct.Builder.html#method.rustified_enum).
 #[derive(Debug, Error)]
 pub enum InferenceError {
     #[error("general error")]
