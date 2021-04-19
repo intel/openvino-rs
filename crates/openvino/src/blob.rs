@@ -140,9 +140,11 @@ mod tests {
         let _ = Blob::new(desc, &[0; 7]).unwrap();
     }
 
-    #[ignore]
     #[test]
     fn buffer_conversion() {
+        // In order to ensure runtime-linked libraries are linked with, we must:
+        openvino_sys::library::load().expect("unable to find an OpenVINO shared library");
+
         const LEN: usize = 200 * 100;
         let desc = TensorDesc::new(Layout::HW, &[200, 100], Precision::U16);
 

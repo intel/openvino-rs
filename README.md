@@ -62,9 +62,9 @@ cargo test --features openvino-sys/runtime-linking
 The `openvino-rs` crates also support linking from a shared library at runtime (i.e.
 `dlopen`-style). This allow building the crates with no OpenVINO™ installation or source code
 present and only later--at runtime--providing the OpenVINO™ shared libraries. All underlying system
-calls are wrapped so that a call to `openvino_sys::load` will link them to their shared library
-implementation (using the logic in [openvino-finder] to locate the shared libraries). For high-level
-users, call `openvino::Core::new` first to automatically load and link the libraries. 
+calls are wrapped so that a call to `openvino_sys::library::load` will link them to their shared
+library implementation (using the logic in [openvino-finder] to locate the shared libraries). For
+high-level users, call `openvino::Core::new` first to automatically load and link the libraries. 
 
 
 

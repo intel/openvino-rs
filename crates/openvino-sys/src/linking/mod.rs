@@ -2,13 +2,13 @@
 //! wrap the bindgen functions. In the `dynamic-linking` case, the macro is a pass-through; in the
 //! `runtime-linking` case, the macro defines a `load` function to open the shared library and each
 //! OpenVINO function is wrapped to use the loaded references.
+//!
+//! This approach borrows heavily from the approach taken in
+//! the `clang-sys` crate (see
+//! [link.rs](https://github.com/KyleMayes/clang-sys/blob/c9ae24a7a218e73e1eccd320174349eef5a3bd1a/src/link.rs)).
 
 #[cfg(feature = "dynamic-linking")]
 mod dynamic;
-// #[cfg(feature = "dynamic-linking")]
-// pub use dynamic::link;
 
 #[cfg(feature = "runtime-linking")]
 mod runtime;
-// #[cfg(feature = "runtime-linking")]
-// pub use runtime::link;

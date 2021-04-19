@@ -1,8 +1,4 @@
-//! The `link` macro provides a way to wrap all of the OpenVINO C API functions with functions that
-//! use `libloading`-provided definitions. This approach borrows heavily from the approach taken in
-//! the `clang-sys` crate (see
-//! [link.rs](https://github.com/KyleMayes/clang-sys/blob/c9ae24a7a218e73e1eccd320174349eef5a3bd1a/src/link.rs)).
-
+#[doc(hidden)]
 #[macro_export]
 macro_rules! link {
     (
@@ -22,7 +18,7 @@ macro_rules! link {
 
         // Wrap the loaded functions.
         #[derive(Debug)]
-        pub struct SharedLibrary {
+        pub(crate) struct SharedLibrary {
             library: libloading::Library,
             path: PathBuf,
             pub functions: Functions,
@@ -55,7 +51,7 @@ macro_rules! link {
 
         // The set of functions loaded dynamically.
         #[derive(Debug, Default)]
-        pub struct Functions {
+        pub(crate) struct Functions {
             $(
                 $(#[doc=$doc])* $(#[cfg($cfg)])*
                 pub $name: Option<unsafe extern fn($($pname: $pty), *) $(-> $ret)*>,
@@ -67,7 +63,7 @@ macro_rules! link {
         mod load {
             $(
                 $(#[cfg($cfg)])*
-                pub fn $name(library: &mut super::SharedLibrary) {
+                pub(crate) fn $name(library: &mut super::SharedLibrary) {
                     let symbol = unsafe { library.library.get(stringify!($name).as_bytes()) }.ok();
                     library.functions.$name = match symbol {
                         Some(s) => *s,
@@ -79,7 +75,7 @@ macro_rules! link {
 
         /// Load all of the function definitions from a shared library.
         pub fn load() -> Result<(), String> {
-            match crate::find() {
+            match crate::library::find() {
                 None => Err("Unable to find the `inference_engine_c_api` library to load".into()),
                 Some(path) => load_from(path),
             }
@@ -90,7 +86,7 @@ macro_rules! link {
             Ok(())
         }
         impl SharedLibrary {
-            pub fn load(path: PathBuf) -> Result<SharedLibrary, String> {
+            fn load(path: PathBuf) -> Result<SharedLibrary, String> {
                 unsafe {
                     let library = libloading::Library::new(&path).map_err(|e| {
                         format!(
