@@ -1,6 +1,5 @@
-//! Define the interface between Rust and OpenVINO's C [API](https://docs.openvinotoolkit.org/latest/usergroup16.html).
-//! See the [binding] module for how this library calls into OpenVINO and [../build.rs] for how the
-//! OpenVINO libraries are linked in.
+//! Define the core interface between Rust and OpenVINO's C
+//! [API](https://docs.openvinotoolkit.org/latest/ie_c_api/modules.html).
 
 use crate::blob::Blob;
 use crate::network::{CNNNetwork, ExecutableNetwork};
