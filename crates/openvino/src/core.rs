@@ -22,8 +22,17 @@ impl Core {
     /// Construct a new OpenVINO [Core]--this is the primary entrypoint for constructing and using
     /// inference networks.
     pub fn new(xml_config_file: Option<&str>) -> Result<Core> {
+        openvino_sys::load().expect("unable to load shared library"); // TODO
+
         let file = match xml_config_file {
-            None => format!("{}/plugins.xml", openvino_sys::LIBRARY_PATH),
+            None => format!(
+                "{}/plugins.xml",
+                openvino_sys::find()
+                    .expect("unable to find path to OpenVINO libraries")
+                    .parent()
+                    .expect("unable to get the parent of the linked OpenVINO library")
+                    .display()
+            ),
             Some(f) => f.to_string(),
         };
         let mut instance = std::ptr::null_mut();

@@ -21,6 +21,7 @@ pub use tensor_desc::TensorDesc;
 /// Emit the version string of the OpenVINO C API backing this implementation.
 pub fn version() -> String {
     use std::ffi::CStr;
+    openvino_sys::load().expect("to have an OpenVINO shared library available");
     let mut ie_version = unsafe { openvino_sys::ie_c_api_version() };
     let str_version = unsafe { CStr::from_ptr(ie_version.api_version) }
         .to_string_lossy()

@@ -140,6 +140,7 @@ mod tests {
         let _ = Blob::new(desc, &[0; 7]).unwrap();
     }
 
+    #[ignore]
     #[test]
     fn buffer_conversion() {
         const LEN: usize = 200 * 100;
