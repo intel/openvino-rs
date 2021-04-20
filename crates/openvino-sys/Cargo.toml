@@ -19,13 +19,21 @@ include = [
     # - built from an OpenVINO installation when used as a dependency
     "/upstream/inference-engine/ie_bridges/c/include",
 ]
+links = "inference_engine_c_api"
+
+[dependencies]
+lazy_static = {version = "1.4", optional = true }
+libloading = {version = "0.7", optional = true }
+openvino-finder = {version = "0.2.0", path = "../openvino-finder" }
 
 [build-dependencies]
-bindgen = "0.58.1"
 cmake = "0.1.45"
+openvino-finder = {version = "0.2.0", path = "../openvino-finder" }
 
 [features]
 default = ["cpu"]
+
+# Plugin features: if building from source, this allows selecting which OpenVINO plugins to build.
 all = ["cpu", "gpu", "gna", "hetero", "multi", "myriad"]
 cpu = []
 gpu = []
@@ -33,3 +41,13 @@ gna = []
 hetero = []
 multi = []
 myriad = []
+
+# Linking features: `build.rs` will default to dynamic linking if none is selected.
+dynamic-linking = [] # Will find and bind to an OpenVINO shared library at compile time.
+runtime-linking = ["libloading", "lazy_static"] # Will bind to an OpenVINO shared library at runtime using `load`.
+
+# Build features: `build.rs` will attempt to build OpenVINO from source and then link to this.
+from-source = []
+
+[package.metadata.docs.rs]
+features = ["runtime-linking"]

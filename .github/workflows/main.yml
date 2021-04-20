@@ -35,13 +35,13 @@ jobs:
     - name: Install system dependencies
       run: sudo apt update && sudo apt install -y clang cmake libclang-dev gnupg2 libdrm2 libglib2.0-0 libusb-1.0-0-dev lsb-release libgtk-3-0 libtool udev unzip dos2unix
     - name: Build (openvino-sys from source)
-      run: cargo build --verbose
+      run: cargo build --verbose --features openvino-sys/from-source
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --verbose --features openvino-sys/from-source
 
   # Build and test from an existing OpenVINO installation inside a Docker image (i.e. download the
   # binaries, then compile against these).
-  docker:
+  dynamic_binaries:
     name: From binaries
     runs-on: ubuntu-latest
     strategy:
@@ -61,6 +61,37 @@ jobs:
       run: git lfs checkout
     - name: Build the Docker image
       run: docker build . --tag openvino-rs:${{ matrix.OS }}-${{ matrix.version }}-$(date +%s) --build-arg OS=${{ matrix.os }} --build-arg VERSION=${{ matrix.version }}
+
+  # Build and test from an existing OpenVINO installation inside a Docker image (i.e. download the
+  # binaries, then compile against these).
+  runtime_binaries:
+    name: From runtime-linked binaries
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+        lfs: true
+    - name: Checkout LFS obects
+      run: git lfs checkout
+    - uses: abrown/install-openvino-action@v1
+    - name: Build and run tests
+      run: |
+        source /opt/intel/openvino/bin/setupvars.sh
+        cargo test --features openvino-sys/runtime-linking
+
+  # Build and test from an existing OpenVINO installation inside a Docker image (i.e. download the
+  # binaries, then compile against these).
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+        lfs: true
+    - name: Build documentation
+      run: cargo doc --no-deps --features openvino-sys/runtime-linking
 
   # Build and test the openvino-tensor-converter tool separately from the regular library builds;
   # the OpenCV dependency is a bit fragile so the crate is not included by the default workspace

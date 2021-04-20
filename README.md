@@ -13,48 +13,58 @@ crate (high-level, ergonomic bindings) for accessing OpenVINO™ functionality i
 [ci]: https://github.com/abrown/openvino-rs/actions?query=workflow%3ACI
 
 
+
 ### Prerequisites
 
 The [openvino-sys] crate creates bindings to the OpenVINO™ C API using `bindgen`; this requires a
 local installation of `libclang`. Also, be sure to retrieve all Git submodules.
 
-This repo currently uses [git-lfs](https://git-lfs.github.com/) for large file storage.
+This repo currently uses [git-lfs](https://git-lfs.github.com/) for large file storage. If you
+[install it](https://github.com/git-lfs/git-lfs/wiki/Installation) before cloning this repository,
+it should have downloaded all large files. To check this, verify that `find crates/openvino -name
+*.bin | xargs ls -lhr` returns `.bin` files of tens of megabytes. If not, download the large files
+with:
 
-You can install it like so:
-```shell
-curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
-apt-get -y install git-lfs
-```
-
-If you cloned this repo with git-lfs already installed, it should have everything.
-
-You can check with this command:
-```shell
-find crates/openvino -name *.bin | xargs ls -lhr
-```
-
-If the .bin files are tens of megabytes, you have the right ones already. If they are ~100 bytes, you need to do this:
 ```shell
 git lfs fetch
 git lfs checkout
 ```
 
+
 ### Build from an OpenVINO™ installation
 
 ```shell script
-git submodule update --init --recursive
-OPENVINO_INSTALL_DIR=/opt/intel/openvino cargo build -v
-source /opt/intel/openvino/bin/setupvars.sh && \
-  OPENVINO_INSTALL_DIR=/opt/intel/openvino cargo test -v
+cargo build
+source /opt/intel/openvino/bin/setupvars.sh
+cargo test
 ```
 
 The quickest method to build [openvino] and [openvino-sys] is with a local installation of OpenVINO™
-(see, e.g., [installing from an apt repository][install-apt]). Provide the `OPENVINO_INSTALL_DIR`
-environment variable to any `cargo` commands and ensure that the environment is configured (i.e.
-library search paths) using OpenVINO™'s `setupvars.sh` before running any executables that use these
-libraries. This also applies to any crates using these libraries as a dependency.
+(see, e.g., [installing from an apt repository][install-apt]). The build script will attempt to
+locate an existing installation (see [openvino-finder]) and link against its shared libraries.
+Provide the `OPENVINO_INSTALL_DIR` environment variable to point at a specific installation. Ensure
+that the correct libraries are available on the system's load path; OpenVINO™'s `setupvars.sh`
+script will do this automatically.
 
 [install-apt]: https://docs.openvinotoolkit.org/latest/openvino_docs_install_guides_installing_openvino_apt.html
+[openvino-finder]: crates/openvino-finder
+
+
+
+### Build for runtime linking
+
+```shell script
+cargo build --features openvino-sys/runtime-linking
+source /opt/intel/openvino/bin/setupvars.sh
+cargo test --features openvino-sys/runtime-linking
+```
+
+The `openvino-rs` crates also support linking from a shared library at runtime (i.e.
+`dlopen`-style). This allow building the crates with no OpenVINO™ installation or source code
+present and only later--at runtime--providing the OpenVINO™ shared libraries. All underlying system
+calls are wrapped so that a call to `openvino_sys::library::load` will link them to their shared
+library implementation (using the logic in [openvino-finder] to locate the shared libraries). For
+high-level users, call `openvino::Core::new` first to automatically load and link the libraries. 
 
 
 
@@ -62,8 +72,8 @@ libraries. This also applies to any crates using these libraries as a dependency
 
 ```shell script
 git submodule update --init --recursive
-cargo build -vv
-cargo test
+cargo build -vv --features openvino-sys/from-source
+cargo test --features openvino-sys/from-source
 ```
 
 [openvino] and [openvino-sys] can also be built directly from OpenVINO™'s source code using CMake.

@@ -1,5 +1,5 @@
-use bindgen;
 use cmake;
+use std::env;
 use std::path::{Path, PathBuf};
 
 // These are the libraries we expect to be available to dynamically link to:
@@ -16,13 +16,9 @@ const LIBRARIES: &'static [&'static str] = &[
 // against any libraries (e.g. a doc build, user may link them later).
 const ENV_OPENVINO_SKIP_LINKING: &'static str = "OPENVINO_SKIP_LINKING";
 
-// A user-specified environment variable telling `build.rs` that an existing OpenVINO installation
-// should be linked against.
-const ENV_OPENVINO_INSTALL_DIR: &'static str = "OPENVINO_INSTALL_DIR";
-
 // A build.rs-specified environment variable that must be populated with the location of the
-// `plugins.xml` file that OpenVINO expects at runtime.
-const ENV_OPENVINO_LIB_DIR: &'static str = "OPENVINO_LIB_DIR";
+// inference engine library that OpenVINO is being linked to in this script.
+const ENV_OPENVINO_LIB_PATH: &'static str = "OPENVINO_LIB_PATH";
 
 fn main() {
     // Trigger rebuild on changes to build.rs and Cargo.toml and every source file.
@@ -31,58 +27,50 @@ fn main() {
     let cb = |p: PathBuf| println!("cargo:rerun-if-changed={}", p.display());
     visit_dirs(Path::new("src"), &cb).expect("to visit source files");
 
-    // Generate bindings from C header.
-    let openvino_c_api_header =
-        file("upstream/inference-engine/ie_bridges/c/include/c_api/ie_c_api.h");
-    let bindings = bindgen::Builder::default()
-        .header(openvino_c_api_header.to_string_lossy())
-        .allowlist_function("ie_.*")
-        .blocklist_type("__uint8_t")
-        .blocklist_type("__int64_t")
-        .size_t_is_usize(true)
-        // While understanding the warnings in https://docs.rs/bindgen/0.36.0/bindgen/struct.Builder.html#method.rustified_enum
-        // that these enums could result in unspecified behavior if constructed from an invalid
-        // value, the expectation here is that OpenVINO only returns valid layout and precision
-        // values. This assumption is reasonable because otherwise OpenVINO itself would be broken.
-        .rustified_enum("layout_e")
-        .rustified_enum("precision_e")
-        .rustified_enum("resize_alg_e")
-        .rustified_enum("colorformat_e")
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
-        .generate()
-        .expect("generate C API bindings");
-    let out = PathBuf::from(std::env::var("OUT_DIR").unwrap());
-    bindings
-        .write_to_file(out.join("bindings.rs"))
-        .expect("failed to write bindings.rs");
-
-    // It turns out we may not always want to link this crate against its dynamic libraries (e.g.
-    // building documentation)--these environment variables provide an escape hatch.
-    let skip_linking = std::env::var_os("DOCS_RS").is_some()
-        || std::env::var_os(ENV_OPENVINO_SKIP_LINKING).is_some();
-
-    // Find the OpenVINO libraries to link, either from a pre-installed location or by building
-    // from source.
-    let library_search_paths = if skip_linking {
-        vec![]
-    } else if let Some(path) = std::env::var_os(ENV_OPENVINO_INSTALL_DIR) {
-        find_libraries_in_existing_installation(path)
-    } else {
-        build_from_source_using_cmake()
-    };
-
-    // Check that the plugins.xml file exists and create an environment variable recording this
-    // location.
-    if let Some(path) = find_plugins_xml_path(&library_search_paths) {
-        record_plugins_xml_path(path);
-    } else {
-        println!("cargo:warning=openvino-sys cannot find the necessary plugins.xml in any of the library search paths: {:?}", &library_search_paths);
-        println!("cargo:warning=Proceeding with an empty value of {}; users must specify this location at runtime, e.g. `Core::new(Some(...))`.", ENV_OPENVINO_LIB_DIR);
-        record_plugins_xml_path(PathBuf::new());
+    // Use the dynamic linking feature for conditional compilation if no linking method was
+    // specified.
+    if !cfg!(feature = "runtime-linking") && !cfg!(feature = "dynamic-linking") {
+        println!("cargo:rustc-cfg=feature=\"dynamic-linking\"");
     }
 
-    // Dynamically link the necessary OpenVINO libraries.
-    if !skip_linking {
+    // Determine what linking method to use: avoid dynamic linking when we have either specified
+    // runtime linking or no linking at all. It turns out we may not always want to link this crate
+    // against its dynamic libraries (e.g. building documentation)--these environment variables
+    // provide an escape hatch.
+    let linking = if cfg!(feature = "runtime-linking")
+        || env::var_os(ENV_OPENVINO_SKIP_LINKING).is_some()
+    {
+        assert!(!cfg!(feature = "from-source"), "When building from source, the build script must always try to dynamically link the built libraries.");
+        Linking::None
+    } else {
+        Linking::Dynamic
+    };
+
+    // Find the OpenVINO libraries to link to, either from a pre-installed location or by building
+    // from source.
+    let (c_api_library_path, library_search_paths) = if cfg!(feature = "from-source") {
+        build_from_source_using_cmake()
+    } else if linking == Linking::None {
+        (openvino_finder::find("inference_engine_c_api"), vec![])
+    } else if let Some(path) = openvino_finder::find("inference_engine_c_api") {
+        (Some(path), find_libraries_in_existing_installation())
+    } else {
+        panic!("Unable to find an OpenVINO installation on your system; build with runtime linking using `--features runtime-linking` or build from source with `--features from-source`.")
+    };
+
+    // Capture the path to the library we are using. The reason we do this is to provide a mechanism
+    // for finding the `plugins.xml` file at runtime (usually it is found in the same directory as
+    // the inference engine libraries).
+    if let Some(path) = c_api_library_path {
+        record_library_path(path);
+    } else {
+        println!("cargo:warning=openvino-sys cannot find the `inference_engine_c_api` library in any of the library search paths: {:?}", &library_search_paths);
+        println!("cargo:warning=Proceeding with an empty value of {}; users must specify this location at runtime, e.g. `Core::new(Some(...))`.", ENV_OPENVINO_LIB_PATH);
+        record_library_path(PathBuf::new());
+    }
+
+    // If necessary, dynamically link the necessary OpenVINO libraries.
+    if linking == Linking::Dynamic {
         library_search_paths
             .iter()
             .for_each(add_library_search_path);
@@ -93,14 +81,13 @@ fn main() {
     }
 }
 
-/// Canonicalize a path as well as verify that it exists.
-fn file<P: AsRef<Path>>(path: P) -> PathBuf {
-    let path = path.as_ref();
-    if !path.exists() || !path.is_file() {
-        panic!("Unable to find file: {}", path.display())
-    }
-    path.canonicalize()
-        .expect("to be able to canonicalize the path")
+/// Enumerate the possible linking states for this build script:
+/// - either we don't want to link to anything during compile time
+/// - or we want to link to the OpenVINO libraries dynamically.
+#[derive(Eq, PartialEq)]
+enum Linking {
+    None,
+    Dynamic,
 }
 
 /// Canonicalize a path as well as verify that it exists.
@@ -129,24 +116,12 @@ fn visit_dirs(dir: &Path, cb: &dyn Fn(PathBuf)) -> std::io::Result<()> {
     Ok(())
 }
 
-/// Find the path to the `plugins.xml` file in the library search paths.
-fn find_plugins_xml_path(library_search_paths: &[PathBuf]) -> Option<PathBuf> {
-    for search_path in library_search_paths {
-        let plugin_xml_path = search_path.join("plugins.xml");
-        if plugin_xml_path.is_file() {
-            return Some(search_path.clone());
-        }
-    }
-    return None;
-}
-
-/// Record the path to the `plugins.xml` file in an environment variable. Unfortunately, this value
-/// must unfortunately
-fn record_plugins_xml_path(plugin_xml_path: PathBuf) {
+/// Record the path to the shared library we link against in an environment variable.
+fn record_library_path(library_path: PathBuf) {
     println!(
         "cargo:rustc-env={}={}",
-        ENV_OPENVINO_LIB_DIR,
-        plugin_xml_path.display()
+        ENV_OPENVINO_LIB_PATH,
+        library_path.display()
     );
 }
 
@@ -166,26 +141,41 @@ fn add_dynamically_linked_library(library: &str) {
     println!("cargo:rustc-link-lib=dylib={}", library);
 }
 
-/// Given a path to an OpenVINO installation (e.g. https://docs.openvinotoolkit.org/latest/openvino_docs_install_guides_installing_openvino_apt.html),
-/// find the paths to the necessary libraries and add them to the library search path.
+/// Find all of the necessary libraries to link using the `openvino_finder`. This will return the
+/// directories that should contain the necessary libraries to link to.
+///
 /// It would be preferable to use pkg-config here to retrieve the libraries when they are
 /// installed system-wide but there are issues:
 ///  - OpenVINO does not install itself a system library, e.g., through ldconfig.
 ///  - OpenVINO relies on a `plugins.xml` file for finding target-specific libraries
 ///    and it is unclear how we would discover this in a system-install scenario.
-fn find_libraries_in_existing_installation<P: AsRef<Path>>(path: P) -> Vec<PathBuf> {
-    let deployment_tools = dir(path).join("deployment_tools");
-    let openvino_libraries = deployment_tools.join("inference_engine/lib/intel64");
-    let tbb_libraries = deployment_tools.join("inference_engine/external/tbb/lib");
-    let ngraph_libraries = deployment_tools.join("ngraph/lib");
-    vec![openvino_libraries, tbb_libraries, ngraph_libraries]
+fn find_libraries_in_existing_installation() -> Vec<PathBuf> {
+    let mut dirs = vec![];
+    for library in LIBRARIES {
+        if let Some(path) = openvino_finder::find(library) {
+            println!(
+                "cargo:warning=Found library to link against: {}",
+                path.display()
+            );
+            let dir = path.parent().unwrap().to_owned();
+            if !dirs.iter().any(|d| d == &dir) {
+                dirs.push(dir);
+            }
+        } else {
+            panic!(
+                "Unable to find an existing installation of library: {}",
+                library
+            );
+        }
+    }
+    dirs
 }
 
 /// Build OpenVINO with CMake. TODO this currently will not work when the crate is published
 /// because the `upstream` directory will not fit inside the 10MB crate limit. To solve this, we
 /// could retrieve the sources (cringe), e.g., with `git2`.
-fn build_from_source_using_cmake() -> Vec<PathBuf> {
-    let out = PathBuf::from(std::env::var("OUT_DIR").unwrap());
+fn build_from_source_using_cmake() -> (Option<PathBuf>, Vec<PathBuf>) {
+    let out = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     fn cmake(out_dir: &str) -> cmake::Config {
         let mut config = cmake::Config::new("upstream");
@@ -238,7 +228,15 @@ fn build_from_source_using_cmake() -> Vec<PathBuf> {
     })
     .expect("failed visiting TBB directory");
 
-    vec![openvino_libraries]
+    let c_api = format!(
+        "{}inference_engine_c_api{}",
+        env::consts::DLL_PREFIX,
+        env::consts::DLL_SUFFIX
+    );
+    (
+        Some(openvino_libraries.join(c_api)),
+        vec![openvino_libraries],
+    )
 }
 
 /// Determine CMake targets for the various OpenVINO plugins. The plugin mapping is available in

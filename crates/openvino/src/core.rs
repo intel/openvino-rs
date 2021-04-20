@@ -1,6 +1,5 @@
-//! Define the interface between Rust and OpenVINO's C [API](https://docs.openvinotoolkit.org/latest/usergroup16.html).
-//! See the [binding] module for how this library calls into OpenVINO and [../build.rs] for how the
-//! OpenVINO libraries are linked in.
+//! Define the core interface between Rust and OpenVINO's C
+//! [API](https://docs.openvinotoolkit.org/latest/ie_c_api/modules.html).
 
 use crate::blob::Blob;
 use crate::network::{CNNNetwork, ExecutableNetwork};
@@ -22,8 +21,17 @@ impl Core {
     /// Construct a new OpenVINO [Core]--this is the primary entrypoint for constructing and using
     /// inference networks.
     pub fn new(xml_config_file: Option<&str>) -> Result<Core> {
+        openvino_sys::library::load().expect("unable to load shared library");
+
         let file = match xml_config_file {
-            None => format!("{}/plugins.xml", openvino_sys::LIBRARY_PATH),
+            None => format!(
+                "{}/plugins.xml",
+                openvino_sys::library::find()
+                    .expect("unable to find path to OpenVINO libraries")
+                    .parent()
+                    .expect("unable to get the parent of the linked OpenVINO library")
+                    .display()
+            ),
             Some(f) => f.to_string(),
         };
         let mut instance = std::ptr::null_mut();
