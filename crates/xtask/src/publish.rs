@@ -1,5 +1,5 @@
-use crate::util::{get_crates, path_to_crates, Crate};
-use anyhow::{anyhow, Context, Result};
+use crate::util::{exec, get_crates, path_to_crates, Crate};
+use anyhow::{anyhow, Result};
 use std::{process::Command, thread::sleep, time::Duration};
 use structopt::StructOpt;
 
@@ -7,7 +7,7 @@ use structopt::StructOpt;
 #[structopt(name = "bump")]
 pub struct PublishCommand {
     /// Tag the current commit and push the tags to the default upstream; equivalent to `git tag
-    /// v[version]` and `git push v[version]`.
+    /// v[version] && git push origin v[version]`.
     #[structopt(long)]
     git: bool,
     /// Do not publish any crates; instead, simply print the actions that would have been taken.
@@ -43,13 +43,19 @@ impl PublishCommand {
         for krate in PUBLICATION_ORDER {
             println!("> publish {}", krate);
             if !self.dry_run {
-                assert!(Command::new("cargo")
-                    .arg("publish")
-                    .current_dir(crates_dir.clone().join(krate))
-                    .arg("--no-verify")
-                    .status()
-                    .with_context(|| format!("failed to run cargo publish on '{}' crate", krate))?
-                    .success());
+                let crate_dir = crates_dir.clone().join(krate);
+                let exec_result = exec(
+                    Command::new("cargo")
+                        .arg("publish")
+                        .arg("--no-verify")
+                        .current_dir(&crate_dir),
+                );
+
+                // We want to continue even if a crate does not publish: this allows us to re-run
+                // the `publish` command if uploading one or more crates fails.
+                if let Err(e) = exec_result {
+                    println!("Failed to publish crate {}, continuing:\n  {}", krate, e);
+                }
 
                 // Hopefully this gives crates.io enough time for subsequent publications to work.
                 sleep(Duration::from_secs(20));
@@ -61,18 +67,8 @@ impl PublishCommand {
         if self.git {
             println!("> push Git tag: {}", tag);
             if !self.dry_run {
-                assert!(Command::new("git")
-                    .arg("tag")
-                    .arg(&tag)
-                    .status()
-                    .with_context(|| format!("failed to run `git tag {}` command", &tag))?
-                    .success());
-                assert!(Command::new("git")
-                    .arg("push")
-                    .arg(&tag)
-                    .status()
-                    .with_context(|| format!("failed to run `git push {}` command", &tag))?
-                    .success());
+                exec(Command::new("git").arg("tag").arg(&tag))?;
+                exec(Command::new("git").arg("push").arg("origin").arg(&tag))?;
             }
         }
 
