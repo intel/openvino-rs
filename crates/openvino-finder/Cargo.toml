@@ -1,8 +1,12 @@
 [package]
 name = "openvino-finder"
-description = "A helper crate for finding OpenVINO installations on a system."
 version = "0.3.0"
-authors = ["Andrew Brown <andrew.brown@intel.com>"]
+description = "A helper crate for finding OpenVINO installations on a system."
+license = "Apache-2.0"
+readme = "README.md"
+authors = ["OpenVINO Project Developers"]
+repository = "https://github.com/intel/openvino-rs"
+documentation = "https://docs.rs/openvino-finder"
 edition = "2018"
 
 [dependencies]
