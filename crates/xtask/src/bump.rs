@@ -1,7 +1,6 @@
-use crate::util::path_to_crates;
-use anyhow::{anyhow, Context, Result};
+use crate::util::{get_crates, Crate};
+use anyhow::{anyhow, Result};
 use std::fs;
-use std::path::PathBuf;
 use std::process::Command;
 use structopt::StructOpt;
 
@@ -18,10 +17,6 @@ pub struct BumpCommand {
 }
 
 impl BumpCommand {
-    /// Because of how the linking is implemented (i.e. a `link!` macro that must wrap around the
-    /// foreign functions), we must split the bindgen generation of types and functions into
-    /// separate files. This means that, at least for the function output, we also need a prefix
-    /// (e.g. to add the `link!` macro) and suffix to make things compile.
     pub fn execute(&self) -> Result<()> {
         // Find the publishable crates.
         let publishable_crates: Vec<Crate> =
@@ -81,54 +76,6 @@ impl std::str::FromStr for Bump {
             _ => Self::Custom(s.into()),
         })
     }
-}
-
-/// Retrieve information about all of the crates found in the `crates` directory.
-fn get_crates() -> Result<Vec<Crate>> {
-    let crates_dir = path_to_crates()?;
-    assert!(crates_dir.is_dir());
-
-    let mut crates = Vec::new();
-    for entry in fs::read_dir(crates_dir)? {
-        let path = entry?.path().join("Cargo.toml");
-        let contents = fs::read(&path)?;
-        let toml: toml::Value = toml::from_slice(&contents)
-            .with_context(|| format!("unable to parse TOML of {}", &path.display()))?;
-
-        let name = toml["package"]["name"]
-            .as_str()
-            .with_context(|| "Every Cargo.toml should have a package name")?
-            .to_owned();
-
-        let version = toml["package"]["version"]
-            .as_str()
-            .with_context(|| "Every Cargo.toml should have a package name")?
-            .to_owned();
-        semver::Version::parse(&version)?;
-
-        let publish = toml["package"]
-            .get("publish")
-            .unwrap_or(&toml::Value::Boolean(true))
-            .as_bool()
-            .unwrap();
-
-        crates.push(Crate {
-            name,
-            version,
-            publish,
-            path,
-        })
-    }
-
-    Ok(crates)
-}
-
-#[derive(Debug)]
-struct Crate {
-    name: String,
-    path: PathBuf,
-    version: String,
-    publish: bool,
 }
 
 /// Update the version of `krate` and any dependencies in `crates` to match the version passed in
