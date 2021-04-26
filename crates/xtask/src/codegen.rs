@@ -4,6 +4,7 @@ use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
+use crate::util::path_to_crates;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "codegen")]
@@ -76,7 +77,7 @@ impl CodegenCommand {
             None => {
                 // Equivalent to:
                 // crates/xtask/src/codegen.rs/../../../openvino-sys/upstream/inference-engine...
-                self.path_to_crates()?.join(DEFAULT_HEADER_FILE)
+                path_to_crates()?.join(DEFAULT_HEADER_FILE)
             }
         })
     }
@@ -92,20 +93,9 @@ impl CodegenCommand {
             }
             None => {
                 // Equivalent to: crates/xtask/src/codegen.rs/../../../openvino-sys/src/generated
-                self.path_to_crates()?.join(DEFAULT_OUTPUT_DIRECTORY)
+                path_to_crates()?.join(DEFAULT_OUTPUT_DIRECTORY)
             }
         })
-    }
-
-    fn path_to_crates(&self) -> Result<PathBuf> {
-        Ok(PathBuf::from(file!())
-            .parent()
-            .with_context(|| format!("Failed to get parent of path."))?
-            .parent()
-            .with_context(|| format!("Failed to get parent of path."))?
-            .parent()
-            .with_context(|| format!("Failed to get parent of path."))?
-            .into())
     }
 
     fn generate_type_bindings<P: AsRef<Path>>(&self, header_file: P) -> Result<bindgen::Bindings> {
