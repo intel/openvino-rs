@@ -1,7 +1,12 @@
+mod bump;
 mod codegen;
+mod publish;
+mod util;
 
 use anyhow::Result;
+use bump::BumpCommand;
 use codegen::CodegenCommand;
+use publish::PublishCommand;
 use structopt::{clap::AppSettings, StructOpt};
 
 fn main() -> Result<()> {
@@ -21,12 +26,18 @@ fn main() -> Result<()> {
 enum XtaskCommand {
     /// Generate the Rust bindings for OpenVINO to use in the openvino-sys crate.
     Codegen(CodegenCommand),
+    /// Increment the version of each of the publishable crates.
+    Bump(BumpCommand),
+    /// Publish all public crates to crates.io and add a Git release tag.
+    Publish(PublishCommand),
 }
 
 impl XtaskCommand {
     fn execute(&self) -> Result<()> {
         match self {
             Self::Codegen(codegen) => codegen.execute(),
+            Self::Bump(bump) => bump.execute(),
+            Self::Publish(publish) => publish.execute(),
         }
     }
 }
