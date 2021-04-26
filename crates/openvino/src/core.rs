@@ -2,9 +2,12 @@
 //! [API](https://docs.openvinotoolkit.org/latest/ie_c_api/modules.html).
 
 use crate::blob::Blob;
-use crate::network::{CNNNetwork, ExecutableNetwork};
 use crate::tensor_desc::TensorDesc;
 use crate::{cstr, drop_using_function, try_unsafe, util::Result};
+use crate::{
+    error::{LoadingError, SetupError},
+    network::{CNNNetwork, ExecutableNetwork},
+};
 use crate::{Layout, Precision};
 use openvino_sys::{
     self, ie_config_t, ie_core_create, ie_core_free, ie_core_load_network, ie_core_read_network,
@@ -19,17 +22,18 @@ drop_using_function!(Core, ie_core_free);
 
 impl Core {
     /// Construct a new OpenVINO [Core]--this is the primary entrypoint for constructing and using
-    /// inference networks.
-    pub fn new(xml_config_file: Option<&str>) -> Result<Core> {
-        openvino_sys::library::load().expect("unable to load shared library");
+    /// inference networks. Because this function may load OpenVINO's shared libraries at runtime,
+    /// there are more ways than usual that this function can fail (e.g., [LoadingError]s).
+    pub fn new(xml_config_file: Option<&str>) -> std::result::Result<Core, SetupError> {
+        openvino_sys::library::load().or_else(|e| Err(LoadingError::SystemFailure(e)))?;
 
         let file = match xml_config_file {
             None => format!(
                 "{}/plugins.xml",
                 openvino_sys::library::find()
-                    .expect("unable to find path to OpenVINO libraries")
+                    .ok_or(LoadingError::CannotFindPath)?
                     .parent()
-                    .expect("unable to get the parent of the linked OpenVINO library")
+                    .ok_or(LoadingError::NoParentDirectory)?
                     .display()
             ),
             Some(f) => f.to_string(),
