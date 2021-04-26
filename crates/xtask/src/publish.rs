@@ -6,6 +6,10 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "bump")]
 pub struct PublishCommand {
+    /// Tag the current commit and push the tags to the default upstream; equivalent to `git tag
+    /// v[version]` and `git push v[version]`.
+    #[structopt(long)]
+    git: bool,
     /// Do not publish any crates; instead, simply print the actions that would have been taken.
     #[structopt(long = "dry-run")]
     dry_run: bool,
@@ -37,7 +41,7 @@ impl PublishCommand {
         // Publish each crate.
         let crates_dir = path_to_crates()?;
         for krate in PUBLICATION_ORDER {
-            println!("publish {}", krate);
+            println!("> publish {}", krate);
             if !self.dry_run {
                 assert!(Command::new("cargo")
                     .arg("publish")
@@ -54,20 +58,22 @@ impl PublishCommand {
 
         // Tag the repository.
         let tag = format!("v{}", publishable_crates[0].version);
-        println!("push git tag {}", tag);
-        if !self.dry_run {
-            assert!(Command::new("git")
-                .arg("tag")
-                .arg(&tag)
-                .status()
-                .with_context(|| format!("failed to run `git tag {}` command", &tag))?
-                .success());
-            assert!(Command::new("git")
-                .arg("push")
-                .arg(&tag)
-                .status()
-                .with_context(|| format!("failed to run `git push {}` command", &tag))?
-                .success());
+        if self.git {
+            println!("> push Git tag: {}", tag);
+            if !self.dry_run {
+                assert!(Command::new("git")
+                    .arg("tag")
+                    .arg(&tag)
+                    .status()
+                    .with_context(|| format!("failed to run `git tag {}` command", &tag))?
+                    .success());
+                assert!(Command::new("git")
+                    .arg("push")
+                    .arg(&tag)
+                    .status()
+                    .with_context(|| format!("failed to run `git push {}` command", &tag))?
+                    .success());
+            }
         }
 
         Ok(())

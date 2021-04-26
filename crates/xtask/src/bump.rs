@@ -11,11 +11,12 @@ pub struct BumpCommand {
     /// taken.
     #[structopt(long = "dry-run")]
     dry_run: bool,
-    /// Add a conventional Git commit message for the bump changes; e.g. `Release v0.0.0`.
-    #[structopt(long = "git-commit")]
-    git_commit: bool,
+    /// Add a conventional Git commit message for the bump changes; equivalent to `git commit -a -m
+    /// 'Release v[bumped version]'`.
+    #[structopt(long)]
+    git: bool,
     /// What part of the semver version to change: major | minor | patch | <version string>
-    #[structopt(name = "BUMP")]
+    #[structopt(name = "KIND")]
     bump: Bump,
 }
 
@@ -58,9 +59,9 @@ impl BumpCommand {
 
         // Add a Git commit.
         let commit_message = format!("'Release v{}'", next_version_str);
-        if self.git_commit {
-            println!("git commit: {}", &commit_message);
-            if !self.dry_run && self.git_commit {
+        if self.git {
+            println!("> add Git commit: {}", &commit_message);
+            if !self.dry_run && self.git {
                 assert!(Command::new("git")
                     .arg("commit")
                     .arg("-a")
@@ -115,7 +116,7 @@ fn update_version(
         // Update top-level `version = "..."` line.
         if !reading_dependencies && line.starts_with("version =") {
             println!(
-                "bump `{}` {} => {}",
+                "> bump `{}` {} => {}",
                 krate.name, krate.version, next_version
             );
             new_contents.push_str(&line.replace(&krate.version.to_string(), next_version));
@@ -144,7 +145,7 @@ fn update_version(
                 );
             }
             println!(
-                "  bump dependency `{}` {} => {}",
+                ">   bump dependency `{}` {} => {}",
                 other.name, other.version, next_version
             );
             rewritten = true;
