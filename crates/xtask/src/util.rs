@@ -1,8 +1,18 @@
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use semver::Version;
-use std::fs;
 use std::path::PathBuf;
+use std::{fs, process::Command};
 use toml::Value;
+
+/// Convenience wrapper for executing commands.
+pub fn exec(command: &mut Command) -> Result<()> {
+    let status = command.status()?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(anyhow!("failed to execute: {:?}", &command))
+    }
+}
 
 /// Determine the path to the `crates` directory`.
 pub fn path_to_crates() -> Result<PathBuf> {
