@@ -1,3 +1,19 @@
+//! The [openvino] crate provides high-level, ergonomic, safe Rust bindings to OpenVINO. See the
+//! repository [README] for more information, such as build instructions.
+//!
+//! [openvino]: https://crates.io/crates/openvino
+//! [README]: https://github.com/intel/openvino-rs
+//!
+//! Check the loaded version of OpenVINO:
+//! ```
+//! assert!(openvino::version().starts_with("2.1"))
+//! ```
+//!
+//! Most interaction with OpenVINO begins with instantiating a [Core]:
+//! ```
+//! let _ = openvino::Core::new(None).expect("to instantiate the OpenVINO library");
+//! ```
+
 mod blob;
 mod core;
 mod error;
@@ -28,14 +44,4 @@ pub fn version() -> String {
         .into_owned();
     unsafe { openvino_sys::ie_version_free(&mut ie_version as *mut openvino_sys::ie_version_t) };
     str_version
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn check_version() {
-        assert!(version().starts_with("2.1"),)
-    }
 }

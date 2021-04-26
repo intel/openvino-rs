@@ -105,13 +105,3 @@ impl Core {
         Ok(ExecutableNetwork { instance })
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn construct_core() {
-        let _ = Core::new(None).unwrap();
-    }
-}
