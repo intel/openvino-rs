@@ -1,10 +1,10 @@
+use crate::util::path_to_crates;
 use anyhow::{anyhow, ensure, Context, Result};
 use bindgen;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
-use crate::util::path_to_crates;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "codegen")]
