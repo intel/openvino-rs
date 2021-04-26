@@ -55,8 +55,8 @@ impl InferenceError {
     }
 }
 
-/// Enumberate setup failures: in some cases, this library calls library loading code that may fail
-/// in a different way (i.e., [LoadingError]) than the calls in to the OpenVINO libraries (i.e.,
+/// Enumerate setup failures: in some cases, this library will call library-loading code that may
+/// fail in a different way (i.e., [LoadingError]) than the calls to the OpenVINO libraries (i.e.,
 /// [InferenceError]).
 #[derive(Debug, Error)]
 pub enum SetupError {
