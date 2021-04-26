@@ -118,6 +118,12 @@ After building:
 
 
 
+### Development
+
+Run `cargo xtask --help` to read up on the in-tree development tools.
+
+
+
 ### License
 
 `openvino-rs` is released under the same license as OpenVINO™: the [Apache License Version
