@@ -8,7 +8,7 @@ mod util;
 
 pub use crate::core::Core;
 pub use blob::Blob;
-pub use error::InferenceError;
+pub use error::{InferenceError, LoadingError, SetupError};
 pub use network::{CNNNetwork, ExecutableNetwork};
 // Re-publish some OpenVINO enums with a conventional Rust naming (see
 // `crates/openvino-sys/build.rs`).

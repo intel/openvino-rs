@@ -1,12 +1,8 @@
 use thiserror::Error;
 
-/// See
+/// Enumerate errors returned by the OpenVINO implementation. See
 /// [IEStatusCode](https://docs.openvinotoolkit.org/latest/ie_c_api/ie__c__api_8h.html#a391683b1e8e26df8b58d7033edd9ee83).
-///
-/// TODO Replace this in bindgen with
-/// [newtype_enum](https://docs.rs/bindgen/0.54.1/bindgen/struct.Builder.html#method.newtype_enum)
-/// or
-/// [rustified_enum](https://docs.rs/bindgen/0.54.1/bindgen/struct.Builder.html#method.rustified_enum).
+/// TODO This could be auto-generated (https://github.com/intel/openvino-rs/issues/20).
 #[derive(Debug, Error)]
 pub enum InferenceError {
     #[error("general error")]
@@ -57,4 +53,26 @@ impl InferenceError {
             _ => Err(Undefined(error_code)),
         }
     }
+}
+
+/// Enumberate setup failures: in some cases, this library calls library loading code that may fail
+/// in a different way (i.e., [LoadingError]) than the calls in to the OpenVINO libraries (i.e.,
+/// [InferenceError]).
+#[derive(Debug, Error)]
+pub enum SetupError {
+    #[error("inference error")]
+    Inference(#[from] InferenceError),
+    #[error("library loading error")]
+    Loading(#[from] LoadingError),
+}
+
+/// Enumerate the ways that library loading can fail.
+#[derive(Debug, Error)]
+pub enum LoadingError {
+    #[error("system failed to load shared libraries (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder): {0}")]
+    SystemFailure(String),
+    #[error("cannot find path to shared libraries (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder)")]
+    CannotFindPath,
+    #[error("no parent directory found for shared library path")]
+    NoParentDirectory,
 }
