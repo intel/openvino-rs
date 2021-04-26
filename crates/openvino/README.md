@@ -7,4 +7,4 @@ repository [README] for more information, such as build instructions.
 > This crate is currently experimental--its API surface is subject to change.
 
 [openvino]: https://crates.io/crates/openvino
-[README]: https://github.com/abrown/openvino/blob/rust-bridge/inference-engine/ie_bridges/rust/README.md
+[README]: https://github.com/intel/openvino-rs

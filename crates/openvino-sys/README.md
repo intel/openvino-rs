@@ -10,5 +10,5 @@ information, including build instructions.
 [C API]: https://docs.openvinotoolkit.org/2020.1/ie_c_api/groups.html
 [openvino-sys]: https://crates.io/crates/openvino-sys
 [openvino]: https://crates.io/crates/openvino
-[README]: https://github.com/abrown/openvino/blob/rust-bridge/inference-engine/ie_bridges/rust/README.md
+[README]: https://github.com/intel/openvino-rs
 [upstream]: upstream
