@@ -1,5 +1,5 @@
 use crate::util::{get_crates, Crate};
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use std::fs;
 use std::process::Command;
 use structopt::StructOpt;
@@ -11,6 +11,9 @@ pub struct BumpCommand {
     /// taken.
     #[structopt(long = "dry-run")]
     dry_run: bool,
+    /// Add a conventional Git commit message for the bump changes; e.g. `Release v0.0.0`.
+    #[structopt(long = "git-commit")]
+    git_commit: bool,
     /// What part of the semver version to change: major | minor | patch | <version string>
     #[structopt(name = "BUMP")]
     bump: Bump,
@@ -51,6 +54,22 @@ impl BumpCommand {
         // Update the Cargo.lock file.
         if !self.dry_run {
             assert!(Command::new("cargo").arg("fetch").status()?.success());
+        }
+
+        // Add a Git commit.
+        let commit_message = format!("'Release v{}'", next_version_str);
+        if self.git_commit {
+            println!("git commit: {}", &commit_message);
+            if !self.dry_run && self.git_commit {
+                assert!(Command::new("git")
+                    .arg("commit")
+                    .arg("-a")
+                    .arg("-m")
+                    .arg(&commit_message)
+                    .status()
+                    .with_context(|| format!("failed to run `git commit` command"))?
+                    .success());
+            }
         }
 
         Ok(())
