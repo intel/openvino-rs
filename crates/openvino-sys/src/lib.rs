@@ -1,3 +1,20 @@
+//! This crate provides low-level, unsafe, Rust bindings to OpenVINO™ using its [C API]. If you are
+//! looking to use OpenVINO™ from Rust, you likely should look at the ergonomic, safe bindings in
+//! [openvino], which depends on this crate. See the repository [README] for more information,
+//! including build instructions.
+//!
+//! [C API]: https://docs.openvinotoolkit.org/2020.1/ie_c_api/groups.html
+//! [openvino-sys]: https://crates.io/crates/openvino-sys
+//! [openvino]: https://crates.io/crates/openvino
+//! [README]: https://github.com/intel/openvino-rs/tree/main/crates/openvino-sys
+//!
+//! An example interaction with raw [openvino-sys]:
+//! ```
+//! # use std::ffi::CStr;
+//! openvino_sys::library::load().expect("to have an OpenVINO library available");
+//! let version = unsafe { CStr::from_ptr(openvino_sys::ie_c_api_version().api_version) };
+//! assert!(version.to_string_lossy().starts_with("2.1"));
+//! ```
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
@@ -36,18 +53,5 @@ pub mod library {
         } else {
             Some(PathBuf::from(env!("OPENVINO_LIB_PATH")))
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::ffi::CStr;
-
-    #[test]
-    fn check_version() {
-        load().expect("to have an OpenVINO library available");
-        let version = unsafe { CStr::from_ptr(ie_c_api_version().api_version) };
-        assert!(version.to_string_lossy().starts_with("2.1"));
     }
 }
