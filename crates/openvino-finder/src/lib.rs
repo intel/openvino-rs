@@ -13,6 +13,18 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
         library_name,
         env::consts::DLL_SUFFIX
     );
+    log::info!("Attempting to find library: {}", file);
+
+    // We search for the library in various different places and early-return if we find it.
+    macro_rules! check_and_return {
+        ($path: expr) => {
+            log::debug!("Searching in: {}", $path.display());
+            if $path.is_file() {
+                log::info!("Found library at path: {}", $path.display());
+                return Some($path);
+            }
+        };
+    }
 
     // Search using the `OPENVINO_INSTALL_DIR` environment variable; this may be set by users of the
     // openvino-rs library.
@@ -20,9 +32,17 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
         let install_dir = PathBuf::from(install_dir);
         for lib_dir in KNOWN_INSTALLATION_SUBDIRECTORIES {
             let search_path = install_dir.join(lib_dir).join(&file);
-            if search_path.is_file() {
-                return Some(search_path);
-            }
+            check_and_return!(search_path);
+        }
+    }
+
+    // Search using the `OPENVINO_BUILD_DIR` environment variable; this may be set by users of the
+    // openvino-rs library.
+    if let Some(build_dir) = env::var_os(ENV_OPENVINO_BUILD_DIR) {
+        let install_dir = PathBuf::from(build_dir);
+        for lib_dir in KNOWN_BUILD_SUBDIRECTORIES {
+            let search_path = install_dir.join(lib_dir).join(&file);
+            check_and_return!(search_path);
         }
     }
 
@@ -32,9 +52,7 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
         let install_dir = PathBuf::from(install_dir);
         for lib_dir in KNOWN_INSTALLATION_SUBDIRECTORIES {
             let search_path = install_dir.join(lib_dir).join(&file);
-            if search_path.is_file() {
-                return Some(search_path);
-            }
+            check_and_return!(search_path);
         }
     }
 
@@ -44,9 +62,7 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
     if let Some(path) = env::var_os(ENV_LIBRARY_PATH) {
         for lib_dir in env::split_paths(&path) {
             let search_path = lib_dir.join(&file);
-            if search_path.is_file() {
-                return Some(search_path);
-            }
+            check_and_return!(search_path);
         }
     }
 
@@ -58,9 +74,7 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
     {
         for lib_dir in KNOWN_INSTALLATION_SUBDIRECTORIES {
             let search_path = default_dir.join(lib_dir).join(&file);
-            if search_path.is_file() {
-                return Some(search_path);
-            }
+            check_and_return!(search_path);
         }
     }
 
@@ -68,7 +82,7 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
 }
 
 const ENV_OPENVINO_INSTALL_DIR: &'static str = "OPENVINO_INSTALL_DIR";
-
+const ENV_OPENVINO_BUILD_DIR: &'static str = "OPENVINO_BUILD_DIR";
 const ENV_INTEL_OPENVINO_DIR: &'static str = "INTEL_OPENVINO_DIR";
 
 #[cfg(target_os = "linux")]
@@ -95,6 +109,12 @@ const KNOWN_INSTALLATION_SUBDIRECTORIES: &'static [&'static str] = &[
     "deployment_tools/inference_engine/external/tbb/lib",
 ];
 
+const KNOWN_BUILD_SUBDIRECTORIES: &'static [&'static str] = &[
+    "bin/intel64/Debug/lib",
+    "bin/intel64/Release/lib",
+    "inference-engine/temp/tbb/lib",
+];
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -103,6 +123,7 @@ mod test {
     /// system.
     #[test]
     fn find_inference_engine_c_api_locally() {
+        pretty_env_logger::init();
         assert!(find("inference_engine_c_api").is_some());
     }
 }
