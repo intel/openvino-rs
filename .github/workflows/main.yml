@@ -37,7 +37,10 @@ jobs:
     - name: Build (openvino-sys from source)
       run: cargo build --verbose --features openvino-sys/from-source
     - name: Run tests
-      run: cargo test --verbose --features openvino-sys/from-source
+      # For some reason the library path is not set during the doc tests (`--doc`, see
+      # https://doc.rust-lang.org/cargo/commands/cargo-test.html#target-selection) so we skip them
+      # here: issue at https://github.com/intel/openvino-rs/issues/25.
+      run: cargo test --verbose --features openvino-sys/from-source --lib --tests
 
   # Build and test from an existing OpenVINO installation inside a Docker image (i.e. download the
   # binaries, then compile against these).
