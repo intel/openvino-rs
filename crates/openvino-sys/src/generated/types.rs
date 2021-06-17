@@ -60,6 +60,8 @@ fn bindgen_test_layout_ie_version() {
         )
     );
 }
+#[doc = " @struct ie_version"]
+#[doc = " @brief Represents an API version information that reflects the set of supported features"]
 pub type ie_version_t = ie_version;
 #[doc = " @struct ie_core_version"]
 #[doc = " @brief  Represents version information that describes devices and the inference engine runtime library"]
@@ -135,6 +137,8 @@ fn bindgen_test_layout_ie_core_version() {
         )
     );
 }
+#[doc = " @struct ie_core_version"]
+#[doc = " @brief  Represents version information that describes devices and the inference engine runtime library"]
 pub type ie_core_version_t = ie_core_version;
 #[doc = " @struct ie_core_versions"]
 #[doc = " @brief Represents all versions information that describes all devices and the inference engine runtime library"]
@@ -177,6 +181,8 @@ fn bindgen_test_layout_ie_core_versions() {
         )
     );
 }
+#[doc = " @struct ie_core_versions"]
+#[doc = " @brief Represents all versions information that describes all devices and the inference engine runtime library"]
 pub type ie_core_versions_t = ie_core_versions;
 #[doc = " @struct ie_config"]
 #[doc = " @brief Represents configuration information that describes devices"]
@@ -230,6 +236,8 @@ fn bindgen_test_layout_ie_config() {
         )
     );
 }
+#[doc = " @struct ie_config"]
+#[doc = " @brief Represents configuration information that describes devices"]
 pub type ie_config_t = ie_config;
 #[doc = " @struct ie_param"]
 #[doc = " @brief metric and config parameters."]
@@ -318,6 +326,8 @@ fn bindgen_test_layout_ie_param() {
         concat!("Alignment of ", stringify!(ie_param))
     );
 }
+#[doc = " @struct ie_param"]
+#[doc = " @brief metric and config parameters."]
 pub type ie_param_t = ie_param;
 #[doc = " @struct ie_param_config"]
 #[doc = " @brief Represents configuration parameter information"]
@@ -360,6 +370,8 @@ fn bindgen_test_layout_ie_param_config() {
         )
     );
 }
+#[doc = " @struct ie_param_config"]
+#[doc = " @brief Represents configuration parameter information"]
 pub type ie_param_config_t = ie_param_config;
 #[doc = " @struct dimensions"]
 #[doc = " @brief Represents dimensions for input or output data"]
@@ -402,6 +414,8 @@ fn bindgen_test_layout_dimensions() {
         )
     );
 }
+#[doc = " @struct dimensions"]
+#[doc = " @brief Represents dimensions for input or output data"]
 pub type dimensions_t = dimensions;
 #[repr(u32)]
 #[doc = " @enum layout_e"]
@@ -508,6 +522,8 @@ fn bindgen_test_layout_tensor_desc() {
         )
     );
 }
+#[doc = " @struct tensor_desc"]
+#[doc = " @brief Represents detailed information for a tensor"]
 pub type tensor_desc_t = tensor_desc;
 #[repr(u32)]
 #[doc = " @enum colorformat_e"]
@@ -613,6 +629,8 @@ fn bindgen_test_layout_roi() {
         )
     );
 }
+#[doc = " @struct roi_t"]
+#[doc = " @brief This structure describes roi data."]
 pub type roi_t = roi;
 #[doc = " @struct input_shape"]
 #[doc = " @brief Represents shape for input data"]
@@ -655,6 +673,8 @@ fn bindgen_test_layout_input_shape() {
         )
     );
 }
+#[doc = " @struct input_shape"]
+#[doc = " @brief Represents shape for input data"]
 pub type input_shape_t = input_shape;
 #[doc = " @struct input_shapes"]
 #[doc = " @brief Represents shapes for all input data"]
@@ -697,6 +717,8 @@ fn bindgen_test_layout_input_shapes() {
         )
     );
 }
+#[doc = " @struct input_shapes"]
+#[doc = " @brief Represents shapes for all input data"]
 pub type input_shapes_t = input_shapes;
 #[doc = " @struct ie_blob_buffer"]
 #[doc = " @brief Represents copied data from the given blob."]
@@ -761,6 +783,8 @@ fn bindgen_test_layout_ie_blob_buffer() {
         concat!("Alignment of ", stringify!(ie_blob_buffer))
     );
 }
+#[doc = " @struct ie_blob_buffer"]
+#[doc = " @brief Represents copied data from the given blob."]
 pub type ie_blob_buffer_t = ie_blob_buffer;
 #[doc = " @struct ie_complete_call_back"]
 #[doc = " @brief Completion callback definition about the function and args"]
@@ -807,6 +831,8 @@ fn bindgen_test_layout_ie_complete_call_back() {
         )
     );
 }
+#[doc = " @struct ie_complete_call_back"]
+#[doc = " @brief Completion callback definition about the function and args"]
 pub type ie_complete_call_back_t = ie_complete_call_back;
 #[doc = " @struct ie_available_devices"]
 #[doc = " @brief Represent all available devices."]
@@ -851,4 +877,6 @@ fn bindgen_test_layout_ie_available_devices() {
         )
     );
 }
+#[doc = " @struct ie_available_devices"]
+#[doc = " @brief Represent all available devices."]
 pub type ie_available_devices_t = ie_available_devices;
