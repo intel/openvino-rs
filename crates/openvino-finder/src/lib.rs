@@ -1,3 +1,4 @@
+use cfg_if::cfg_if;
 use std::env;
 use std::path::PathBuf;
 
@@ -85,21 +86,32 @@ const ENV_OPENVINO_INSTALL_DIR: &'static str = "OPENVINO_INSTALL_DIR";
 const ENV_OPENVINO_BUILD_DIR: &'static str = "OPENVINO_BUILD_DIR";
 const ENV_INTEL_OPENVINO_DIR: &'static str = "INTEL_OPENVINO_DIR";
 
-#[cfg(target_os = "linux")]
-const ENV_LIBRARY_PATH: &'static str = "LD_LIBRARY_PATH";
-#[cfg(target_os = "macos")]
-const ENV_LIBRARY_PATH: &'static str = "DYLD_LIBRARY_PATH";
-#[cfg(target_os = "windows")]
-const ENV_LIBRARY_PATH: &'static str = "PATH";
+cfg_if! {
+    if #[cfg(any(target_os = "linux"))] {
+        const ENV_LIBRARY_PATH: &'static str = "LD_LIBRARY_PATH";
+    } else if #[cfg(target_os = "macos")] {
+        const ENV_LIBRARY_PATH: &'static str = "DYLD_LIBRARY_PATH";
+    } else if #[cfg(target_os = "windows")] {
+        const ENV_LIBRARY_PATH: &'static str = "PATH";
+    } else {
+        // This may not work but seems like a sane default for target OS' not listed above.
+        const ENV_LIBRARY_PATH: &'static str = "LD_LIBRARY_PATH";
+    }
+}
 
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-const DEFAULT_INSTALLATION_DIRECTORIES: &'static [&'static str] =
-    &["/opt/intel/openvino", "/opt/intel/openvino_2021"];
-#[cfg(target_os = "windows")]
-const DEFAULT_INSTALLATION_DIRECTORIES: &'static [&'static str] = &[
-    "C:\\Program Files (x86)\\Intel\\openvino",
-    "C:\\Program Files (x86)\\Intel\\openvino_2021",
-];
+cfg_if! {
+    if #[cfg(any(target_os = "linux", target_os = "macos"))] {
+        const DEFAULT_INSTALLATION_DIRECTORIES: &'static [&'static str] =
+            &["/opt/intel/openvino", "/opt/intel/openvino_2021"];
+    } else if #[cfg(target_os = "windows")] {
+        const DEFAULT_INSTALLATION_DIRECTORIES: &'static [&'static str] = &[
+            "C:\\Program Files (x86)\\Intel\\openvino",
+            "C:\\Program Files (x86)\\Intel\\openvino_2021",
+        ];
+    } else {
+        const DEFAULT_INSTALLATION_DIRECTORIES: &'static [&'static str] = &[];
+    }
+}
 
 const KNOWN_INSTALLATION_SUBDIRECTORIES: &'static [&'static str] = &[
     "deployment_tools/ngraph/lib",
