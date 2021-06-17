@@ -275,6 +275,7 @@ dependencies = [
 name = "openvino-finder"
 version = "0.3.1"
 dependencies = [
+ "cfg-if",
  "log",
  "pretty_env_logger",
 ]
