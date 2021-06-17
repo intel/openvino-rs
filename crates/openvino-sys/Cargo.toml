@@ -1,6 +1,6 @@
 [package]
 name = "openvino-sys"
-version = "0.3.1"
+version = "0.3.2"
 license = "Apache-2.0"
 description = "Low-level bindings for OpenVINO (use the `openvino` crate for easier-to-use bindings)."
 readme = "README.md"
@@ -24,11 +24,11 @@ links = "inference_engine_c_api"
 [dependencies]
 lazy_static = {version = "1.4", optional = true }
 libloading = {version = "0.7", optional = true }
-openvino-finder = {version = "0.3.1", path = "../openvino-finder" }
+openvino-finder = {version = "0.3.2", path = "../openvino-finder" }
 
 [build-dependencies]
 cmake = "0.1.45"
-openvino-finder = {version = "0.3.1", path = "../openvino-finder" }
+openvino-finder = {version = "0.3.2", path = "../openvino-finder" }
 
 [features]
 default = ["cpu"]

@@ -264,7 +264,7 @@ dependencies = [
 
 [[package]]
 name = "openvino"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "float-cmp",
  "openvino-sys",
@@ -273,7 +273,7 @@ dependencies = [
 
 [[package]]
 name = "openvino-finder"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "cfg-if",
  "log",
@@ -282,7 +282,7 @@ dependencies = [
 
 [[package]]
 name = "openvino-sys"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "cmake",
  "lazy_static",
