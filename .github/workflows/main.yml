@@ -116,3 +116,16 @@ jobs:
     - name: test
       run: cargo test -v
 
+  # Re-generate the openvino-sys bindings and check if anything has changed. A failure in this step
+  # indicates that we need to decide wether to commit the changes from `cargo xtask codegen`.
+  codegen:
+    name: Generate openvino-sys bindings
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Generate bindings
+      run: cargo xtask codegen
+    - name: Verify no changes
+      run: git diff --ignore-submodules --no-ext-diff --name-only --exit-code
