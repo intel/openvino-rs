@@ -21,6 +21,8 @@ float-cmp = "0.8"
 
 [features]
 runtime-linking = ["openvino-sys/runtime-linking"]
+from-source = ["openvino-sys/from-source"]
+all = ["openvino-sys/all"]
 
 [package.metadata.docs.rs]
 features = ["runtime-linking"]
