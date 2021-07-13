@@ -13,7 +13,7 @@
 //! # use std::ffi::CStr;
 //! openvino_sys::library::load().expect("to have an OpenVINO library available");
 //! let version = unsafe { CStr::from_ptr(openvino_sys::ie_c_api_version().api_version) };
-//! assert!(version.to_string_lossy().starts_with("2.1"));
+//! assert!(version.to_string_lossy().starts_with("2"));
 //! ```
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]

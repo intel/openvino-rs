@@ -6,7 +6,7 @@
 //!
 //! Check the loaded version of OpenVINO:
 //! ```
-//! assert!(openvino::version().starts_with("2.1"))
+//! assert!(openvino::version().starts_with("2"))
 //! ```
 //!
 //! Most interaction with OpenVINO begins with instantiating a [Core]:
