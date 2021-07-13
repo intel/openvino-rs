@@ -102,7 +102,7 @@ cfg_if! {
 cfg_if! {
     if #[cfg(any(target_os = "linux", target_os = "macos"))] {
         const DEFAULT_INSTALLATION_DIRECTORIES: &'static [&'static str] =
-            &["/opt/intel/openvino", "/opt/intel/openvino_2021"];
+            &["/opt/intel/openvino_2021", "/opt/intel/openvino"];
     } else if #[cfg(target_os = "windows")] {
         const DEFAULT_INSTALLATION_DIRECTORIES: &'static [&'static str] = &[
             "C:\\Program Files (x86)\\Intel\\openvino",
