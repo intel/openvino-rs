@@ -1,5 +1,5 @@
 //! Contains the network representations in OpenVINO:
-//!  - [CNNNetwork] is the OpenVINO represenation of a neural network
+//!  - [CNNNetwork] is the OpenVINO representation of a neural network
 //!  - [ExecutableNetwork] is the compiled representation of a [CNNNetwork] for a device.
 
 use crate::request::InferRequest;
@@ -8,9 +8,9 @@ use crate::{Layout, Precision, ResizeAlgorithm};
 use openvino_sys::{
     ie_exec_network_create_infer_request, ie_exec_network_free, ie_executable_network_t,
     ie_network_free, ie_network_get_input_name, ie_network_get_inputs_number,
-    ie_network_get_output_name, ie_network_name_free, ie_network_set_input_layout,
-    ie_network_set_input_precision, ie_network_set_input_resize_algorithm,
-    ie_network_set_output_precision, ie_network_t,
+    ie_network_get_output_name, ie_network_get_outputs_number, ie_network_name_free,
+    ie_network_set_input_layout, ie_network_set_input_precision,
+    ie_network_set_input_resize_algorithm, ie_network_set_output_precision, ie_network_t,
 };
 use std::ffi::CStr;
 
@@ -22,6 +22,20 @@ pub struct CNNNetwork {
 drop_using_function!(CNNNetwork, ie_network_free);
 
 impl CNNNetwork {
+    /// Retrieve the number of network inputs.
+    pub fn get_inputs_len(&self) -> Result<usize> {
+        let mut num: usize = 0;
+        try_unsafe!(ie_network_get_inputs_number(self.instance, &mut num))?;
+        Ok(num)
+    }
+
+    /// Retrieve the number of network outputs.
+    pub fn get_outputs_len(&self) -> Result<usize> {
+        let mut num: usize = 0;
+        try_unsafe!(ie_network_get_outputs_number(self.instance, &mut num))?;
+        Ok(num)
+    }
+
     /// Retrieve the name identifying the input tensor at `index`.
     pub fn get_input_name(&self, index: usize) -> Result<String> {
         let mut cname = std::ptr::null_mut();
@@ -92,37 +106,6 @@ impl CNNNetwork {
             cstr!(output_name),
             precision
         ))
-    }
-
-    /// Initialze input layout of all inputs
-    pub fn init_inputs_layout(&mut self, layout: Layout) -> Result<()> {
-        let mut network_input_size: usize = 0;
-        try_unsafe!(ie_network_get_inputs_number(
-            self.instance,
-            &mut network_input_size
-        ))?;
-
-        for i in 0..(network_input_size) as u32 {
-            let mut cname = std::ptr::null_mut();
-            try_unsafe!(ie_network_get_input_name(
-                self.instance,
-                i as usize,
-                &mut cname as *mut *mut _
-            ))?;
-
-            let name = unsafe { CStr::from_ptr(cname) }
-                .to_string_lossy()
-                .into_owned();
-            unsafe { ie_network_name_free(&mut cname as *mut *mut _) };
-            debug_assert!(cname.is_null());
-
-            try_unsafe!(ie_network_set_input_layout(
-                self.instance,
-                cstr!(name),
-                layout
-            ));
-        }
-        Ok(())
     }
 }
 
