@@ -7,9 +7,10 @@ use crate::{cstr, drop_using_function, try_unsafe, util::Result};
 use crate::{Layout, Precision, ResizeAlgorithm};
 use openvino_sys::{
     ie_exec_network_create_infer_request, ie_exec_network_free, ie_executable_network_t,
-    ie_network_free, ie_network_get_input_name, ie_network_get_output_name, ie_network_name_free,
-    ie_network_set_input_layout, ie_network_set_input_precision,
-    ie_network_set_input_resize_algorithm, ie_network_set_output_precision, ie_network_t,
+    ie_network_free, ie_network_get_input_name, ie_network_get_inputs_number,
+    ie_network_get_output_name, ie_network_name_free, ie_network_set_input_layout,
+    ie_network_set_input_precision, ie_network_set_input_resize_algorithm,
+    ie_network_set_output_precision, ie_network_t,
 };
 use std::ffi::CStr;
 
@@ -91,6 +92,37 @@ impl CNNNetwork {
             cstr!(output_name),
             precision
         ))
+    }
+
+    /// Initialze input layout of all inputs
+    pub fn init_inputs_layout(&mut self, layout: Layout) -> Result<()> {
+        let mut network_input_size: usize = 0;
+        try_unsafe!(ie_network_get_inputs_number(
+            self.instance,
+            &mut network_input_size
+        ))?;
+
+        for i in 0..(network_input_size) as u32 {
+            let mut cname = std::ptr::null_mut();
+            try_unsafe!(ie_network_get_input_name(
+                self.instance,
+                i as usize,
+                &mut cname as *mut *mut _
+            ))?;
+
+            let name = unsafe { CStr::from_ptr(cname) }
+                .to_string_lossy()
+                .into_owned();
+            unsafe { ie_network_name_free(&mut cname as *mut *mut _) };
+            debug_assert!(cname.is_null());
+
+            try_unsafe!(ie_network_set_input_layout(
+                self.instance,
+                cstr!(name),
+                layout
+            ));
+        }
+        Ok(())
     }
 }
 
