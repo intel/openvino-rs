@@ -48,7 +48,7 @@ impl BumpCommand {
 
         // Update the Cargo.toml files.
         let next_version_str = &next_version.to_string();
-        for c in publishable_crates.iter() {
+        for c in &publishable_crates {
             update_version(c, &publishable_crates, next_version_str, self.dry_run)?;
         }
 
@@ -68,7 +68,7 @@ impl BumpCommand {
                     .arg("-m")
                     .arg(&commit_message)
                     .status()
-                    .with_context(|| format!("failed to run `git commit` command"))?
+                    .with_context(|| "failed to run `git commit` command".to_string())?
                     .success());
             }
         }
@@ -99,8 +99,9 @@ impl std::str::FromStr for Bump {
 }
 
 /// Update the version of `krate` and any dependencies in `crates` to match the version passed in
-/// `next_version`. Adapted from
-/// https://github.com/bytecodealliance/wasmtime/blob/main/scripts/publish.rs
+/// `next_version`. Adapted from Wasmtime's [publish.rs] script.
+///
+/// [publish.rs]: https://github.com/bytecodealliance/wasmtime/blob/main/scripts/publish.rs
 fn update_version(
     krate: &Crate,
     crates: &[Crate],
@@ -124,7 +125,7 @@ fn update_version(
         }
 
         // Check whether we have reached the `[dependencies]` section.
-        reading_dependencies = if line.starts_with("[") {
+        reading_dependencies = if line.starts_with('[') {
             line.contains("dependencies")
         } else {
             reading_dependencies
@@ -158,7 +159,7 @@ fn update_version(
             new_contents.push_str(line);
         }
 
-        new_contents.push_str("\n");
+        new_contents.push('\n');
     }
 
     if !dry_run {

@@ -1,6 +1,6 @@
 //! Contains the network representations in OpenVINO:
-//!  - [CNNNetwork] is the OpenVINO representation of a neural network
-//!  - [ExecutableNetwork] is the compiled representation of a [CNNNetwork] for a device.
+//!  - [`CNNNetwork`] is the OpenVINO representation of a neural network
+//!  - [`ExecutableNetwork`] is the compiled representation of a [`CNNNetwork`] for a device.
 
 use crate::request::InferRequest;
 use crate::{cstr, drop_using_function, try_unsafe, util::Result};
@@ -15,7 +15,7 @@ use openvino_sys::{
 use std::ffi::CStr;
 
 /// See
-/// [CNNNetwork](https://docs.openvinotoolkit.org/latest/classInferenceEngine_1_1CNNNetwork.html).
+/// [`CNNNetwork`](https://docs.openvinotoolkit.org/latest/classInferenceEngine_1_1CNNNetwork.html).
 pub struct CNNNetwork {
     pub(crate) instance: *mut ie_network_t,
 }
@@ -38,34 +38,34 @@ impl CNNNetwork {
 
     /// Retrieve the name identifying the input tensor at `index`.
     pub fn get_input_name(&self, index: usize) -> Result<String> {
-        let mut cname = std::ptr::null_mut();
+        let mut c_name = std::ptr::null_mut();
         try_unsafe!(ie_network_get_input_name(
             self.instance,
             index,
-            &mut cname as *mut *mut _
+            &mut c_name as *mut *mut _
         ))?;
-        let name = unsafe { CStr::from_ptr(cname) }
+        let rust_name = unsafe { CStr::from_ptr(c_name) }
             .to_string_lossy()
             .into_owned();
-        unsafe { ie_network_name_free(&mut cname as *mut *mut _) };
-        debug_assert!(cname.is_null());
-        Ok(name)
+        unsafe { ie_network_name_free(&mut c_name as *mut *mut _) };
+        debug_assert!(c_name.is_null());
+        Ok(rust_name)
     }
 
     /// Retrieve the name identifying the output tensor at `index`.
     pub fn get_output_name(&self, index: usize) -> Result<String> {
-        let mut cname = std::ptr::null_mut();
+        let mut c_name = std::ptr::null_mut();
         try_unsafe!(ie_network_get_output_name(
             self.instance,
             index,
-            &mut cname as *mut *mut _
+            &mut c_name as *mut *mut _
         ))?;
-        let name = unsafe { CStr::from_ptr(cname) }
+        let rust_name = unsafe { CStr::from_ptr(c_name) }
             .to_string_lossy()
             .into_owned();
-        unsafe { ie_network_name_free(&mut cname as *mut *mut _) };
-        debug_assert!(cname.is_null());
-        Ok(name)
+        unsafe { ie_network_name_free(&mut c_name as *mut *mut _) };
+        debug_assert!(c_name.is_null());
+        Ok(rust_name)
     }
 
     /// Configure a resize algorithm for the input tensor at `input_name`.
@@ -110,14 +110,14 @@ impl CNNNetwork {
 }
 
 /// See
-/// [ExecutableNetwork](https://docs.openvinotoolkit.org/latest/classInferenceEngine_1_1ExecutableNetwork.html).
+/// [`ExecutableNetwork`](https://docs.openvinotoolkit.org/latest/classInferenceEngine_1_1ExecutableNetwork.html).
 pub struct ExecutableNetwork {
     pub(crate) instance: *mut ie_executable_network_t,
 }
 drop_using_function!(ExecutableNetwork, ie_exec_network_free);
 
 impl ExecutableNetwork {
-    /// Create an [InferRequest].
+    /// Create an [`InferRequest`].
     pub fn create_infer_request(&mut self) -> Result<InferRequest> {
         let mut instance = std::ptr::null_mut();
         try_unsafe!(ie_exec_network_create_infer_request(

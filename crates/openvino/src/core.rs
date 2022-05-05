@@ -21,11 +21,11 @@ pub struct Core {
 drop_using_function!(Core, ie_core_free);
 
 impl Core {
-    /// Construct a new OpenVINO [Core]--this is the primary entrypoint for constructing and using
+    /// Construct a new OpenVINO [`Core`]--this is the primary entrypoint for constructing and using
     /// inference networks. Because this function may load OpenVINO's shared libraries at runtime,
-    /// there are more ways than usual that this function can fail (e.g., [LoadingError]s).
+    /// there are more ways than usual that this function can fail (e.g., [`LoadingError`]s).
     pub fn new(xml_config_file: Option<&str>) -> std::result::Result<Core, SetupError> {
-        openvino_sys::library::load().or_else(|e| Err(LoadingError::SystemFailure(e)))?;
+        openvino_sys::library::load().map_err(LoadingError::SystemFailure)?;
 
         let file = match xml_config_file {
             None => format!(
@@ -43,7 +43,7 @@ impl Core {
         Ok(Core { instance })
     }
 
-    /// Read a [CNNNetwork] from a pair of files: `model_path` points to an XML file containing the
+    /// Read a [`CNNNetwork`] from a pair of files: `model_path` points to an XML file containing the
     /// OpenVINO network IR and `weights_path` points to the binary weights file.
     pub fn read_network_from_file(
         &mut self,
@@ -60,7 +60,7 @@ impl Core {
         Ok(CNNNetwork { instance })
     }
 
-    /// Read a [CNNNetwork] from a pair of byte slices: `model_content` contains the XML data
+    /// Read a [`CNNNetwork`] from a pair of byte slices: `model_content` contains the XML data
     /// describing the OpenVINO network IR and `weights_content` contains the binary weights.
     pub fn read_network_from_buffer(
         &mut self,
@@ -69,10 +69,10 @@ impl Core {
     ) -> Result<CNNNetwork> {
         let mut instance = std::ptr::null_mut();
         let weights_desc = TensorDesc::new(Layout::ANY, &[weights_content.len()], Precision::U8);
-        let weights_blob = Blob::new(weights_desc, weights_content)?;
+        let weights_blob = Blob::new(&weights_desc, weights_content)?;
         try_unsafe!(ie_core_read_network_from_memory(
             self.instance,
-            model_content as *const _ as *const u8,
+            model_content.as_ptr().cast::<u8>(),
             model_content.len(),
             weights_blob.instance,
             &mut instance as *mut *mut _,
@@ -80,7 +80,7 @@ impl Core {
         Ok(CNNNetwork { instance })
     }
 
-    /// Instantiate a [CNNNetwork] as an [ExecutableNetwork] on the specified `device`.
+    /// Instantiate a [`CNNNetwork`] as an [`ExecutableNetwork`] on the specified `device`.
     pub fn load_network(
         &mut self,
         network: &CNNNetwork,

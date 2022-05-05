@@ -15,10 +15,14 @@
 //! let version = unsafe { CStr::from_ptr(openvino_sys::ie_c_api_version().api_version) };
 //! assert!(version.to_string_lossy().starts_with("2"));
 //! ```
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
-#![allow(dead_code)]
+
+#![allow(non_snake_case, non_camel_case_types, non_upper_case_globals)]
+#![allow(unused, dead_code)]
+#![deny(clippy::all)]
+#![warn(clippy::pedantic)]
+#![warn(clippy::cargo)]
+#![allow(clippy::must_use_candidate)]
+#![allow(clippy::wildcard_imports)]
 
 mod linking;
 

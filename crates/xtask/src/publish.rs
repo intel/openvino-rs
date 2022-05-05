@@ -43,12 +43,12 @@ impl PublishCommand {
         for krate in PUBLICATION_ORDER {
             println!("> publish {}", krate);
             if !self.dry_run {
-                let crate_dir = crates_dir.clone().join(krate);
+                let krate_dir = crates_dir.clone().join(krate);
                 let exec_result = exec(
                     Command::new("cargo")
                         .arg("publish")
                         .arg("--no-verify")
-                        .current_dir(&crate_dir),
+                        .current_dir(&krate_dir),
                 );
 
                 // We want to continue even if a crate does not publish: this allows us to re-run

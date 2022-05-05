@@ -43,10 +43,7 @@ macro_rules! link {
         where
             F: FnOnce(&SharedLibrary) -> T,
         {
-            match LIBRARY.read().unwrap().as_ref() {
-                Some(library) => Some(f(&library)),
-                _ => None,
-            }
+            LIBRARY.read().unwrap().as_ref().map(|library| f(&library))
         }
 
         // The set of functions loaded dynamically.
@@ -74,6 +71,10 @@ macro_rules! link {
         }
 
         /// Load all of the function definitions from a shared library.
+        ///
+        /// # Errors
+        ///
+        /// May fail if the `openvino-finder` cannot discover the library on the current system.
         pub fn load() -> Result<(), String> {
             match crate::library::find() {
                 None => Err("Unable to find the `inference_engine_c_api` library to load".into()),

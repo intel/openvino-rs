@@ -1,3 +1,11 @@
+//! Provides a mechanism for locating the OpenVINO shared libraries installed on a system.
+
+#![deny(missing_docs)]
+#![deny(clippy::all)]
+#![warn(clippy::pedantic)]
+#![warn(clippy::cargo)]
+#![allow(clippy::must_use_candidate)]
+
 use cfg_if::cfg_if;
 use std::env;
 use std::path::PathBuf;
@@ -82,38 +90,38 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
     None
 }
 
-const ENV_OPENVINO_INSTALL_DIR: &'static str = "OPENVINO_INSTALL_DIR";
-const ENV_OPENVINO_BUILD_DIR: &'static str = "OPENVINO_BUILD_DIR";
-const ENV_INTEL_OPENVINO_DIR: &'static str = "INTEL_OPENVINO_DIR";
+const ENV_OPENVINO_INSTALL_DIR: &str = "OPENVINO_INSTALL_DIR";
+const ENV_OPENVINO_BUILD_DIR: &str = "OPENVINO_BUILD_DIR";
+const ENV_INTEL_OPENVINO_DIR: &str = "INTEL_OPENVINO_DIR";
 
 cfg_if! {
     if #[cfg(any(target_os = "linux"))] {
-        const ENV_LIBRARY_PATH: &'static str = "LD_LIBRARY_PATH";
+        const ENV_LIBRARY_PATH: &str = "LD_LIBRARY_PATH";
     } else if #[cfg(target_os = "macos")] {
-        const ENV_LIBRARY_PATH: &'static str = "DYLD_LIBRARY_PATH";
+        const ENV_LIBRARY_PATH: &str = "DYLD_LIBRARY_PATH";
     } else if #[cfg(target_os = "windows")] {
-        const ENV_LIBRARY_PATH: &'static str = "PATH";
+        const ENV_LIBRARY_PATH: &str = "PATH";
     } else {
         // This may not work but seems like a sane default for target OS' not listed above.
-        const ENV_LIBRARY_PATH: &'static str = "LD_LIBRARY_PATH";
+        const ENV_LIBRARY_PATH: &str = "LD_LIBRARY_PATH";
     }
 }
 
 cfg_if! {
     if #[cfg(any(target_os = "linux", target_os = "macos"))] {
-        const DEFAULT_INSTALLATION_DIRECTORIES: &'static [&'static str] =
+        const DEFAULT_INSTALLATION_DIRECTORIES: & [& str] =
             &["/opt/intel/openvino_2021", "/opt/intel/openvino"];
     } else if #[cfg(target_os = "windows")] {
-        const DEFAULT_INSTALLATION_DIRECTORIES: &'static [&'static str] = &[
+        const DEFAULT_INSTALLATION_DIRECTORIES: & [& str] = &[
             "C:\\Program Files (x86)\\Intel\\openvino",
             "C:\\Program Files (x86)\\Intel\\openvino_2021",
         ];
     } else {
-        const DEFAULT_INSTALLATION_DIRECTORIES: &'static [&'static str] = &[];
+        const DEFAULT_INSTALLATION_DIRECTORIES: & [& str] = &[];
     }
 }
 
-const KNOWN_INSTALLATION_SUBDIRECTORIES: &'static [&'static str] = &[
+const KNOWN_INSTALLATION_SUBDIRECTORIES: &[&str] = &[
     "deployment_tools/ngraph/lib",
     "deployment_tools/inference_engine/lib/intel64",
     "deployment_tools/inference_engine/external/hddl/lib",
@@ -121,7 +129,7 @@ const KNOWN_INSTALLATION_SUBDIRECTORIES: &'static [&'static str] = &[
     "deployment_tools/inference_engine/external/tbb/lib",
 ];
 
-const KNOWN_BUILD_SUBDIRECTORIES: &'static [&'static str] = &[
+const KNOWN_BUILD_SUBDIRECTORIES: &[&str] = &[
     "bin/intel64/Debug/lib",
     "bin/intel64/Release/lib",
     "inference-engine/temp/tbb/lib",

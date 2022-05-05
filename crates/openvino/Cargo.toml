@@ -7,6 +7,8 @@ readme = "README.md"
 authors = ["OpenVINO Project Developers"]
 repository = "https://github.com/intel/openvino-rs"
 documentation = "https://docs.rs/openvino"
+keywords = ["openvino", "machine-learning", "ml", "neural-network"]
+categories = ["api-bindings", "science"]
 edition = "2018"
 exclude = [
     "/tests"

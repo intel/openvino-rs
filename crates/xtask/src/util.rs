@@ -14,15 +14,15 @@ pub fn exec(command: &mut Command) -> Result<()> {
     }
 }
 
-/// Determine the path to the `crates` directory`.
+/// Determine the path to the `crates` directory.
 pub fn path_to_crates() -> Result<PathBuf> {
     Ok(PathBuf::from(file!())
         .parent()
-        .with_context(|| format!("Failed to get parent of path."))?
+        .with_context(|| "Failed to get parent of path.".to_string())?
         .parent()
-        .with_context(|| format!("Failed to get parent of path."))?
+        .with_context(|| "Failed to get parent of path.".to_string())?
         .parent()
-        .with_context(|| format!("Failed to get parent of path."))?
+        .with_context(|| "Failed to get parent of path.".to_string())?
         .into())
 }
 
@@ -57,10 +57,10 @@ pub fn get_crates() -> Result<Vec<Crate>> {
 
         crates.push(Crate {
             name,
+            path,
             version,
             publish,
-            path,
-        })
+        });
     }
 
     Ok(crates)
