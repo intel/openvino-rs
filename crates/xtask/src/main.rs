@@ -1,3 +1,8 @@
+#![deny(clippy::all)]
+#![warn(clippy::pedantic)]
+#![warn(clippy::cargo)]
+#![allow(clippy::module_name_repetitions)]
+
 mod bump;
 mod codegen;
 mod publish;

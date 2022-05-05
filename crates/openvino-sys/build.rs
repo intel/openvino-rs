@@ -1,9 +1,8 @@
-use cmake;
 use std::env;
 use std::path::{Path, PathBuf};
 
 // These are the libraries we expect to be available to dynamically link to:
-const LIBRARIES: &'static [&'static str] = &[
+const LIBRARIES: &[&str] = &[
     "inference_engine",
     "inference_engine_legacy",
     "inference_engine_transformations",
@@ -14,11 +13,11 @@ const LIBRARIES: &'static [&'static str] = &[
 
 // A user-specified environment variable indicating that `build.rs` should not attempt to link
 // against any libraries (e.g. a doc build, user may link them later).
-const ENV_OPENVINO_SKIP_LINKING: &'static str = "OPENVINO_SKIP_LINKING";
+const ENV_OPENVINO_SKIP_LINKING: &str = "OPENVINO_SKIP_LINKING";
 
 // A build.rs-specified environment variable that must be populated with the location of the
 // inference engine library that OpenVINO is being linked to in this script.
-const ENV_OPENVINO_LIB_PATH: &'static str = "OPENVINO_LIB_PATH";
+const ENV_OPENVINO_LIB_PATH: &str = "OPENVINO_LIB_PATH";
 
 fn main() {
     // Trigger rebuild on changes to build.rs and Cargo.toml and every source file.

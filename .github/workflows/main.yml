@@ -19,9 +19,19 @@ jobs:
         submodules: true
     - run: rustup component add rustfmt
     - run: cargo fmt --all -- --check
+    # Use the `runtime-linking` feature here to avoid requiring an OpenVINO installation to be
+    # present when building.
+    - run: cargo clippy --features runtime-linking
     - run: cd crates/openvino-tensor-converter && cargo fmt --all -- --check
 
-  # Build and test from the git-submodule-included OpenVINO source code. 
+  rust_dependencies:
+    name: Check Rust dependencies
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: EmbarkStudios/cargo-deny-action@v1
+
+  # Build and test from the git-submodule-included OpenVINO source code.
   source:
     name: From source
     runs-on: ubuntu-20.04

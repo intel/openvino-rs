@@ -8,15 +8,20 @@ use openvino_sys::{
 };
 use std::convert::TryFrom;
 
-/// See [Blob](https://docs.openvinotoolkit.org/latest/classInferenceEngine_1_1Blob.html).
+/// See [`Blob`](https://docs.openvinotoolkit.org/latest/classInferenceEngine_1_1Blob.html).
 pub struct Blob {
     pub(crate) instance: *mut ie_blob_t,
 }
 drop_using_function!(Blob, ie_blob_free);
 
 impl Blob {
-    /// Create a new [Blob] by copying data in to the OpenVINO-allocated memory.
-    pub fn new(description: TensorDesc, data: &[u8]) -> Result<Self> {
+    /// Create a new [`Blob`] by copying data in to the OpenVINO-allocated memory.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if the number of bytes passed in `data` does not match the expected
+    /// size of the tensor `description`.
+    pub fn new(description: &TensorDesc, data: &[u8]) -> Result<Self> {
         let mut blob = Self::allocate(description)?;
         let blob_len = blob.byte_len()?;
         assert_eq!(
@@ -34,8 +39,8 @@ impl Blob {
         Ok(blob)
     }
 
-    /// Allocate space in OpenVINO for an empty [Blob].
-    pub fn allocate(description: TensorDesc) -> Result<Self> {
+    /// Allocate space in OpenVINO for an empty [`Blob`].
+    pub fn allocate(description: &TensorDesc) -> Result<Self> {
         let mut instance = std::ptr::null_mut();
         try_unsafe!(ie_blob_make_memory(
             &description.instance as *const _,
@@ -44,7 +49,7 @@ impl Blob {
         Ok(Self { instance })
     }
 
-    /// Return the tensor description of this [Blob].
+    /// Return the tensor description of this [`Blob`].
     pub fn tensor_desc(&self) -> Result<TensorDesc> {
         let blob = self.instance as *const ie_blob_t;
 
@@ -63,21 +68,29 @@ impl Blob {
         Ok(TensorDesc::new(layout, &dimensions.dims, precision))
     }
 
-    /// Get the number of elements contained in the [Blob].
+    /// Get the number of elements contained in the [`Blob`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if the returned OpenVINO size will not fit in `usize`.
     pub fn len(&mut self) -> Result<usize> {
         let mut size = 0;
         try_unsafe!(ie_blob_size(self.instance, &mut size as *mut _))?;
         Ok(usize::try_from(size).unwrap())
     }
 
-    /// Get the size of the current [Blob] in bytes.
+    /// Get the size of the current [`Blob`] in bytes.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the returned OpenVINO size will not fit in `usize`.
     pub fn byte_len(&mut self) -> Result<usize> {
         let mut size = 0;
         try_unsafe!(ie_blob_byte_size(self.instance, &mut size as *mut _))?;
         Ok(usize::try_from(size).unwrap())
     }
 
-    /// Retrieve the [Blob]'s data as an immutable slice of bytes.
+    /// Retrieve the [`Blob`]'s data as an immutable slice of bytes.
     pub fn buffer(&mut self) -> Result<&[u8]> {
         let mut buffer = Blob::empty_buffer();
         try_unsafe!(ie_blob_get_buffer(self.instance, &mut buffer as *mut _))?;
@@ -88,21 +101,25 @@ impl Blob {
         Ok(slice)
     }
 
-    /// Retrieve the [Blob]'s data as a mutable slice of bytes.
+    /// Retrieve the [`Blob`]'s data as a mutable slice of bytes.
     pub fn buffer_mut(&mut self) -> Result<&mut [u8]> {
         let mut buffer = Blob::empty_buffer();
         try_unsafe!(ie_blob_get_buffer(self.instance, &mut buffer as *mut _))?;
         let size = self.byte_len()?;
         let slice = unsafe {
-            std::slice::from_raw_parts_mut(buffer.__bindgen_anon_1.buffer as *mut u8, size)
+            std::slice::from_raw_parts_mut(buffer.__bindgen_anon_1.buffer.cast::<u8>(), size)
         };
         Ok(slice)
     }
 
-    /// Retrieve the [Blob]'s data as a mutable slice of type `T`. This is `unsafe`, since the
-    /// values of `T` may not have been properly initialized; however, this functionality
-    /// is provided as an equivalent of what C/C++ users of OpenVINO currently do to access [Blob]s
-    /// with, e.g., floating point values: `results.buffer_mut_as_type::<f32>()`.
+    /// Retrieve the [`Blob`]'s data as a mutable slice of type `T`.
+    ///
+    /// # Safety
+    ///
+    /// This function is `unsafe`, since the values of `T` may not have been properly initialized;
+    /// however, this functionality is provided as an equivalent of what C/C++ users of OpenVINO
+    /// currently do to access [`Blob`]s with, e.g., floating point values:
+    /// `results.buffer_mut_as_type::<f32>()`.
     pub unsafe fn buffer_mut_as_type<T>(&mut self) -> Result<&mut [T]> {
         let mut buffer = Blob::empty_buffer();
         InferenceError::from(ie_blob_get_buffer(self.instance, &mut buffer as *mut _))?;
@@ -110,7 +127,8 @@ impl Blob {
         // retrieve the buffer in whatever shape they prefer. But we must ensure that they cannot
         // read too many bytes, so we manually calculate the resulting slice `size`.
         let size = self.byte_len()? / std::mem::size_of::<T>();
-        let slice = std::slice::from_raw_parts_mut(buffer.__bindgen_anon_1.buffer as *mut T, size);
+        let slice =
+            std::slice::from_raw_parts_mut(buffer.__bindgen_anon_1.buffer.cast::<T>(), size);
         Ok(slice)
     }
 
@@ -137,7 +155,7 @@ mod tests {
     fn invalid_blob_size() {
         let desc = TensorDesc::new(Layout::NHWC, &[1, 2, 2, 2], Precision::U8);
         // Blob should be 1x2x2x2 = 8 bytes but we pass in 7 bytes:
-        let _ = Blob::new(desc, &[0; 7]).unwrap();
+        let _ = Blob::new(&desc, &[0; 7]).unwrap();
     }
 
     #[test]
@@ -149,7 +167,7 @@ mod tests {
         let desc = TensorDesc::new(Layout::HW, &[200, 100], Precision::U16);
 
         // Provide a u8 slice to create a u16 blob (twice as many items).
-        let mut blob = Blob::new(desc, &[0; LEN * 2]).unwrap();
+        let mut blob = Blob::new(&desc, &[0; LEN * 2]).unwrap();
 
         assert_eq!(blob.len().unwrap(), LEN);
         assert_eq!(

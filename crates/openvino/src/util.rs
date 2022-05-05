@@ -14,7 +14,7 @@ macro_rules! cstr {
     };
 }
 
-/// Convert an unsafe call to openvino-sys into an [InferenceError].
+/// Convert an unsafe call to openvino-sys into an [`InferenceError`].
 #[macro_export]
 macro_rules! try_unsafe {
     ($e: expr) => {

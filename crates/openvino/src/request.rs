@@ -5,7 +5,8 @@ use openvino_sys::{
     ie_infer_request_set_batch, ie_infer_request_set_blob, ie_infer_request_t,
 };
 
-/// See [InferRequest](https://docs.openvinotoolkit.org/latest/classInferenceEngine_1_1InferRequest.html).
+/// See
+/// [`InferRequest`](https://docs.openvinotoolkit.org/latest/classInferenceEngine_1_1InferRequest.html).
 pub struct InferRequest {
     pub(crate) instance: *mut ie_infer_request_t,
 }
@@ -18,7 +19,7 @@ impl InferRequest {
     }
 
     /// Assign a [Blob] to the input (i.e. `name`) on the network.
-    pub fn set_blob(&mut self, name: &str, blob: Blob) -> Result<()> {
+    pub fn set_blob(&mut self, name: &str, blob: &Blob) -> Result<()> {
         try_unsafe!(ie_infer_request_set_blob(
             self.instance,
             cstr!(name),

@@ -14,6 +14,17 @@
 //! let _ = openvino::Core::new(None).expect("to instantiate the OpenVINO library");
 //! ```
 
+#![deny(missing_docs)]
+#![deny(clippy::all)]
+#![warn(clippy::pedantic)]
+#![warn(clippy::cargo)]
+#![allow(
+    clippy::must_use_candidate,
+    clippy::module_name_repetitions,
+    clippy::missing_errors_doc,
+    clippy::len_without_is_empty
+)]
+
 mod blob;
 mod core;
 mod error;

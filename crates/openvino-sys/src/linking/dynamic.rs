@@ -12,6 +12,10 @@ macro_rules! link {
     ) => (
         /// When compiled as a dynamically-linked library, this function does nothing. It exists to
         /// provide a consistent API with the runtime-linked version.
+        ///
+        /// # Errors
+        ///
+        /// This version never fails.
         pub fn load() -> Result<(), String> {
             Ok(())
         }

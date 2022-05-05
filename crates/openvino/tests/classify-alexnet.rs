@@ -31,10 +31,10 @@ fn classify_alexnet() {
     // Read the image.
     let tensor_data = fs::read(Fixture::tensor()).unwrap();
     let tensor_desc = TensorDesc::new(Layout::NHWC, &[1, 3, 227, 227], Precision::FP32);
-    let blob = Blob::new(tensor_desc, &tensor_data).unwrap();
+    let blob = Blob::new(&tensor_desc, &tensor_data).unwrap();
 
     // Execute inference.
-    infer_request.set_blob(input_name, blob).unwrap();
+    infer_request.set_blob(input_name, &blob).unwrap();
     infer_request.infer().unwrap();
     let mut results = infer_request.get_blob(output_name).unwrap();
     let buffer = unsafe { results.buffer_mut_as_type::<f32>().unwrap().to_vec() };

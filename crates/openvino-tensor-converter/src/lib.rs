@@ -1,3 +1,13 @@
+//! An experimental library demonstrating how to use OpenCV in Rust to convert images into
+//! OpenVINO-compatible tensors.
+//!
+//! > WARNING: this is still experimental--no correctness guarantees!
+
+#![deny(missing_docs)]
+#![deny(clippy::all)]
+#![warn(clippy::pedantic)]
+#![warn(clippy::cargo)]
+
 use core::{fmt, slice};
 use log::info;
 use opencv;
@@ -67,6 +77,7 @@ pub fn convert<P: AsRef<Path>>(
     Ok(dst_slice.to_vec())
 }
 
+/// Container for the reasons a conversion can fail.
 #[derive(Debug)]
 pub struct ConversionError(String);
 impl fmt::Display for ConversionError {
@@ -85,6 +96,7 @@ impl From<ParseIntError> for ConversionError {
     }
 }
 
+/// Define the dimensions and pixel precision of an image.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Dimensions {
     height: i32,
@@ -140,9 +152,12 @@ impl FromStr for Dimensions {
     }
 }
 
+/// Distinguish the precision of each pixel.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Precision {
+    /// Each pixel is an 8-bit value.
     U8,
+    /// Each pixel is a 32-bit floating point value.
     FP32,
 }
 impl Precision {

@@ -1,0 +1,23 @@
+# Documentation for this configuration file can be found here:
+# https://embarkstudios.github.io/cargo-deny/checks/cfg.html
+
+# See https://embarkstudios.github.io/cargo-deny/checks/licenses/cfg.html.
+[licenses]
+allow = [
+    "Apache-2.0",
+    "BSD-3-Clause",
+    "ISC",
+    "MIT",
+]
+
+# See https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html.
+[bans]
+multiple-versions = "deny"
+wildcards = "allow"
+
+# Skip some multiple-versions checks until they can be fixed.
+skip-tree = [
+    # `pretty_env_logger` depends on an old version of `env_logger` that has a version mismatch with
+    # the `env_logger` depended upon by `bindgen`.
+    { name = "pretty_env_logger", depth = 5 },
+]

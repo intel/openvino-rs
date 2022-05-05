@@ -1,8 +1,9 @@
 use thiserror::Error;
 
 /// Enumerate errors returned by the OpenVINO implementation. See
-/// [IEStatusCode](https://docs.openvinotoolkit.org/latest/ie_c_api/ie__c__api_8h.html#a391683b1e8e26df8b58d7033edd9ee83).
-/// TODO This could be auto-generated (https://github.com/intel/openvino-rs/issues/20).
+/// [`IEStatusCode`](https://docs.openvinotoolkit.org/latest/ie_c_api/ie__c__api_8h.html#a391683b1e8e26df8b58d7033edd9ee83).
+// TODO This could be auto-generated (https://github.com/intel/openvino-rs/issues/20).
+#[allow(missing_docs)]
 #[derive(Debug, Error, PartialEq)]
 pub enum InferenceError {
     #[error("general error")]
@@ -34,7 +35,11 @@ pub enum InferenceError {
 }
 
 impl InferenceError {
+    /// Convert an `error_code` to a [`Result`]:
+    /// - `0` becomes `Ok`
+    /// - anything else becomes `Err` containing an [`InferenceError`]
     pub fn from(error_code: i32) -> Result<(), InferenceError> {
+        #[allow(clippy::enum_glob_use)]
         use InferenceError::*;
         match error_code {
             openvino_sys::IEStatusCode_OK => Ok(()),
@@ -56,8 +61,9 @@ impl InferenceError {
 }
 
 /// Enumerate setup failures: in some cases, this library will call library-loading code that may
-/// fail in a different way (i.e., [LoadingError]) than the calls to the OpenVINO libraries (i.e.,
-/// [InferenceError]).
+/// fail in a different way (i.e., [`LoadingError`]) than the calls to the OpenVINO libraries (i.e.,
+/// [`InferenceError`]).
+#[allow(missing_docs)]
 #[derive(Debug, Error)]
 pub enum SetupError {
     #[error("inference error")]
@@ -67,6 +73,7 @@ pub enum SetupError {
 }
 
 /// Enumerate the ways that library loading can fail.
+#[allow(missing_docs)]
 #[derive(Debug, Error)]
 pub enum LoadingError {
     #[error("system failed to load shared libraries (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder): {0}")]
