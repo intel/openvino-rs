@@ -21,7 +21,7 @@ jobs:
     - run: cargo fmt --all -- --check
     - run: cd crates/openvino-tensor-converter && cargo fmt --all -- --check
 
-  # Build and test from the git-submodule-included OpenVINO source code. 
+  # Build and test from the git-submodule-included OpenVINO source code.
   source:
     name: From source
     runs-on: ubuntu-20.04
@@ -51,7 +51,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu18, ubuntu20]
-        version: [2020.4, 2021.1, 2021.2, 2021.3, 2021.4]
+        version: [2020.4, 2021.1, 2021.2, 2021.3, 2021.4, 2022.1]
         exclude:
         - os: ubuntu20
           version: 2020.4
