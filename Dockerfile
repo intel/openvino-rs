@@ -25,4 +25,4 @@ RUN OPENVINO_INSTALL_DIR=/opt/intel/openvino cargo build -vv
 
 # Test; note that we need to setup the library paths before using them since the
 # OPENVINO_INSTALL_DIR can only affect the build library search path.
-RUN ["/bin/bash", "-c", "source /opt/intel/openvino/bin/setupvars.sh && OPENVINO_INSTALL_DIR=/opt/intel/openvino cargo test -v"]
+RUN ["/bin/bash", "-c", "source /opt/intel/openvino/setupvars.sh && OPENVINO_INSTALL_DIR=/opt/intel/openvino cargo test -v"]
