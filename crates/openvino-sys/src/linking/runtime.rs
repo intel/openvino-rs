@@ -77,7 +77,7 @@ macro_rules! link {
         /// May fail if the `openvino-finder` cannot discover the library on the current system.
         pub fn load() -> Result<(), String> {
             match crate::library::find() {
-                None => Err("Unable to find the `inference_engine_c_api` library to load".into()),
+                None => Err("Unable to find the `openvino_c` library to load".into()),
                 Some(path) => load_from(path),
             }
         }
@@ -111,10 +111,10 @@ macro_rules! link {
             pub unsafe fn $name($($pname: $pty), *) $(-> $ret)* {
                 let f = with_library(|l| {
                     l.functions.$name.expect(concat!(
-                        "`inference_engine_c_api` function not loaded: `",
+                        "`openvino_c` function not loaded: `",
                         stringify!($name)
                     ))
-                }).expect("an `inference_engine_c_api` shared library is not loaded on this thread");
+                }).expect("an `openvino_c` shared library is not loaded on this thread");
                 f($($pname), *)
             }
         )+

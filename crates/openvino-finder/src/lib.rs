@@ -36,7 +36,7 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
     }
 
     // Search using the `OPENVINO_INSTALL_DIR` environment variable; this may be set by users of the
-    // openvino-rs library.
+    // `openvino-rs` library.
     if let Some(install_dir) = env::var_os(ENV_OPENVINO_INSTALL_DIR) {
         let install_dir = PathBuf::from(install_dir);
         for lib_dir in KNOWN_INSTALLATION_SUBDIRECTORIES {
@@ -46,7 +46,7 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
     }
 
     // Search using the `OPENVINO_BUILD_DIR` environment variable; this may be set by users of the
-    // openvino-rs library.
+    // `openvino-rs` library.
     if let Some(build_dir) = env::var_os(ENV_OPENVINO_BUILD_DIR) {
         let install_dir = PathBuf::from(build_dir);
         for lib_dir in KNOWN_BUILD_SUBDIRECTORIES {
@@ -56,7 +56,7 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
     }
 
     // Search using the `INTEL_OPENVINO_DIR` environment variable; this is set up by an OpenVINO
-    // installation (e.g. `source /opt/intel/openvino/bin/setupvars.sh`).
+    // installation (e.g. `source /opt/intel/openvino/setupvars.sh`).
     if let Some(install_dir) = env::var_os(ENV_INTEL_OPENVINO_DIR) {
         let install_dir = PathBuf::from(install_dir);
         for lib_dir in KNOWN_INSTALLATION_SUBDIRECTORIES {
@@ -66,8 +66,7 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
     }
 
     // Search in the OS library path (i.e. `LD_LIBRARY_PATH` on Linux, `PATH` on Windows, and
-    // `DYLD_LIBRARY_PATH` on MacOS). See
-    // https://docs.openvinotoolkit.org/latest/openvino_docs_IE_DG_Deep_Learning_Inference_Engine_DevGuide.html
+    // `DYLD_LIBRARY_PATH` on MacOS).
     if let Some(path) = env::var_os(ENV_LIBRARY_PATH) {
         for lib_dir in env::split_paths(&path) {
             let search_path = lib_dir.join(&file);
@@ -110,24 +109,19 @@ cfg_if! {
 cfg_if! {
     if #[cfg(any(target_os = "linux", target_os = "macos"))] {
         const DEFAULT_INSTALLATION_DIRECTORIES: & [& str] =
-            &["/opt/intel/openvino_2021", "/opt/intel/openvino"];
+            &["/opt/intel/openvino_2022", "/opt/intel/openvino"];
     } else if #[cfg(target_os = "windows")] {
         const DEFAULT_INSTALLATION_DIRECTORIES: & [& str] = &[
+            "C:\\Program Files (x86)\\Intel\\openvino_2022",
             "C:\\Program Files (x86)\\Intel\\openvino",
-            "C:\\Program Files (x86)\\Intel\\openvino_2021",
         ];
     } else {
         const DEFAULT_INSTALLATION_DIRECTORIES: & [& str] = &[];
     }
 }
 
-const KNOWN_INSTALLATION_SUBDIRECTORIES: &[&str] = &[
-    "deployment_tools/ngraph/lib",
-    "deployment_tools/inference_engine/lib/intel64",
-    "deployment_tools/inference_engine/external/hddl/lib",
-    "deployment_tools/inference_engine/external/gna/lib",
-    "deployment_tools/inference_engine/external/tbb/lib",
-];
+const KNOWN_INSTALLATION_SUBDIRECTORIES: &[&str] =
+    &["runtime/lib/intel64", "runtime/3rdparty/tbb/lib"];
 
 const KNOWN_BUILD_SUBDIRECTORIES: &[&str] = &[
     "bin/intel64/Debug/lib",
@@ -139,11 +133,11 @@ const KNOWN_BUILD_SUBDIRECTORIES: &[&str] = &[
 mod test {
     use super::*;
 
-    /// This test uses `find` to search for the `inference_engine_c_api` library on the local
+    /// This test uses `find` to search for the `openvino_c` library on the local
     /// system.
     #[test]
-    fn find_inference_engine_c_api_locally() {
+    fn find_openvino_c_locally() {
         pretty_env_logger::init();
-        assert!(find("inference_engine_c_api").is_some());
+        assert!(find("openvino_c").is_some());
     }
 }

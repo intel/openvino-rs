@@ -2,14 +2,7 @@ use std::env;
 use std::path::{Path, PathBuf};
 
 // These are the libraries we expect to be available to dynamically link to:
-const LIBRARIES: &[&str] = &[
-    "inference_engine",
-    "inference_engine_legacy",
-    "inference_engine_transformations",
-    "inference_engine_c_api",
-    "ngraph",
-    "tbb",
-];
+const LIBRARIES: &[&str] = &["openvino", "openvino_c", "tbb"];
 
 // A user-specified environment variable indicating that `build.rs` should not attempt to link
 // against any libraries (e.g. a doc build, user may link them later).
@@ -50,8 +43,8 @@ fn main() {
     let (c_api_library_path, library_search_paths) = if cfg!(feature = "from-source") {
         build_from_source_using_cmake()
     } else if linking == Linking::None {
-        (openvino_finder::find("inference_engine_c_api"), vec![])
-    } else if let Some(path) = openvino_finder::find("inference_engine_c_api") {
+        (openvino_finder::find("openvino_c"), vec![])
+    } else if let Some(path) = openvino_finder::find("openvino_c") {
         (Some(path), find_libraries_in_existing_installation())
     } else {
         panic!("Unable to find an OpenVINO installation on your system; build with runtime linking using `--features runtime-linking` or build from source with `--features from-source`.")
@@ -63,7 +56,7 @@ fn main() {
     if let Some(path) = c_api_library_path {
         record_library_path(path);
     } else {
-        println!("cargo:warning=openvino-sys cannot find the `inference_engine_c_api` library in any of the library search paths: {:?}", &library_search_paths);
+        println!("cargo:warning=openvino-sys cannot find the `openvino_c` library in any of the library search paths: {:?}", &library_search_paths);
         println!("cargo:warning=Proceeding with an empty value of {}; users must specify this location at runtime, e.g. `Core::new(Some(...))`.", ENV_OPENVINO_LIB_PATH);
         record_library_path(PathBuf::new());
     }
@@ -194,12 +187,12 @@ fn build_from_source_using_cmake() -> (Option<PathBuf>, Vec<PathBuf>) {
     }
 
     // Specifying the build targets reduces the build time somewhat; this one will trigger
-    // builds for other necessary shared libraries (e.g. inference_engine).
+    // builds for other necessary shared libraries (e.g., `openvino`).
     let build_path = cmake(out.to_str().unwrap())
-        .build_target("inference_engine_c_api")
+        .build_target("openvino_c")
         .build();
 
-    // Unfortunately, `inference_engine_c_api` will not build the OpenVINO plugins used for
+    // Unfortunately, `openvino_c` will not build the OpenVINO plugins used for
     // the actual computation. Here we re-run CMake for each plugin the user specifies using
     // Cargo features (see `Cargo.toml`).
     for plugin in get_plugin_target_from_features() {
@@ -228,7 +221,7 @@ fn build_from_source_using_cmake() -> (Option<PathBuf>, Vec<PathBuf>) {
     .expect("failed visiting TBB directory");
 
     let c_api = format!(
-        "{}inference_engine_c_api{}",
+        "{}openvino_c{}",
         env::consts::DLL_PREFIX,
         env::consts::DLL_SUFFIX
     );

@@ -40,9 +40,9 @@ pub mod library {
     pub use super::generated::load;
 
     /// Return the location of the shared library `openvino-sys` will link to. If compiled with
-    /// runtime linking, this will attempt to discover the location of a `inference_engine_c_api`
-    /// shared library on the system. Otherwise (with dynamic linking or compilation from source),
-    /// this relies on a static path discovered at build time.
+    /// runtime linking, this will attempt to discover the location of a `openvino_c` shared library
+    /// on the system. Otherwise (with dynamic linking or compilation from source), this relies on a
+    /// static path discovered at build time.
     ///
     /// Knowing the location of the OpenVINO libraries is critical to avoid errors, unfortunately.
     /// OpenVINO loads target-specific libraries on demand for performing inference. To do so, it
@@ -53,7 +53,7 @@ pub mod library {
     /// `find().unwrap().parent()`.
     pub fn find() -> Option<PathBuf> {
         if cfg!(feature = "runtime-linking") {
-            openvino_finder::find("inference_engine_c_api")
+            openvino_finder::find("openvino_c")
         } else {
             Some(PathBuf::from(env!("OPENVINO_LIB_PATH")))
         }

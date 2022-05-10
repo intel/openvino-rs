@@ -35,7 +35,7 @@ git lfs checkout
 
 ```shell script
 cargo build
-source /opt/intel/openvino/bin/setupvars.sh
+source /opt/intel/openvino/setupvars.sh
 cargo test
 ```
 
@@ -55,7 +55,7 @@ script will do this automatically.
 
 ```shell script
 cargo build --features openvino-sys/runtime-linking
-source /opt/intel/openvino/bin/setupvars.sh
+source /opt/intel/openvino/setupvars.sh
 cargo test --features openvino-sys/runtime-linking
 ```
 
@@ -64,7 +64,7 @@ The `openvino-rs` crates also support linking from a shared library at runtime (
 present and only later--at runtime--providing the OpenVINO™ shared libraries. All underlying system
 calls are wrapped so that a call to `openvino_sys::library::load` will link them to their shared
 library implementation (using the logic in [openvino-finder] to locate the shared libraries). For
-high-level users, call `openvino::Core::new` first to automatically load and link the libraries. 
+high-level users, call `openvino::Core::new` first to automatically load and link the libraries.
 
 
 

@@ -61,10 +61,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu18, ubuntu20]
-        version: [2020.4, 2021.1, 2021.2, 2021.3, 2021.4]
-        exclude:
-        - os: ubuntu20
-          version: 2020.4
+        version: [2022.1.0]
     steps:
     - uses: actions/checkout@v2
       with:
@@ -79,7 +76,7 @@ jobs:
   # binaries, then compile against these).
   runtime_binaries:
     name: From runtime-linked binaries
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
       with:
@@ -87,10 +84,10 @@ jobs:
         lfs: true
     - name: Checkout LFS obects
       run: git lfs checkout
-    - uses: abrown/install-openvino-action@v1
+    - uses: abrown/install-openvino-action@v3
     - name: Build and run tests
       run: |
-        source /opt/intel/openvino/bin/setupvars.sh
+        source /opt/intel/openvino_2022/setupvars.sh
         cargo test --features openvino-sys/runtime-linking
 
   # Build and test from an existing OpenVINO installation inside a Docker image (i.e. download the
