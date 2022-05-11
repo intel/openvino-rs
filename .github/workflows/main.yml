@@ -66,8 +66,12 @@ jobs:
     - uses: abrown/install-openvino-action@v3
     - name: Build and run tests
       run: |
-        source /opt/intel/openvino_2022/setupvars.sh
-        cargo test --features openvino-sys/runtime-linking
+           source /opt/intel/openvino_2022/setupvars.sh
+           cargo test --features openvino-sys/runtime-linking
+    - name: Verify publish
+      run: |
+           source /opt/intel/openvino_2022/setupvars.sh
+           RUST_LOG=debug cargo xtask publish --dry-run
 
   # Build and test from an existing OpenVINO installation inside a Docker image (i.e. download the
   # binaries, then compile against these).
