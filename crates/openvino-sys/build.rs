@@ -138,7 +138,7 @@ fn add_dynamically_linked_library(library: &str) {
 ///
 /// It would be preferable to use pkg-config here to retrieve the libraries when they are
 /// installed system-wide but there are issues:
-///  - OpenVINO does not install itself a system library, e.g., through ldconfig.
+///  - OpenVINO does not install itself a system library, e.g., through ldconfig.;
 ///  - OpenVINO relies on a `plugins.xml` file for finding target-specific libraries
 ///    and it is unclear how we would discover this in a system-install scenario.
 fn find_libraries_in_existing_installation() -> Vec<PathBuf> {
@@ -166,37 +166,56 @@ fn find_libraries_in_existing_installation() -> Vec<PathBuf> {
 /// Build OpenVINO with CMake. TODO this currently will not work when the crate is published
 /// because the `upstream` directory will not fit inside the 10MB crate limit. To solve this, we
 /// could retrieve the sources (cringe), e.g., with `git2`.
+///
+/// See https://github.com/openvinotoolkit/openvino/wiki/BuildingForLinux.
 fn build_from_source_using_cmake() -> (Option<PathBuf>, Vec<PathBuf>) {
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let out_as_str = out.to_str().unwrap();
 
     fn cmake(out_dir: &str) -> cmake::Config {
         let mut config = cmake::Config::new("upstream");
         config
             .very_verbose(true)
-            .define("NGRAPH_ONNX_IMPORT_ENABLE", "ON")
-            .define("ENABLE_OPENCV", "OFF")
+            // Disable code maintenance features.
             .define("ENABLE_CPPLINT", "OFF")
+            .define("ENABLE_CLANG_FORMAT", "OFF")
+            .define("ENABLE_NCC_STYLE", "OFF")
+            // Disable unnecessary targets; these are enabled by default (see
+            // https://github.com/openvinotoolkit/openvino/wiki/CMakeOptionsForCustomCompilation).
+            // We still need `ENABLE_OV_IR_FRONTEND` (enabled by default) since it is what reads the
+            // OpenVINO model files. Still unsure if `ENABLE_GAPI_PREPROCESSING` is needed.
+            .define("ENABLE_OPENCV", "OFF")
+            .define("ENABLE_OV_ONNX_FRONTEND", "OFF")
+            .define("ENABLE_OV_PADDLE_FRONTEND", "OFF")
+            .define("ENABLE_OV_PDPD_FRONTEND", "OFF")
+            .define("ENABLE_OV_TF_FRONTEND", "OFF")
+            .define("ENABLE_SAMPLES", "OFF")
             // As described in https://github.com/intel/openvino-rs/issues/8, the OpenVINO source
             // includes redundant moves. These were previously warnings but newer compilers treat
             // them as errors.
             .cxxflag("-Wno-error=redundant-move")
+            .cxxflag("-Wno-error=uninitialized")
             // Because OpenVINO by default wants to build its binaries in its own tree, we must
             // specify that we actually want them in Cargo's output directory.
             .define("OUTPUT_ROOT", out_dir);
+
+        // Enable or disable each plugin's CMake feature. It is unclear if this adding/removing of
+        // CMake features is truly needed since we are manually choosing the plugin CMake targets,
+        // but we do it here to be safe.
+        apply_plugin_features(&mut config);
+
         config
     }
 
     // Specifying the build targets reduces the build time somewhat; this one will trigger
-    // builds for other necessary shared libraries (e.g., `openvino`).
-    let build_path = cmake(out.to_str().unwrap())
-        .build_target("openvino_c")
-        .build();
+    // builds for other necessary shared libraries (e.g., `openvino`, `tbb`).
+    let build_path = cmake(out_as_str).build_target("openvino_c").build();
 
     // Unfortunately, `openvino_c` will not build the OpenVINO plugins used for
     // the actual computation. Here we re-run CMake for each plugin the user specifies using
     // Cargo features (see `Cargo.toml`).
     for plugin in get_plugin_target_from_features() {
-        cmake(out.to_str().unwrap()).build_target(plugin).build();
+        cmake(out_as_str).build_target(plugin).build();
     }
 
     // Collect the locations of the libraries. Note that ngraph should also be found with the
@@ -212,7 +231,7 @@ fn build_from_source_using_cmake() -> (Option<PathBuf>, Vec<PathBuf>) {
     // pre-installed libtbb (on some systems, the nodes_count symbol is not present in the
     // system-provided libtbb) so it may be important to include OpenVINO's version of libtbb
     // here.
-    let tbb_libraries = dir("upstream/inference-engine/temp/tbb/lib");
+    let tbb_libraries = dir("upstream/temp/tbb/lib");
     visit_dirs(&tbb_libraries, &|from: PathBuf| {
         let to = openvino_libraries.join(from.file_name().unwrap());
         println!("Copying {} to {}", from.display(), to.display());
@@ -232,37 +251,66 @@ fn build_from_source_using_cmake() -> (Option<PathBuf>, Vec<PathBuf>) {
 }
 
 /// Determine CMake targets for the various OpenVINO plugins. The plugin mapping is available in
-/// OpenVINO's `plugins.xml` file and, usign that, this function wires up the exposed Cargo
-/// features of openvino-sys to the correct CMake target.
+/// OpenVINO's `plugins.xml` file and, using that, this function wires up the exposed Cargo
+/// features of openvino-sys to the correct CMake target. Run `cmake --build . --target help` in
+/// an upstream CMake build directory to see a list of these.
 fn get_plugin_target_from_features() -> Vec<&'static str> {
     let mut plugins = vec![];
     if cfg!(feature = "all") {
         plugins.push("ie_plugins")
     } else {
         if cfg!(feature = "cpu") {
-            plugins.push("MKLDNNPlugin")
+            plugins.push("openvino_intel_cpu_plugin")
         }
         if cfg!(feature = "gpu") {
-            plugins.push("clDNNPlugin")
+            plugins.push("openvino_intel_gpu_plugin")
         }
         if cfg!(feature = "gna") {
-            plugins.push("GNAPlugin")
+            plugins.push("openvino_intel_gna_plugin")
         }
         if cfg!(feature = "hetero") {
-            plugins.push("HeteroPlugin")
+            plugins.push("openvino_hetero_plugin")
         }
-        if cfg!(feature = "multi") {
-            plugins.push("MultiDevicePlugin")
+        if cfg!(feature = "auto") {
+            plugins.push("openvino_auto_plugin")
+        }
+        if cfg!(feature = "auto_batch") {
+            plugins.push("openvino_auto_batch_plugin")
         }
         if cfg!(feature = "myriad") {
-            plugins.push("myriadPlugin")
+            plugins.push("openvino_intel_myriad_plugin")
         }
     }
     assert!(!plugins.is_empty());
     plugins
 }
 
-/// According to https://docs.rs/cmake/0.1.44/cmake/struct.Config.html#method.profile, the cmake
+/// Apply CMake `ENABLE_*` features for each of Cargo's plugin features; see `Cargo.toml`. For
+/// example, running `cargo build --features gpu` should set `ENABLE_INTEL_GPU=ON` and set all
+/// others to `OFF`. See
+/// https://github.com/openvinotoolkit/openvino/wiki/CMakeOptionsForCustomCompilation.
+fn apply_plugin_features(config: &mut cmake::Config) {
+    macro_rules! apply {
+        ($cargo_feature: literal, $cmake_feature: literal) => {
+            if cfg!(feature = $cargo_feature) {
+                config.define($cmake_feature, "ON");
+            } else {
+                config.define($cmake_feature, "OFF");
+            }
+        };
+    }
+
+    apply!("cpu", "ENABLE_INTEL_CPU");
+    apply!("gpu", "ENABLE_INTEL_GPU");
+    apply!("gna", "ENABLE_INTEL_GNA");
+    apply!("myriad", "ENABLE_INTEL_MYRIAD");
+    apply!("auto", "ENABLE_AUTO");
+    apply!("auto_batch", "ENABLE_AUTO_BATCH");
+    apply!("hetero", "ENABLE_HETERO");
+    apply!("multi", "ENABLE_MULTI");
+}
+
+/// According to https://docs.rs/cmake/0.1.44/cmake/struct.Config.html#method.profile, the cmake;
 /// crate will tries to infer the appropriate CMAKE_BUILD_TYPE from a combination of Rust opt-level
 /// and debug. To avoid duplicating https://docs.rs/cmake/0.1.44/src/cmake/lib.rs.html#553-559, this
 /// helper searches for build type directories and appends it to the path if a result is found; this

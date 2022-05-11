@@ -16,7 +16,7 @@ extern "C" {
 }
 extern "C" {
     #[doc = " @brief Release the memory allocated by ie_param_t."]
-    #[doc = " @param version A pointer to the ie_param_t to free memory."]
+    #[doc = " @param param A pointer to the ie_param_t to free memory."]
     pub fn ie_param_free(param: *mut ie_param_t);
 }
 extern "C" {
@@ -42,7 +42,7 @@ extern "C" {
     #[doc = " @brief Gets version information of the device specified. Use the ie_core_versions_free() method to free memory."]
     #[doc = " @ingroup Core"]
     #[doc = " @param core A pointer to ie_core_t instance."]
-    #[doc = " @param device_name Name to indentify device."]
+    #[doc = " @param device_name Name to identify device."]
     #[doc = " @param versions A pointer to versions corresponding to device_name."]
     #[doc = " @return Status code of the operation: OK(0) for success."]
     pub fn ie_core_get_versions(
@@ -60,7 +60,7 @@ extern "C" {
 extern "C" {
     #[doc = " @brief Reads the model from the .xml and .bin files of the IR. Use the ie_network_free() method to free memory."]
     #[doc = " @ingroup Core"]
-    #[doc = " @param core A pointer to ie_core_t instance."]
+    #[doc = " @param core A pointer to the ie_core_t instance."]
     #[doc = " @param xml .xml file's path of the IR."]
     #[doc = " @param weights_file .bin file's path of the IR, if path is empty, will try to read bin file with the same name as xml and"]
     #[doc = " if bin file with the same name was not found, will load IR without weights."]
@@ -76,7 +76,7 @@ extern "C" {
 extern "C" {
     #[doc = " @brief Reads the model from an xml string and a blob of the bin part of the IR. Use the ie_network_free() method to free memory."]
     #[doc = " @ingroup Core"]
-    #[doc = " @param core A pointer to ie_core_t instance."]
+    #[doc = " @param core A pointer to the ie_core_t instance."]
     #[doc = " @param xml_content Xml content of the IR."]
     #[doc = " @param xml_content_size Number of bytes in the xml content of the IR."]
     #[doc = " @param weight_blob Blob containing the bin part of the IR."]
@@ -91,12 +91,61 @@ extern "C" {
     ) -> IEStatusCode;
 }
 extern "C" {
-    #[doc = " @brief Creates an executable network from a network object. Users can create as many networks as they need and use"]
+    #[doc = " @brief Creates an executable network from a network previously exported to a file. Users can create as many networks as they need and use"]
     #[doc = " them simultaneously (up to the limitation of the hardware resources). Use the ie_exec_network_free() method to free memory."]
     #[doc = " @ingroup Core"]
-    #[doc = " @param core A pointer to ie_core_t instance."]
-    #[doc = " @param network A pointer to ie_network instance."]
-    #[doc = " @param device_name Name of device to load network to."]
+    #[doc = " @param core A pointer to the ie_core_t instance."]
+    #[doc = " @param file_name A path to the location of the exported file."]
+    #[doc = " @param device_name A name of the device to load the network to."]
+    #[doc = " @param config Device configuration."]
+    #[doc = " @param exe_network A pointer to the newly created executable network."]
+    #[doc = " @return Status code of the operation: OK(0) for success."]
+    pub fn ie_core_import_network(
+        core: *mut ie_core_t,
+        file_name: *const ::std::os::raw::c_char,
+        device_name: *const ::std::os::raw::c_char,
+        config: *const ie_config_t,
+        exe_network: *mut *mut ie_executable_network_t,
+    ) -> IEStatusCode;
+}
+extern "C" {
+    #[doc = " @brief Creates an executable network from a network previously exported to memory. Users can create as many networks as they need and use"]
+    #[doc = " them simultaneously (up to the limitation of the hardware resources). Use the ie_exec_network_free() method to free memory."]
+    #[doc = " @ingroup Core"]
+    #[doc = " @param core A pointer to the ie_core_t instance."]
+    #[doc = " @param content A pointer to content of the exported network."]
+    #[doc = " @param content_size Number of bytes in the exported network."]
+    #[doc = " @param device_name A name of the device to load the network to."]
+    #[doc = " @param config Device configuration."]
+    #[doc = " @param exe_network A pointer to the newly created executable network."]
+    #[doc = " @return Status code of the operation: OK(0) for success."]
+    pub fn ie_core_import_network_from_memory(
+        core: *mut ie_core_t,
+        content: *const u8,
+        content_size: usize,
+        device_name: *const ::std::os::raw::c_char,
+        config: *const ie_config_t,
+        exe_network: *mut *mut ie_executable_network_t,
+    ) -> IEStatusCode;
+}
+extern "C" {
+    #[doc = " @brief Exports an executable network to a .bin file."]
+    #[doc = " @ingroup Core"]
+    #[doc = " @param exe_network A pointer to the newly created executable network."]
+    #[doc = " @param file_name Path to the file to export the network to."]
+    #[doc = " @return Status code of the operation: OK(0) for success."]
+    pub fn ie_core_export_network(
+        exe_network: *mut ie_executable_network_t,
+        file_name: *const ::std::os::raw::c_char,
+    ) -> IEStatusCode;
+}
+extern "C" {
+    #[doc = " @brief Creates an executable network from a given network object. Users can create as many networks as they need and use"]
+    #[doc = " them simultaneously (up to the limitation of the hardware resources). Use the ie_exec_network_free() method to free memory."]
+    #[doc = " @ingroup Core"]
+    #[doc = " @param core A pointer to the ie_core_t instance."]
+    #[doc = " @param network A pointer to the input ie_network instance to create the executable network from."]
+    #[doc = " @param device_name Name of the device to load the network to."]
     #[doc = " @param config Device configuration."]
     #[doc = " @param exe_network A pointer to the newly created executable network."]
     #[doc = " @return Status code of the operation: OK(0) for success."]
@@ -109,11 +158,29 @@ extern "C" {
     ) -> IEStatusCode;
 }
 extern "C" {
+    #[doc = " @brief Reads model and creates an executable network from IR or ONNX file. Users can create as many networks as they need and use"]
+    #[doc = " them simultaneously (up to the limitation of the hardware resources). Use the ie_exec_network_free() method to free memory."]
+    #[doc = " @ingroup Core"]
+    #[doc = " @param core A pointer to the ie_core_t instance."]
+    #[doc = " @param xml .xml file's path of the IR. Weights file name will be calculated automatically"]
+    #[doc = " @param device_name Name of device to load network to."]
+    #[doc = " @param config Device configuration."]
+    #[doc = " @param exe_network A pointer to the newly created executable network."]
+    #[doc = " @return Status code of the operation: OK(0) for success."]
+    pub fn ie_core_load_network_from_file(
+        core: *mut ie_core_t,
+        xml: *const ::std::os::raw::c_char,
+        device_name: *const ::std::os::raw::c_char,
+        config: *const ie_config_t,
+        exe_network: *mut *mut ie_executable_network_t,
+    ) -> IEStatusCode;
+}
+extern "C" {
     #[doc = " @brief Sets configuration for device."]
     #[doc = " @ingroup Core"]
     #[doc = " @param core A pointer to ie_core_t instance."]
     #[doc = " @param ie_core_config Device configuration."]
-    #[doc = " @param device_name An optinal name of a device. If device name is not specified,"]
+    #[doc = " @param device_name An optional name of a device. If device name is not specified,"]
     #[doc = " the config is set for all the registered devices."]
     #[doc = " @return Status code of the operation: OK(0) for success."]
     pub fn ie_core_set_config(
@@ -208,7 +275,7 @@ extern "C" {
     #[doc = " @brief Gets available devices for neural network inference."]
     #[doc = " @ingroup Core"]
     #[doc = " @param core A pointer to ie_core_t instance."]
-    #[doc = " @param avai_devices The devices are returned as { CPU, FPGA.0, FPGA.1, MYRIAD }"]
+    #[doc = " @param avai_devices The devices are returned as { CPU, GPU.0, GPU.1, MYRIAD }"]
     #[doc = " If there more than one device of specific type, they are enumerated with .# suffix"]
     #[doc = " @return Status code of the operation: OK(0) for success."]
     pub fn ie_core_get_available_devices(
@@ -256,7 +323,7 @@ extern "C" {
 }
 extern "C" {
     #[doc = " @brief Sets configuration for current executable network. Currently, the method can be used"]
-    #[doc = " when the network run on the Multi device and the configuration paramter is only can be \"MULTI_DEVICE_PRIORITIES\""]
+    #[doc = " when the network run on the Multi device and the configuration parameter is only can be \"MULTI_DEVICE_PRIORITIES\""]
     #[doc = " @ingroup ExecutableNetwork"]
     #[doc = " @param ie_exec_network A pointer to ie_executable_network_t instance."]
     #[doc = " @param param_config A pointer to device configuration.."]
@@ -272,7 +339,7 @@ extern "C" {
     #[doc = " @ingroup ExecutableNetwork"]
     #[doc = " @param ie_exec_network A pointer to ie_executable_network_t instance."]
     #[doc = " @param metric_config A configuration parameter name to request."]
-    #[doc = " @param param_result A configuration value corresponding to a configuration paramter name."]
+    #[doc = " @param param_result A configuration value corresponding to a configuration parameter name."]
     #[doc = " @return Status code of the operation: OK(0) for success."]
     pub fn ie_exec_network_get_config(
         ie_exec_network: *const ie_executable_network_t,
@@ -363,7 +430,7 @@ extern "C" {
     ) -> IEStatusCode;
 }
 extern "C" {
-    #[doc = " @brief When netowrk is loaded into the Infernece Engine, it is not required anymore and should be released"]
+    #[doc = " @brief When network is loaded into the Infernece Engine, it is not required anymore and should be released"]
     #[doc = " @ingroup Network"]
     #[doc = " @param network The pointer to the instance of the ie_network_t to free."]
     pub fn ie_network_free(network: *mut *mut ie_network_t);
@@ -371,6 +438,7 @@ extern "C" {
 extern "C" {
     #[doc = " @brief Get name of network."]
     #[doc = " @ingroup Network"]
+    #[doc = " @param network A pointer to the instance of the ie_network_t to get a name from."]
     #[doc = " @param name Name of the network."]
     #[doc = " @return Status code of the operation: OK(0) for success."]
     pub fn ie_network_get_name(
@@ -457,7 +525,7 @@ extern "C" {
     ) -> IEStatusCode;
 }
 extern "C" {
-    #[doc = " @Gets dimensions/shape of the input data with reversed order."]
+    #[doc = " @brief Gets dimensions/shape of the input data with reversed order."]
     #[doc = " @ingroup Network"]
     #[doc = " @param network A pointer to ie_network_t instance."]
     #[doc = " @param input_name Name of input data."]
@@ -474,7 +542,7 @@ extern "C" {
     #[doc = " @ingroup Network"]
     #[doc = " @param network A pointer to ie_network_t instance."]
     #[doc = " @param input_name Name of input data."]
-    #[doc = " @parm resize_alg_result The pointer to the resize algorithm used for input blob creation."]
+    #[doc = " @param resize_alg_result The pointer to the resize algorithm used for input blob creation."]
     #[doc = " @return Status code of the operation: OK(0) for success."]
     pub fn ie_network_get_input_resize_algorithm(
         network: *const ie_network_t,
@@ -501,7 +569,7 @@ extern "C" {
     #[doc = " @param network A pointer to ie_network_t instance."]
     #[doc = " @param input_name Name of input data."]
     #[doc = " @param colformat_result The pointer to the color format used for input blob creation."]
-    #[doc = " @reutrn Status code of the operation: OK(0) for success."]
+    #[doc = " @return Status code of the operation: OK(0) for success."]
     pub fn ie_network_get_color_format(
         network: *const ie_network_t,
         input_name: *const ::std::os::raw::c_char,
@@ -514,7 +582,7 @@ extern "C" {
     #[doc = " @param network A pointer to ie_network_t instance."]
     #[doc = " @param input_name Name of input data."]
     #[doc = " @param color_format Color format of the input data."]
-    #[doc = " @reutrn Status code of the operation: OK(0) for success."]
+    #[doc = " @return Status code of the operation: OK(0) for success."]
     pub fn ie_network_set_color_format(
         network: *mut ie_network_t,
         input_name: *const ::std::os::raw::c_char,
@@ -544,7 +612,7 @@ extern "C" {
 extern "C" {
     #[doc = " @brief Gets number of output for the network."]
     #[doc = " @ingroup Network"]
-    #[doc = " @param network A pointer to the instance of the ie_network_t to get number of ouput information."]
+    #[doc = " @param network A pointer to the instance of the ie_network_t to get number of output information."]
     #[doc = " @param size_result A number of the network's output information."]
     #[doc = " @return Status code of the operation: OK(0) for success."]
     pub fn ie_network_get_outputs_number(
@@ -789,7 +857,7 @@ extern "C" {
     ) -> IEStatusCode;
 }
 extern "C" {
-    #[doc = " @Releases the memory occupied by the ie_blob_t pointer."]
+    #[doc = " @brief Releases the memory occupied by the ie_blob_t pointer."]
     #[doc = " @ingroup Blob"]
     #[doc = " @param blob A pointer to the blob pointer to release memory."]
     pub fn ie_blob_free(blob: *mut *mut ie_blob_t);

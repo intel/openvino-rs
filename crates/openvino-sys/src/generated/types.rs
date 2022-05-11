@@ -35,6 +35,7 @@ pub type ie_blob_t = ie_blob;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ie_version {
+    #[doc = "!< A string representing Inference Engine version"]
     pub api_version: *mut ::std::os::raw::c_char,
 }
 #[test]
@@ -68,10 +69,15 @@ pub type ie_version_t = ie_version;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ie_core_version {
+    #[doc = "!< A major version"]
     pub major: usize,
+    #[doc = "!< A minor version"]
     pub minor: usize,
+    #[doc = "!< A device name"]
     pub device_name: *const ::std::os::raw::c_char,
+    #[doc = "!< A build number"]
     pub build_number: *const ::std::os::raw::c_char,
+    #[doc = "!< A device description"]
     pub description: *const ::std::os::raw::c_char,
 }
 #[test]
@@ -145,7 +151,9 @@ pub type ie_core_version_t = ie_core_version;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ie_core_versions {
+    #[doc = "!< An array of device versions"]
     pub versions: *mut ie_core_version_t,
+    #[doc = "!< A number of versions in the array"]
     pub num_vers: usize,
 }
 #[test]
@@ -189,8 +197,11 @@ pub type ie_core_versions_t = ie_core_versions;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ie_config {
+    #[doc = "!< A configuration key"]
     pub name: *const ::std::os::raw::c_char,
+    #[doc = "!< A configuration value"]
     pub value: *const ::std::os::raw::c_char,
+    #[doc = "!< A pointer to the next configuration value"]
     pub next: *mut ie_config,
 }
 #[test]
@@ -378,7 +389,9 @@ pub type ie_param_config_t = ie_param_config;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct dimensions {
+    #[doc = "!< A runk representing a number of dimensions"]
     pub ranks: usize,
+    #[doc = "!< An array of dimensions"]
     pub dims: [usize; 8usize],
 }
 #[test]
@@ -422,18 +435,31 @@ pub type dimensions_t = dimensions;
 #[doc = " @brief Layouts that the inference engine supports"]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum layout_e {
+    #[doc = "!< \"ANY\" layout"]
     ANY = 0,
+    #[doc = "!< \"NCHW\" layout"]
     NCHW = 1,
+    #[doc = "!< \"NHWC\" layout"]
     NHWC = 2,
+    #[doc = "!< \"NCDHW\" layout"]
     NCDHW = 3,
+    #[doc = "!< \"NDHWC\" layout"]
     NDHWC = 4,
+    #[doc = "!< \"OIHW\" layout"]
     OIHW = 64,
+    #[doc = "!< \"SCALAR\" layout"]
     SCALAR = 95,
+    #[doc = "!< \"C\" layout"]
     C = 96,
+    #[doc = "!< \"CHW\" layout"]
     CHW = 128,
+    #[doc = "!< \"HW\" layout"]
     HW = 192,
+    #[doc = "!< \"NC\" layout"]
     NC = 193,
+    #[doc = "!< \"CN\" layout"]
     CN = 194,
+    #[doc = "!< \"BLOCKED\" layout"]
     BLOCKED = 200,
 }
 #[repr(u32)]
@@ -449,12 +475,18 @@ pub enum precision_e {
     FP32 = 10,
     #[doc = "< 16bit floating point value"]
     FP16 = 11,
+    #[doc = "< 64bit floating point value"]
+    FP64 = 13,
     #[doc = "< 16bit specific signed fixed point precision"]
     Q78 = 20,
     #[doc = "< 16bit signed integer value"]
     I16 = 30,
+    #[doc = "< 4bit unsigned integer value"]
+    U4 = 39,
     #[doc = "< 8bit unsigned integer value"]
     U8 = 40,
+    #[doc = "< 4bit signed integer value"]
+    I4 = 49,
     #[doc = "< 8bit signed integer value"]
     I8 = 50,
     #[doc = "< 16bit unsigned integer value"]
@@ -465,6 +497,8 @@ pub enum precision_e {
     I64 = 72,
     #[doc = "< 64bit unsigned integer value"]
     U64 = 73,
+    #[doc = "< 32bit unsigned integer value"]
+    U32 = 74,
     #[doc = "< 1bit integer value"]
     BIN = 71,
     #[doc = "< custom precision has it's own name and size of elements"]
@@ -530,19 +564,19 @@ pub type tensor_desc_t = tensor_desc;
 #[doc = " @brief Extra information about input color format for preprocessing"]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum colorformat_e {
-    #[doc = "< Plain blob (default), no extra color processing required"]
+    #[doc = "!< Plain blob (default), no extra color processing required"]
     RAW = 0,
-    #[doc = "< RGB color format"]
+    #[doc = "!< RGB color format"]
     RGB = 1,
-    #[doc = "< BGR color format, default in DLDT"]
+    #[doc = "!< BGR color format, default in DLDT"]
     BGR = 2,
-    #[doc = "< RGBX color format with X ignored during inference"]
+    #[doc = "!< RGBX color format with X ignored during inference"]
     RGBX = 3,
-    #[doc = "< BGRX color format with X ignored during inference"]
+    #[doc = "!< BGRX color format with X ignored during inference"]
     BGRX = 4,
-    #[doc = "< NV12 color format represented as compound Y+UV blob"]
+    #[doc = "!< NV12 color format represented as compound Y+UV blob"]
     NV12 = 5,
-    #[doc = "< I420 color format represented as compound Y+U+V blob"]
+    #[doc = "!< I420 color format represented as compound Y+U+V blob"]
     I420 = 6,
 }
 #[repr(u32)]
@@ -550,8 +584,11 @@ pub enum colorformat_e {
 #[doc = " @brief Represents the list of supported resize algorithms."]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum resize_alg_e {
+    #[doc = "!< \"No resize\" mode"]
     NO_RESIZE = 0,
+    #[doc = "!< \"Bilinear resize\" mode"]
     RESIZE_BILINEAR = 1,
+    #[doc = "!< \"Area resize\" mode"]
     RESIZE_AREA = 2,
 }
 pub const IEStatusCode_OK: IEStatusCode = 0;
@@ -567,6 +604,7 @@ pub const IEStatusCode_RESULT_NOT_READY: IEStatusCode = -9;
 pub const IEStatusCode_NOT_ALLOCATED: IEStatusCode = -10;
 pub const IEStatusCode_INFER_NOT_STARTED: IEStatusCode = -11;
 pub const IEStatusCode_NETWORK_NOT_READ: IEStatusCode = -12;
+pub const IEStatusCode_INFER_CANCELLED: IEStatusCode = -13;
 #[doc = " @enum IEStatusCode"]
 #[doc = " @brief This enum contains codes for all possible return values of the interface functions"]
 pub type IEStatusCode = ::std::os::raw::c_int;
@@ -575,10 +613,15 @@ pub type IEStatusCode = ::std::os::raw::c_int;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct roi {
+    #[doc = "!< ID of a roi"]
     pub id: usize,
+    #[doc = "!< W upper left coordinate of roi"]
     pub posX: usize,
+    #[doc = "!< H upper left coordinate of roi"]
     pub posY: usize,
+    #[doc = "!< W size of roi"]
     pub sizeX: usize,
+    #[doc = "!< H size of roi"]
     pub sizeY: usize,
 }
 #[test]
@@ -730,7 +773,9 @@ pub struct ie_blob_buffer {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union ie_blob_buffer__bindgen_ty_1 {
+    #[doc = "!< buffer can be written"]
     pub buffer: *mut ::std::os::raw::c_void,
+    #[doc = "!< cbuffer is read-only"]
     pub cbuffer: *const ::std::os::raw::c_void,
 }
 #[test]
