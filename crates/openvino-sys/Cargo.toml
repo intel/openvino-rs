@@ -15,11 +15,12 @@ include = [
     "/README.md",
     "/build.rs",
     "/src",
-    # Since it is quite difficult to fit OpenVINO into the 10MB crate limit, this crate is published with only the
-    # sources necessary for bindgen to build the Rust bindings. This means that the crate can only be either:
+    # Since it is quite difficult to fit OpenVINO into the 10MB crate limit, this crate is published
+    # with only the sources necessary for bindgen to build the Rust bindings. This means that the
+    # crate can only be either:
     # - built from OpenVINO sources when built as the primary crate (unlikely usage)
     # - built from an OpenVINO installation when used as a dependency
-    "/upstream/inference-engine/ie_bridges/c/include",
+    "/upstream/src/bindings/c/include",
 ]
 links = "inference_engine_c_api"
 
@@ -36,13 +37,15 @@ openvino-finder = {version = "0.3.3", path = "../openvino-finder" }
 default = ["cpu"]
 
 # Plugin features: if building from source, this allows selecting which OpenVINO plugins to build.
-all = ["cpu", "gpu", "gna", "hetero", "multi", "myriad"]
+all = ["auto", "auto_batch", "cpu", "gpu", "gna", "hetero", "myriad", "multi"]
+auto = []
+auto_batch = []
 cpu = []
 gpu = []
 gna = []
 hetero = []
-multi = []
 myriad = []
+multi = []
 
 # Linking features: `build.rs` will default to dynamic linking if none is selected.
 dynamic-linking = [] # Will find and bind to an OpenVINO shared library at compile time.

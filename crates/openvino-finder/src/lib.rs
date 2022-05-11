@@ -126,7 +126,7 @@ const KNOWN_INSTALLATION_SUBDIRECTORIES: &[&str] =
 const KNOWN_BUILD_SUBDIRECTORIES: &[&str] = &[
     "bin/intel64/Debug/lib",
     "bin/intel64/Release/lib",
-    "inference-engine/temp/tbb/lib",
+    "temp/tbb/lib",
 ];
 
 #[cfg(test)]

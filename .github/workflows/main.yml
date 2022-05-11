@@ -49,8 +49,9 @@ jobs:
     - name: Run tests
       # For some reason the library path is not set during the doc tests (`--doc`, see
       # https://doc.rust-lang.org/cargo/commands/cargo-test.html#target-selection) so we skip them
-      # here: issue at https://github.com/intel/openvino-rs/issues/25.
-      run: cargo test --verbose --features openvino-sys/from-source --lib --tests
+      # here: issue at https://github.com/intel/openvino-rs/issues/25. Also, the `from-source` build
+      # does not know how to run the inception SSD test.
+      run: cargo test --verbose --features openvino-sys/from-source --lib --tests -- --skip detect_inception
 
   # Build and test from an existing OpenVINO installation inside a Docker image (i.e. download the
   # binaries, then compile against these).
