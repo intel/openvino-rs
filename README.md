@@ -6,8 +6,9 @@
 This repository contains the [openvino-sys] crate (low-level, unsafe bindings) and the [openvino]
 crate (high-level, ergonomic bindings) for accessing OpenVINO™ functionality in Rust.
 
-[openvino-sys]: crates/openvino-sys
 [openvino]: crates/openvino
+[openvino-sys]: crates/openvino-sys
+[openvino-finder]: crates/openvino-finder
 [upstream]: crates/openvino-sys/upstream
 [docs]: https://docs.rs/openvino
 [ci]: https://github.com/abrown/openvino-rs/actions?query=workflow%3ACI
@@ -39,15 +40,14 @@ source /opt/intel/openvino/setupvars.sh
 cargo test
 ```
 
-The quickest method to build [openvino] and [openvino-sys] is with a local installation of OpenVINO™
-(see, e.g., [installing from an apt repository][install-apt]). The build script will attempt to
-locate an existing installation (see [openvino-finder]) and link against its shared libraries.
-Provide the `OPENVINO_INSTALL_DIR` environment variable to point at a specific installation. Ensure
-that the correct libraries are available on the system's load path; OpenVINO™'s `setupvars.sh`
-script will do this automatically.
+The quickest method to build the [openvino] and [openvino-sys] crates is with a local installation
+of OpenVINO™ (see, e.g., [installing from an apt repository][install-apt]). The build script will
+attempt to locate an existing installation (see [openvino-finder]) and link against its shared
+libraries. Provide the `OPENVINO_INSTALL_DIR` environment variable to point at a specific
+installation. Ensure that the correct libraries are available on the system's load path; OpenVINO™'s
+`setupvars.sh` script will do this automatically.
 
 [install-apt]: https://docs.openvinotoolkit.org/latest/openvino_docs_install_guides_installing_openvino_apt.html
-[openvino-finder]: crates/openvino-finder
 
 
 
@@ -70,26 +70,28 @@ high-level users, call `openvino::Core::new` first to automatically load and lin
 
 ### Build from OpenVINO™ sources
 
+First, build OpenVINO by cloning the [openvino] repository and following the [OpenVINO™ build
+documentation]. Then, using the top-level directory as `<openvino-repo>` (not the CMake build
+directory), build this crate:
+
 ```shell script
-git submodule update --init --recursive
-cargo build -vv --features openvino-sys/from-source
-cargo test --features openvino-sys/from-source
+OPENVINO_BUILD_DIR=<openvino-repo> cargo build
+OPENVINO_BUILD_DIR=<openvino-repo> cargo test
 ```
 
-[openvino] and [openvino-sys] can also be built directly from OpenVINO™'s source code using CMake.
-This is not tested across all OS and OpenVINO™ versions--use at your own risk! Also, this build
-process can be quite slow and there are quite a few dependencies. Some notes:
- - first, install the necessary packages to build OpenVINO™; steps are included in the [CI
-   workflow](.github/workflows)
-   but reference the [OpenVINO™ build documentation](https://github.com/openvinotoolkit/openvino/blob/master/build-instruction.md)
-   for the full documentation
- - OpenVINO™ has a plugin system for device-specific libraries (e.g. GPU); building all of these
-   libraries along with the core inference libraries can take >20 minutes. To avoid over-long build
-   times, [openvino-sys] exposes several Cargo features. By default, [openvino-sys] will only build
-   the CPU plugin; to build all plugins, use `--features all` (see
-   [Cargo.toml](crates/openvino-sys/Cargo.toml)).
- - OpenVINO™ includes other libraries (e.g. ngraph, tbb); see the
-   [build.rs](crates/openvino-sys/build.rs) file for how these are linked to these libraries.
+Some important notes about the path passed in `OPENVINO_BUILD_DIR`:
+- `<openvino-repo>` should be an absolute path (or at least a path relative to the
+  `crates/openvino-sys` directory, which is the current directory when used at build time)
+- `<openvino-repo>` should either be outside of this crate's tree or in the `target` directory (see
+  the limitations on [`cargo:rustc-link-search`]).
+
+The various OpenVINO libraries and dependencies are found using the [openvino-finder] crate. Turn on
+logging to troubleshoot any issues finding the right libraries, e.g., `RUST_LOG=info
+OPENVINO_BUILD_DIR=... cargo build -vv`.
+
+[openvino]: https://github.com/openvinotoolkit/openvino
+[OpenVINO™ build documentation]: https://github.com/openvinotoolkit/openvino/blob/master/build-instruction.md
+[`cargo:rustc-link-search`]: https://doc.rust-lang.org/cargo/reference/build-scripts.html#rustc-link-search
 
 
 
