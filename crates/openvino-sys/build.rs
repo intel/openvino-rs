@@ -12,7 +12,14 @@ const ENV_OPENVINO_SKIP_LINKING: &str = "OPENVINO_SKIP_LINKING";
 // inference engine library that OpenVINO is being linked to in this script.
 const ENV_OPENVINO_LIB_PATH: &str = "OPENVINO_LIB_PATH";
 
+// An environment variable for building against a from-source build of OpenVINO. See
+// `openvino-finder` for how this is used to find library paths.
+const ENV_OPENVINO_BUILD_DIR: &str = "OPENVINO_BUILD_DIR";
+
 fn main() {
+    // This allows us to log the `openvino-finder` search paths, for troubleshooting.
+    let _ = pretty_env_logger::try_init();
+
     // Trigger rebuild on changes to build.rs and Cargo.toml and every source file.
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=Cargo.toml");
@@ -32,7 +39,7 @@ fn main() {
     let linking = if cfg!(feature = "runtime-linking")
         || env::var_os(ENV_OPENVINO_SKIP_LINKING).is_some()
     {
-        assert!(!cfg!(feature = "from-source"), "When building from source, the build script must always try to dynamically link the built libraries.");
+        assert!(env::var_os(ENV_OPENVINO_BUILD_DIR).is_none(), "When building from source, the build script must always try to dynamically link the built libraries.");
         Linking::None
     } else {
         Linking::Dynamic
@@ -40,14 +47,12 @@ fn main() {
 
     // Find the OpenVINO libraries to link to, either from a pre-installed location or by building
     // from source.
-    let (c_api_library_path, library_search_paths) = if cfg!(feature = "from-source") {
-        build_from_source_using_cmake()
-    } else if linking == Linking::None {
+    let (c_api_library_path, library_search_paths) = if linking == Linking::None {
         (openvino_finder::find("openvino_c"), vec![])
     } else if let Some(path) = openvino_finder::find("openvino_c") {
         (Some(path), find_libraries_in_existing_installation())
     } else {
-        panic!("Unable to find an OpenVINO installation on your system; build with runtime linking using `--features runtime-linking` or build from source with `--features from-source`.")
+        panic!("Unable to find an OpenVINO installation on your system; build with runtime linking using `--features runtime-linking` or build from source with `OPENVINO_BUILD_DIR`.")
     };
 
     // Capture the path to the library we are using. The reason we do this is to provide a mechanism
@@ -80,16 +85,6 @@ fn main() {
 enum Linking {
     None,
     Dynamic,
-}
-
-/// Canonicalize a path as well as verify that it exists.
-fn dir<P: AsRef<Path>>(path: P) -> PathBuf {
-    let path = path.as_ref();
-    if !path.exists() || !path.is_dir() {
-        panic!("Unable to find directory: {}", path.display())
-    }
-    path.canonicalize()
-        .expect("to be able to canonicalize the path")
 }
 
 /// Helper for recursively visiting the files in this directory; see https://doc.rust-lang.org/std/fs/fn.read_dir.html.
@@ -136,11 +131,11 @@ fn add_dynamically_linked_library(library: &str) {
 /// Find all of the necessary libraries to link using the `openvino_finder`. This will return the
 /// directories that should contain the necessary libraries to link to.
 ///
-/// It would be preferable to use pkg-config here to retrieve the libraries when they are
-/// installed system-wide but there are issues:
-///  - OpenVINO does not install itself a system library, e.g., through ldconfig.;
-///  - OpenVINO relies on a `plugins.xml` file for finding target-specific libraries
-///    and it is unclear how we would discover this in a system-install scenario.
+/// It would be preferable to use pkg-config here to retrieve the libraries when they are installed
+/// system-wide but there are issues:
+///  - OpenVINO does not install itself as a system library, e.g., through `ldconfig`;
+///  - OpenVINO relies on a `plugins.xml` file for finding target-specific libraries and it is
+///    unclear how we would discover this in a system-install scenario.
 fn find_libraries_in_existing_installation() -> Vec<PathBuf> {
     let mut dirs = vec![];
     for library in LIBRARIES {
@@ -161,176 +156,4 @@ fn find_libraries_in_existing_installation() -> Vec<PathBuf> {
         }
     }
     dirs
-}
-
-/// Build OpenVINO with CMake. TODO this currently will not work when the crate is published
-/// because the `upstream` directory will not fit inside the 10MB crate limit. To solve this, we
-/// could retrieve the sources (cringe), e.g., with `git2`.
-///
-/// See https://github.com/openvinotoolkit/openvino/wiki/BuildingForLinux.
-fn build_from_source_using_cmake() -> (Option<PathBuf>, Vec<PathBuf>) {
-    let out = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let out_as_str = out.to_str().unwrap();
-
-    fn cmake(out_dir: &str) -> cmake::Config {
-        let mut config = cmake::Config::new("upstream");
-        config
-            .very_verbose(true)
-            // Disable code maintenance features.
-            .define("ENABLE_CPPLINT", "OFF")
-            .define("ENABLE_CLANG_FORMAT", "OFF")
-            .define("ENABLE_NCC_STYLE", "OFF")
-            // Disable unnecessary targets; these are enabled by default (see
-            // https://github.com/openvinotoolkit/openvino/wiki/CMakeOptionsForCustomCompilation).
-            // We still need `ENABLE_OV_IR_FRONTEND` (enabled by default) since it is what reads the
-            // OpenVINO model files. Still unsure if `ENABLE_GAPI_PREPROCESSING` is needed.
-            .define("ENABLE_OPENCV", "OFF")
-            .define("ENABLE_OV_ONNX_FRONTEND", "OFF")
-            .define("ENABLE_OV_PADDLE_FRONTEND", "OFF")
-            .define("ENABLE_OV_PDPD_FRONTEND", "OFF")
-            .define("ENABLE_OV_TF_FRONTEND", "OFF")
-            .define("ENABLE_SAMPLES", "OFF")
-            // As described in https://github.com/intel/openvino-rs/issues/8, the OpenVINO source
-            // includes redundant moves. These were previously warnings but newer compilers treat
-            // them as errors.
-            .cxxflag("-Wno-error=redundant-move")
-            .cxxflag("-Wno-error=uninitialized")
-            // Because OpenVINO by default wants to build its binaries in its own tree, we must
-            // specify that we actually want them in Cargo's output directory.
-            .define("OUTPUT_ROOT", out_dir);
-
-        // Enable or disable each plugin's CMake feature. It is unclear if this adding/removing of
-        // CMake features is truly needed since we are manually choosing the plugin CMake targets,
-        // but we do it here to be safe.
-        apply_plugin_features(&mut config);
-
-        config
-    }
-
-    // Specifying the build targets reduces the build time somewhat; this one will trigger
-    // builds for other necessary shared libraries (e.g., `openvino`, `tbb`).
-    let build_path = cmake(out_as_str).build_target("openvino_c").build();
-
-    // Unfortunately, `openvino_c` will not build the OpenVINO plugins used for
-    // the actual computation. Here we re-run CMake for each plugin the user specifies using
-    // Cargo features (see `Cargo.toml`).
-    for plugin in get_plugin_target_from_features() {
-        cmake(out_as_str).build_target(plugin).build();
-    }
-
-    // Collect the locations of the libraries. Note that ngraph should also be found with the
-    // built OpenVINO libraries.
-    let openvino_libraries =
-        find_and_append_cmake_build_type(build_path.join("bin/intel64")).join("lib");
-
-    // Copy the TBB libraries into the OpenVINO library directory. Since ngraph already exists
-    // here and because the TBB directory is weirdly downloaded in-tree rather than under target
-    // (meaning that the TBB path would be stripped from LD_LIBRARY_PATH, see
-    // https://doc.rust-lang.org/cargo/reference/environment-variables.html#dynamic-library-paths),
-    // copying the files over makes some sense. Also, I have noticed compatibility issues with
-    // pre-installed libtbb (on some systems, the nodes_count symbol is not present in the
-    // system-provided libtbb) so it may be important to include OpenVINO's version of libtbb
-    // here.
-    let tbb_libraries = dir("upstream/temp/tbb/lib");
-    visit_dirs(&tbb_libraries, &|from: PathBuf| {
-        let to = openvino_libraries.join(from.file_name().unwrap());
-        println!("Copying {} to {}", from.display(), to.display());
-        std::fs::copy(from, to).expect("failed copying TBB libraries");
-    })
-    .expect("failed visiting TBB directory");
-
-    let c_api = format!(
-        "{}openvino_c{}",
-        env::consts::DLL_PREFIX,
-        env::consts::DLL_SUFFIX
-    );
-    (
-        Some(openvino_libraries.join(c_api)),
-        vec![openvino_libraries],
-    )
-}
-
-/// Determine CMake targets for the various OpenVINO plugins. The plugin mapping is available in
-/// OpenVINO's `plugins.xml` file and, using that, this function wires up the exposed Cargo
-/// features of openvino-sys to the correct CMake target. Run `cmake --build . --target help` in
-/// an upstream CMake build directory to see a list of these.
-fn get_plugin_target_from_features() -> Vec<&'static str> {
-    let mut plugins = vec![];
-    if cfg!(feature = "all") {
-        plugins.push("ie_plugins")
-    } else {
-        if cfg!(feature = "cpu") {
-            plugins.push("openvino_intel_cpu_plugin")
-        }
-        if cfg!(feature = "gpu") {
-            plugins.push("openvino_intel_gpu_plugin")
-        }
-        if cfg!(feature = "gna") {
-            plugins.push("openvino_intel_gna_plugin")
-        }
-        if cfg!(feature = "hetero") {
-            plugins.push("openvino_hetero_plugin")
-        }
-        if cfg!(feature = "auto") {
-            plugins.push("openvino_auto_plugin")
-        }
-        if cfg!(feature = "auto_batch") {
-            plugins.push("openvino_auto_batch_plugin")
-        }
-        if cfg!(feature = "myriad") {
-            plugins.push("openvino_intel_myriad_plugin")
-        }
-    }
-    assert!(!plugins.is_empty());
-    plugins
-}
-
-/// Apply CMake `ENABLE_*` features for each of Cargo's plugin features; see `Cargo.toml`. For
-/// example, running `cargo build --features gpu` should set `ENABLE_INTEL_GPU=ON` and set all
-/// others to `OFF`. See
-/// https://github.com/openvinotoolkit/openvino/wiki/CMakeOptionsForCustomCompilation.
-fn apply_plugin_features(config: &mut cmake::Config) {
-    macro_rules! apply {
-        ($cargo_feature: literal, $cmake_feature: literal) => {
-            if cfg!(feature = $cargo_feature) {
-                config.define($cmake_feature, "ON");
-            } else {
-                config.define($cmake_feature, "OFF");
-            }
-        };
-    }
-
-    apply!("cpu", "ENABLE_INTEL_CPU");
-    apply!("gpu", "ENABLE_INTEL_GPU");
-    apply!("gna", "ENABLE_INTEL_GNA");
-    apply!("myriad", "ENABLE_INTEL_MYRIAD");
-    apply!("auto", "ENABLE_AUTO");
-    apply!("auto_batch", "ENABLE_AUTO_BATCH");
-    apply!("hetero", "ENABLE_HETERO");
-    apply!("multi", "ENABLE_MULTI");
-}
-
-/// According to https://docs.rs/cmake/0.1.44/cmake/struct.Config.html#method.profile, the cmake;
-/// crate will tries to infer the appropriate CMAKE_BUILD_TYPE from a combination of Rust opt-level
-/// and debug. To avoid duplicating https://docs.rs/cmake/0.1.44/src/cmake/lib.rs.html#553-559, this
-/// helper searches for build type directories and appends it to the path if a result is found; this
-/// will panic otherwise.
-fn find_and_append_cmake_build_type(build_path: PathBuf) -> PathBuf {
-    let types = ["Debug", "Release", "RelWithDebInfo", "MinSizeRel"];
-    let found: Vec<_> = types
-        .iter()
-        .filter(|&&t| build_path.join(t).is_dir())
-        .collect();
-    match found.len() {
-        0 => panic!(
-            "No CMake build directory found in {}; expected one of {:?}",
-            build_path.display(),
-            types
-        ),
-        1 => build_path.join(found[0]),
-        _ => panic!(
-            "Too many CMake build directories found in {}",
-            build_path.display()
-        ),
-    }
 }

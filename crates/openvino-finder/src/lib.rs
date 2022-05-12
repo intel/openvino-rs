@@ -35,21 +35,21 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
         };
     }
 
-    // Search using the `OPENVINO_INSTALL_DIR` environment variable; this may be set by users of the
-    // `openvino-rs` library.
-    if let Some(install_dir) = env::var_os(ENV_OPENVINO_INSTALL_DIR) {
-        let install_dir = PathBuf::from(install_dir);
-        for lib_dir in KNOWN_INSTALLATION_SUBDIRECTORIES {
-            let search_path = install_dir.join(lib_dir).join(&file);
-            check_and_return!(search_path);
-        }
-    }
-
     // Search using the `OPENVINO_BUILD_DIR` environment variable; this may be set by users of the
     // `openvino-rs` library.
     if let Some(build_dir) = env::var_os(ENV_OPENVINO_BUILD_DIR) {
         let install_dir = PathBuf::from(build_dir);
         for lib_dir in KNOWN_BUILD_SUBDIRECTORIES {
+            let search_path = install_dir.join(lib_dir).join(&file);
+            check_and_return!(search_path);
+        }
+    }
+
+    // Search using the `OPENVINO_INSTALL_DIR` environment variable; this may be set by users of the
+    // `openvino-rs` library.
+    if let Some(install_dir) = env::var_os(ENV_OPENVINO_INSTALL_DIR) {
+        let install_dir = PathBuf::from(install_dir);
+        for lib_dir in KNOWN_INSTALLATION_SUBDIRECTORIES {
             let search_path = install_dir.join(lib_dir).join(&file);
             check_and_return!(search_path);
         }

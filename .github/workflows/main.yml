@@ -31,28 +31,6 @@ jobs:
     - uses: actions/checkout@v2
     - uses: EmbarkStudios/cargo-deny-action@v1
 
-  # Build and test from the git-submodule-included OpenVINO source code.
-  source:
-    name: From source
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-        lfs: true
-    - name: Checkout LFS obects
-      run: git lfs checkout
-    - name: Install system dependencies
-      run: sudo apt update && sudo apt install -y clang cmake libclang-dev gnupg2 libdrm2 libglib2.0-0 libusb-1.0-0-dev lsb-release libgtk-3-0 libtool udev unzip dos2unix
-    - name: Build (openvino-sys from source)
-      run: cargo build --verbose --features openvino-sys/from-source
-    - name: Run tests
-      # For some reason the library path is not set during the doc tests (`--doc`, see
-      # https://doc.rust-lang.org/cargo/commands/cargo-test.html#target-selection) so we skip them
-      # here: issue at https://github.com/intel/openvino-rs/issues/25. Also, the `from-source` build
-      # does not know how to run the inception SSD test.
-      run: cargo test --verbose --features openvino-sys/from-source --lib --tests -- --skip detect_inception
-
   # Build and test from an existing OpenVINO installation inside a Docker image (i.e. download the
   # binaries, then compile against these).
   dynamic_binaries:
