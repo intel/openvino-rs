@@ -1,13 +1,13 @@
 [package]
 name = "openvino-sys"
-version = "0.3.3"
+version = "0.4.0"
 license = "Apache-2.0"
 description = "Low-level bindings for OpenVINO (use the `openvino` crate for easier-to-use bindings)."
 readme = "README.md"
 authors = ["OpenVINO Project Developers"]
 repository = "https://github.com/intel/openvino-rs"
 documentation = "https://docs.rs/openvino-sys"
-keywords = ["external-ffi-bindings", "openvino", "machine-learning", "ml", "neural-network"]
+keywords = ["openvino", "machine-learning", "ml", "neural-network"]
 categories = ["external-ffi-bindings", "science"]
 edition = "2018"
 include = [
@@ -27,10 +27,10 @@ links = "inference_engine_c_api"
 [dependencies]
 lazy_static = {version = "1.4", optional = true }
 libloading = {version = "0.7", optional = true }
-openvino-finder = {version = "0.3.3", path = "../openvino-finder" }
+openvino-finder = {version = "0.4.0", path = "../openvino-finder" }
 
 [build-dependencies]
-openvino-finder = {version = "0.3.3", path = "../openvino-finder" }
+openvino-finder = {version = "0.4.0", path = "../openvino-finder" }
 pretty_env_logger = "0.4"
 
 [features]
