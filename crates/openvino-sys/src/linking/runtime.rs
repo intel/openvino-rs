@@ -10,7 +10,7 @@ macro_rules! link {
             }
         )+
     ) => (
-        use lazy_static::lazy_static;
+        use once_cell::sync::Lazy;
         use libloading;
         use std::path::PathBuf;
         use std::sync::Arc;
@@ -34,9 +34,7 @@ macro_rules! link {
         }
 
         // `LIBRARY` holds the shared library reference.
-        lazy_static!{
-            static ref LIBRARY: RwLock<Option<Arc<SharedLibrary>>> = RwLock::new(None);
-        }
+        static LIBRARY: Lazy<RwLock<Option<Arc<SharedLibrary>>>> = Lazy::new(|| RwLock::new(None));
 
         // Helper function for accessing the thread-local version of the library.
         fn with_library<T, F>(f: F) -> Option<T>
