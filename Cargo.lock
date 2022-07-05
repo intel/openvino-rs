@@ -250,6 +250,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "once_cell"
+version = "1.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7709cef83f0c1f58f666e746a08b21e0085f7440fa6a29cc194d68aac97a4225"
+
+[[package]]
 name = "openvino"
 version = "0.4.0"
 dependencies = [
@@ -271,8 +277,8 @@ dependencies = [
 name = "openvino-sys"
 version = "0.4.0"
 dependencies = [
- "lazy_static",
  "libloading",
+ "once_cell",
  "openvino-finder",
  "pretty_env_logger",
 ]
