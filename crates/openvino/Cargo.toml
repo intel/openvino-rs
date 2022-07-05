@@ -1,6 +1,6 @@
 [package]
 name = "openvino"
-version = "0.4.0"
+version = "0.4.1"
 license = "Apache-2.0"
 description = "High-level bindings for OpenVINO."
 readme = "README.md"
@@ -15,7 +15,7 @@ exclude = [
 ]
 
 [dependencies]
-openvino-sys = { path = "../openvino-sys", version = "0.4.0" }
+openvino-sys = { path = "../openvino-sys", version = "0.4.1" }
 thiserror = "1.0.20"
 
 [dev-dependencies]
