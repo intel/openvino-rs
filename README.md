@@ -86,7 +86,7 @@ Some important notes about the path passed in `OPENVINO_BUILD_DIR`:
   the limitations on [`cargo:rustc-link-search`]).
 
 The various OpenVINO libraries and dependencies are found using the [openvino-finder] crate. Turn on
-logging to troubleshoot any issues finding the right libraries, e.g., `RUST_LOG=info
+logging to troubleshoot any issues finding the right libraries, e.g., `RUST_LOG=debug
 OPENVINO_BUILD_DIR=... cargo build -vv`.
 
 [openvino]: https://github.com/openvinotoolkit/openvino
