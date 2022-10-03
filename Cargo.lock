@@ -257,7 +257,7 @@ checksum = "7709cef83f0c1f58f666e746a08b21e0085f7440fa6a29cc194d68aac97a4225"
 
 [[package]]
 name = "openvino"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "float-cmp",
  "openvino-sys",
