@@ -53,6 +53,6 @@ pub fn version() -> String {
     let str_version = unsafe { CStr::from_ptr(ie_version.api_version) }
         .to_string_lossy()
         .into_owned();
-    unsafe { openvino_sys::ie_version_free(&mut ie_version as *mut openvino_sys::ie_version_t) };
+    unsafe { openvino_sys::ie_version_free(std::ptr::addr_of_mut!(ie_version)) };
     str_version
 }

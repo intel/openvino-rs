@@ -42,12 +42,12 @@ impl CNNNetwork {
         try_unsafe!(ie_network_get_input_name(
             self.instance,
             index,
-            &mut c_name as *mut *mut _
+            std::ptr::addr_of_mut!(c_name)
         ))?;
         let rust_name = unsafe { CStr::from_ptr(c_name) }
             .to_string_lossy()
             .into_owned();
-        unsafe { ie_network_name_free(&mut c_name as *mut *mut _) };
+        unsafe { ie_network_name_free(std::ptr::addr_of_mut!(c_name)) };
         debug_assert!(c_name.is_null());
         Ok(rust_name)
     }
@@ -58,12 +58,12 @@ impl CNNNetwork {
         try_unsafe!(ie_network_get_output_name(
             self.instance,
             index,
-            &mut c_name as *mut *mut _
+            std::ptr::addr_of_mut!(c_name)
         ))?;
         let rust_name = unsafe { CStr::from_ptr(c_name) }
             .to_string_lossy()
             .into_owned();
-        unsafe { ie_network_name_free(&mut c_name as *mut *mut _) };
+        unsafe { ie_network_name_free(std::ptr::addr_of_mut!(c_name)) };
         debug_assert!(c_name.is_null());
         Ok(rust_name)
     }
@@ -122,7 +122,7 @@ impl ExecutableNetwork {
         let mut instance = std::ptr::null_mut();
         try_unsafe!(ie_exec_network_create_infer_request(
             self.instance,
-            &mut instance as *mut *mut _
+            std::ptr::addr_of_mut!(instance)
         ))?;
         Ok(InferRequest { instance })
     }

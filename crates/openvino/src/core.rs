@@ -39,7 +39,10 @@ impl Core {
             Some(f) => f.to_string(),
         };
         let mut instance = std::ptr::null_mut();
-        try_unsafe!(ie_core_create(cstr!(file), &mut instance as *mut *mut _))?;
+        try_unsafe!(ie_core_create(
+            cstr!(file),
+            std::ptr::addr_of_mut!(instance)
+        ))?;
         Ok(Core { instance })
     }
 
@@ -55,7 +58,7 @@ impl Core {
             self.instance,
             cstr!(model_path),
             cstr!(weights_path),
-            &mut instance as *mut *mut _,
+            std::ptr::addr_of_mut!(instance)
         ))?;
         Ok(CNNNetwork { instance })
     }
@@ -75,7 +78,7 @@ impl Core {
             model_content.as_ptr().cast::<u8>(),
             model_content.len(),
             weights_blob.instance,
-            &mut instance as *mut *mut _,
+            std::ptr::addr_of_mut!(instance)
         ))?;
         Ok(CNNNetwork { instance })
     }
@@ -99,8 +102,8 @@ impl Core {
             self.instance,
             network.instance,
             cstr!(device),
-            &empty_config as *const _,
-            &mut instance as *mut *mut _
+            std::ptr::addr_of!(empty_config),
+            std::ptr::addr_of_mut!(instance)
         ))?;
         Ok(ExecutableNetwork { instance })
     }

@@ -33,7 +33,7 @@ impl InferRequest {
         try_unsafe!(ie_infer_request_get_blob(
             self.instance,
             cstr!(name),
-            &mut instance as *mut *mut _
+            std::ptr::addr_of_mut!(instance)
         ))?;
         Ok(unsafe { Blob::from_raw_pointer(instance) })
     }
