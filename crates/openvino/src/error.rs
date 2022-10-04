@@ -4,7 +4,7 @@ use thiserror::Error;
 /// [`IEStatusCode`](https://docs.openvinotoolkit.org/latest/ie_c_api/ie__c__api_8h.html#a391683b1e8e26df8b58d7033edd9ee83).
 // TODO This could be auto-generated (https://github.com/intel/openvino-rs/issues/20).
 #[allow(missing_docs)]
-#[derive(Debug, Error, PartialEq)]
+#[derive(Debug, Error, PartialEq, Eq)]
 pub enum InferenceError {
     #[error("general error")]
     GeneralError,

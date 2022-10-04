@@ -74,7 +74,7 @@ macro_rules! link {
         ///
         /// May fail if the `openvino-finder` cannot discover the library on the current system.
         pub fn load() -> Result<(), String> {
-            match crate::library::find() {
+            match $crate::library::find() {
                 None => Err("Unable to find the `openvino_c` library to load".into()),
                 Some(path) => load_from(path),
             }

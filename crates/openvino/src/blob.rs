@@ -43,8 +43,8 @@ impl Blob {
     pub fn allocate(description: &TensorDesc) -> Result<Self> {
         let mut instance = std::ptr::null_mut();
         try_unsafe!(ie_blob_make_memory(
-            &description.instance as *const _,
-            &mut instance as *mut *mut _
+            std::ptr::addr_of!(description.instance),
+            std::ptr::addr_of_mut!(instance)
         ))?;
         Ok(Self { instance })
     }
@@ -54,16 +54,19 @@ impl Blob {
         let blob = self.instance as *const ie_blob_t;
 
         let mut layout = Layout::ANY;
-        try_unsafe!(ie_blob_get_layout(blob, &mut layout as *mut _))?;
+        try_unsafe!(ie_blob_get_layout(blob, std::ptr::addr_of_mut!(layout)))?;
 
         let mut dimensions = dimensions_t {
             ranks: 0,
             dims: [0; 8usize],
         };
-        try_unsafe!(ie_blob_get_dims(blob, &mut dimensions as *mut _))?;
+        try_unsafe!(ie_blob_get_dims(blob, std::ptr::addr_of_mut!(dimensions)))?;
 
         let mut precision = Precision::UNSPECIFIED;
-        try_unsafe!(ie_blob_get_precision(blob, &mut precision as *mut _))?;
+        try_unsafe!(ie_blob_get_precision(
+            blob,
+            std::ptr::addr_of_mut!(precision)
+        ))?;
 
         Ok(TensorDesc::new(layout, &dimensions.dims, precision))
     }
@@ -75,7 +78,7 @@ impl Blob {
     /// Panics if the returned OpenVINO size will not fit in `usize`.
     pub fn len(&mut self) -> Result<usize> {
         let mut size = 0;
-        try_unsafe!(ie_blob_size(self.instance, &mut size as *mut _))?;
+        try_unsafe!(ie_blob_size(self.instance, std::ptr::addr_of_mut!(size)))?;
         Ok(usize::try_from(size).unwrap())
     }
 
@@ -86,14 +89,20 @@ impl Blob {
     /// Panics if the returned OpenVINO size will not fit in `usize`.
     pub fn byte_len(&mut self) -> Result<usize> {
         let mut size = 0;
-        try_unsafe!(ie_blob_byte_size(self.instance, &mut size as *mut _))?;
+        try_unsafe!(ie_blob_byte_size(
+            self.instance,
+            std::ptr::addr_of_mut!(size)
+        ))?;
         Ok(usize::try_from(size).unwrap())
     }
 
     /// Retrieve the [`Blob`]'s data as an immutable slice of bytes.
     pub fn buffer(&mut self) -> Result<&[u8]> {
         let mut buffer = Blob::empty_buffer();
-        try_unsafe!(ie_blob_get_buffer(self.instance, &mut buffer as *mut _))?;
+        try_unsafe!(ie_blob_get_buffer(
+            self.instance,
+            std::ptr::addr_of_mut!(buffer)
+        ))?;
         let size = self.byte_len()?;
         let slice = unsafe {
             std::slice::from_raw_parts(buffer.__bindgen_anon_1.buffer as *const u8, size)
@@ -104,7 +113,10 @@ impl Blob {
     /// Retrieve the [`Blob`]'s data as a mutable slice of bytes.
     pub fn buffer_mut(&mut self) -> Result<&mut [u8]> {
         let mut buffer = Blob::empty_buffer();
-        try_unsafe!(ie_blob_get_buffer(self.instance, &mut buffer as *mut _))?;
+        try_unsafe!(ie_blob_get_buffer(
+            self.instance,
+            std::ptr::addr_of_mut!(buffer)
+        ))?;
         let size = self.byte_len()?;
         let slice = unsafe {
             std::slice::from_raw_parts_mut(buffer.__bindgen_anon_1.buffer.cast::<u8>(), size)
@@ -122,7 +134,10 @@ impl Blob {
     /// `results.buffer_mut_as_type::<f32>()`.
     pub unsafe fn buffer_mut_as_type<T>(&mut self) -> Result<&mut [T]> {
         let mut buffer = Blob::empty_buffer();
-        InferenceError::from(ie_blob_get_buffer(self.instance, &mut buffer as *mut _))?;
+        InferenceError::from(ie_blob_get_buffer(
+            self.instance,
+            std::ptr::addr_of_mut!(buffer),
+        ))?;
         // This is very unsafe, but very convenient: by allowing users to specify T, they can
         // retrieve the buffer in whatever shape they prefer. But we must ensure that they cannot
         // read too many bytes, so we manually calculate the resulting slice `size`.
