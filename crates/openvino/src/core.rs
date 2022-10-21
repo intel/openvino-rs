@@ -20,6 +20,8 @@ pub struct Core {
 }
 drop_using_function!(Core, ie_core_free);
 
+unsafe impl Send for Core {}
+
 impl Core {
     /// Construct a new OpenVINO [`Core`]--this is the primary entrypoint for constructing and using
     /// inference networks. Because this function may load OpenVINO's shared libraries at runtime,

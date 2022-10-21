@@ -12,6 +12,9 @@ pub struct InferRequest {
 }
 drop_using_function!(InferRequest, ie_infer_request_free);
 
+unsafe impl Send for InferRequest {}
+unsafe impl Sync for InferRequest {}
+
 impl InferRequest {
     /// Set the batch size of the inference requests.
     pub fn set_batch_size(&mut self, size: usize) -> Result<()> {

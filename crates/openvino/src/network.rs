@@ -21,6 +21,9 @@ pub struct CNNNetwork {
 }
 drop_using_function!(CNNNetwork, ie_network_free);
 
+unsafe impl Send for CNNNetwork {}
+unsafe impl Sync for CNNNetwork {}
+
 impl CNNNetwork {
     /// Retrieve the number of network inputs.
     pub fn get_inputs_len(&self) -> Result<usize> {
@@ -115,6 +118,8 @@ pub struct ExecutableNetwork {
     pub(crate) instance: *mut ie_executable_network_t,
 }
 drop_using_function!(ExecutableNetwork, ie_exec_network_free);
+
+unsafe impl Send for ExecutableNetwork {}
 
 impl ExecutableNetwork {
     /// Create an [`InferRequest`].
