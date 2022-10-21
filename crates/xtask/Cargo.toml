@@ -9,7 +9,7 @@ publish = false
 
 [dependencies]
 anyhow = "1.0"
-bindgen = "0.58.1"
+bindgen = "0.61"
 structopt = { version = "0.3", features = ["color", "suggestions"] }
 toml = "0.5.8"
-semver = "0.11"
+semver = "1.0"

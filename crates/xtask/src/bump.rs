@@ -1,5 +1,6 @@
 use crate::util::{get_crates, Crate};
 use anyhow::{anyhow, Context, Result};
+use semver::{BuildMetadata, Prerelease};
 use std::fs;
 use std::process::Command;
 use structopt::StructOpt;
@@ -37,12 +38,24 @@ impl BumpCommand {
             );
         }
 
-        // Change the version.
+        // Change the version. Unless specified with a custom version, the `pre` and `build`
+        // metadata are cleared.
         let mut next_version = semver::Version::parse(&publishable_crates[0].version)?;
+        next_version.pre = Prerelease::EMPTY;
+        next_version.build = BuildMetadata::EMPTY;
         match &self.bump {
-            Bump::Major => next_version.increment_major(),
-            Bump::Minor => next_version.increment_minor(),
-            Bump::Patch => next_version.increment_patch(),
+            Bump::Major => {
+                next_version.major += 1;
+                next_version.minor = 0;
+                next_version.patch = 0;
+            }
+            Bump::Minor => {
+                next_version.minor += 1;
+                next_version.patch = 0;
+            }
+            Bump::Patch => {
+                next_version.patch += 1;
+            }
             Bump::Custom(v) => next_version = semver::Version::parse(v)?,
         }
 
