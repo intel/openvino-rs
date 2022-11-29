@@ -55,7 +55,7 @@ jobs:
   # binaries, then compile against these).
   runtime_binaries:
     name: From runtime-linked binaries
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
       with:
@@ -87,7 +87,7 @@ jobs:
   # commands.
   converter:
     name: Converter tool
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     defaults:
       run:
         working-directory: crates/openvino-tensor-converter
