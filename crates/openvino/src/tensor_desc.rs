@@ -32,10 +32,25 @@ impl TensorDesc {
         }
     }
 
+    /// Layout of the tensor.
+    pub fn layout(&self) -> Layout {
+        self.instance.layout
+    }
+
+    /// Dimensions of the tensor.
+    ///
+    /// Length of the slice is equal to the tensor rank.
+    pub fn dims(&self) -> &[usize] {
+        &self.instance.dims.dims[..self.instance.dims.ranks]
+    }
+
+    /// Precision of the tensor.
+    pub fn precision(&self) -> Precision {
+        self.instance.precision
+    }
+
     /// Get the number of elements described by this [`TensorDesc`].
     pub fn len(&self) -> usize {
-        self.instance.dims.dims[..self.instance.dims.ranks as usize]
-            .iter()
-            .fold(1, |a, &b| a * b as usize)
+        self.dims().iter().fold(1, |a, &b| a * b as usize)
     }
 }
