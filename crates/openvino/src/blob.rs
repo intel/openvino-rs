@@ -76,7 +76,7 @@ impl Blob {
     /// # Panics
     ///
     /// Panics if the returned OpenVINO size will not fit in `usize`.
-    pub fn len(&mut self) -> Result<usize> {
+    pub fn len(&self) -> Result<usize> {
         let mut size = 0;
         try_unsafe!(ie_blob_size(self.instance, std::ptr::addr_of_mut!(size)))?;
         Ok(usize::try_from(size).unwrap())
@@ -87,7 +87,7 @@ impl Blob {
     /// # Panics
     ///
     /// Panics if the returned OpenVINO size will not fit in `usize`.
-    pub fn byte_len(&mut self) -> Result<usize> {
+    pub fn byte_len(&self) -> Result<usize> {
         let mut size = 0;
         try_unsafe!(ie_blob_byte_size(
             self.instance,
@@ -97,7 +97,7 @@ impl Blob {
     }
 
     /// Retrieve the [`Blob`]'s data as an immutable slice of bytes.
-    pub fn buffer(&mut self) -> Result<&[u8]> {
+    pub fn buffer(&self) -> Result<&[u8]> {
         let mut buffer = Blob::empty_buffer();
         try_unsafe!(ie_blob_get_buffer(
             self.instance,
@@ -121,6 +121,28 @@ impl Blob {
         let slice = unsafe {
             std::slice::from_raw_parts_mut(buffer.__bindgen_anon_1.buffer.cast::<u8>(), size)
         };
+        Ok(slice)
+    }
+
+    /// Retrieve the [`Blob`]'s data as an immutable slice of type `T`.
+    ///
+    /// # Safety
+    ///
+    /// This function is `unsafe`, since the values of `T` may not have been properly initialized;
+    /// however, this functionality is provided as an equivalent of what C/C++ users of OpenVINO
+    /// currently do to access [`Blob`]s with, e.g., floating point values:
+    /// `results.buffer_as_type::<f32>()`.
+    pub unsafe fn buffer_as_type<T>(&self) -> Result<&[T]> {
+        let mut buffer = Blob::empty_buffer();
+        InferenceError::from(ie_blob_get_buffer(
+            self.instance,
+            std::ptr::addr_of_mut!(buffer),
+        ))?;
+        // This is very unsafe, but very convenient: by allowing users to specify T, they can
+        // retrieve the buffer in whatever shape they prefer. But we must ensure that they cannot
+        // read too many bytes, so we manually calculate the resulting slice `size`.
+        let size = self.byte_len()? / std::mem::size_of::<T>();
+        let slice = std::slice::from_raw_parts(buffer.__bindgen_anon_1.buffer.cast::<T>(), size);
         Ok(slice)
     }
 
