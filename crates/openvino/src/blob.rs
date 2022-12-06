@@ -230,6 +230,8 @@ mod tests {
 
     #[test]
     fn tensor_desc() {
+        openvino_sys::library::load().expect("unable to find an OpenVINO shared library");
+
         let desc = TensorDesc::new(Layout::NHWC, &[1, 2, 2, 2], Precision::U8);
         let blob = Blob::new(&desc, &[0; 8]).unwrap();
         let desc2 = blob.tensor_desc().unwrap();
