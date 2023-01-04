@@ -61,11 +61,9 @@ impl Blob {
         // Safety: this assertion is trying to avoid the improbable case where some future version
         // of the OpenVINO library returns a dimensions array with size different than the one
         // auto-generated in the bindings; see `struct dimensions` in
-        // `openvino-sys/src/generated/types.rs`.
-        assert_eq!(
-            dimensions.as_bytes().len(),
-            8 * std::mem::size_of::<usize>()
-        );
+        // `openvino-sys/src/generated/types.rs`. It is not clear to me whether this will return the
+        // statically-expected size or the dynamic size -- this is not effective in the former case.
+        assert_eq!(unsafe { dimensions.assume_init() }.len(), 8);
 
         let mut precision = MaybeUninit::uninit();
         try_unsafe!(ie_blob_get_precision(blob, precision.as_mut_ptr()))?;
