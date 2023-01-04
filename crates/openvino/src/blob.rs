@@ -63,7 +63,7 @@ impl Blob {
         // auto-generated in the bindings; see `struct dimensions` in
         // `openvino-sys/src/generated/types.rs`. It is not clear to me whether this will return the
         // statically-expected size or the dynamic size -- this is not effective in the former case.
-        assert_eq!(unsafe { dimensions.assume_init() }.len(), 8);
+        assert_eq!(unsafe { dimensions.assume_init() }.dims.len(), 8);
 
         let mut precision = MaybeUninit::uninit();
         try_unsafe!(ie_blob_get_precision(blob, precision.as_mut_ptr()))?;
