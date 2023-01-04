@@ -58,6 +58,14 @@ impl Blob {
 
         let mut dimensions = MaybeUninit::uninit();
         try_unsafe!(ie_blob_get_dims(blob, dimensions.as_mut_ptr()))?;
+        // Safety: this assertion is trying to avoid the improbable case where some future version
+        // of the OpenVINO library returns a dimensions array with size different than the one
+        // auto-generated in the bindings; see `struct dimensions` in
+        // `openvino-sys/src/generated/types.rs`.
+        assert_eq!(
+            dimensions.as_bytes().len(),
+            8 * std::mem::size_of::<usize>()
+        );
 
         let mut precision = MaybeUninit::uninit();
         try_unsafe!(ie_blob_get_precision(blob, precision.as_mut_ptr()))?;
