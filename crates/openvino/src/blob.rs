@@ -50,6 +50,12 @@ impl Blob {
     }
 
     /// Return the tensor description of this [`Blob`].
+    ///
+    /// # Panics
+    ///
+    /// May panic in the improbable case where some future version of the OpenVINO library returns a
+    /// dimensions array with a size different than the one auto-generated in the bindings; see
+    /// `struct dimensions` in `openvino-sys/src/generated/types.rs`.
     pub fn tensor_desc(&self) -> Result<TensorDesc> {
         let blob = self.instance as *const ie_blob_t;
 
@@ -58,11 +64,9 @@ impl Blob {
 
         let mut dimensions = MaybeUninit::uninit();
         try_unsafe!(ie_blob_get_dims(blob, dimensions.as_mut_ptr()))?;
-        // Safety: this assertion is trying to avoid the improbable case where some future version
-        // of the OpenVINO library returns a dimensions array with size different than the one
-        // auto-generated in the bindings; see `struct dimensions` in
-        // `openvino-sys/src/generated/types.rs`. It is not clear to me whether this will return the
-        // statically-expected size or the dynamic size -- this is not effective in the former case.
+        // Safety: See `Panics` section in function documentation; itt is not clear to me whether
+        // this will return the statically-expected size or the dynamic size -- this is not
+        // effective in the former case.
         assert_eq!(unsafe { dimensions.assume_init() }.dims.len(), 8);
 
         let mut precision = MaybeUninit::uninit();
