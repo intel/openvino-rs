@@ -51,6 +51,6 @@ impl TensorDesc {
 
     /// Get the number of elements described by this [`TensorDesc`].
     pub fn len(&self) -> usize {
-        self.dims().iter().fold(1, |a, &b| a * b)
+        self.dims().iter().product()
     }
 }
