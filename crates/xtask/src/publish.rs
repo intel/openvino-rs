@@ -42,22 +42,30 @@ impl PublishCommand {
         let crates_dir = path_to_crates()?;
         for krate in PUBLICATION_ORDER {
             println!("> publish {}", krate);
-            if !self.dry_run {
-                let krate_dir = crates_dir.clone().join(krate);
-                let exec_result = exec(
-                    Command::new("cargo")
-                        .arg("publish")
-                        .arg("--no-verify")
-                        .current_dir(&krate_dir),
-                );
+            let krate_dir = crates_dir.clone().join(krate);
+            let mut command = Command::new("cargo");
+            command.current_dir(&krate_dir).arg("publish");
+            if self.dry_run {
+                command.arg("--dry-run");
+            } else {
+                command.arg("--no-verify");
+            }
 
-                // We want to continue even if a crate does not publish: this allows us to re-run
-                // the `publish` command if uploading one or more crates fails.
-                if let Err(e) = exec_result {
+            let exec_result = exec(&mut command);
+
+            // We want to continue even if a crate does not publish: this allows us to re-run the
+            // `publish` command if uploading one or more crates fails. In `--dry-run` mode,
+            // however, we do want to fail the process immediately to identify any issues.
+            if let Err(e) = exec_result {
+                if self.dry_run {
+                    panic!("Failed to publish crate {}:\n  {}", krate, e);
+                } else {
                     println!("Failed to publish crate {}, continuing:\n  {}", krate, e);
                 }
+            }
 
-                // Hopefully this gives crates.io enough time for subsequent publications to work.
+            // Hopefully this gives crates.io enough time for subsequent publications to work.
+            if !self.dry_run {
                 sleep(Duration::from_secs(20));
             }
         }
