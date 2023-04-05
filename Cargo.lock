@@ -252,6 +252,7 @@ name = "openvino"
 version = "0.4.2"
 dependencies = [
  "float-cmp",
+ "openvino-finder",
  "openvino-sys",
  "thiserror",
 ]

@@ -30,14 +30,11 @@ impl Core {
         openvino_sys::library::load().map_err(LoadingError::SystemFailure)?;
 
         let file = match xml_config_file {
-            None => format!(
-                "{}/plugins.xml",
-                openvino_sys::library::find()
-                    .ok_or(LoadingError::CannotFindPath)?
-                    .parent()
-                    .ok_or(LoadingError::NoParentDirectory)?
-                    .display()
-            ),
+            None => openvino_finder::find_plugins_xml()
+                .ok_or(LoadingError::CannotFindPluginPath)?
+                .to_str()
+                .ok_or(LoadingError::CannotStringifyPath)?
+                .to_string(),
             Some(f) => f.to_string(),
         };
         let mut instance = std::ptr::null_mut();

@@ -79,7 +79,9 @@ pub enum LoadingError {
     #[error("system failed to load shared libraries (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder): {0}")]
     SystemFailure(String),
     #[error("cannot find path to shared libraries (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder)")]
-    CannotFindPath,
-    #[error("no parent directory found for shared library path")]
-    NoParentDirectory,
+    CannotFindLibraryPath,
+    #[error("cannot find path to XML plugin configuration (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder)")]
+    CannotFindPluginPath,
+    #[error("unable to convert path to a UTF-8 string (see https://doc.rust-lang.org/std/path/struct.Path.html#method.to_str)")]
+    CannotStringifyPath,
 }
