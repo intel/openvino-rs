@@ -11,6 +11,17 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+// We search for the library in various different places and early-return if we find it.
+macro_rules! check_and_return {
+    ($path: expr) => {
+        log::debug!("Searching in: {}", $path.display());
+        if $path.is_file() {
+            log::info!("Found library at path: {}", $path.display());
+            return Some($path);
+        }
+    };
+}
+
 /// Find the path to an OpenVINO library. This will try:
 /// - the `OPENVINO_INSTALL_DIR` environment variable with several subdirectories appended
 /// - the `INTEL_OPENVINO_DIR` environment variable with several subdirectories appended
@@ -24,17 +35,6 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
         env::consts::DLL_SUFFIX
     );
     log::info!("Attempting to find library: {}", file);
-
-    // We search for the library in various different places and early-return if we find it.
-    macro_rules! check_and_return {
-        ($path: expr) => {
-            log::debug!("Searching in: {}", $path.display());
-            if $path.is_file() {
-                log::info!("Found library at path: {}", $path.display());
-                return Some($path);
-            }
-        };
-    }
 
     // Search using the `OPENVINO_BUILD_DIR` environment variable; this may be set by users of the
     // `openvino-rs` library.
@@ -112,6 +112,7 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
 const ENV_OPENVINO_INSTALL_DIR: &str = "OPENVINO_INSTALL_DIR";
 const ENV_OPENVINO_BUILD_DIR: &str = "OPENVINO_BUILD_DIR";
 const ENV_INTEL_OPENVINO_DIR: &str = "INTEL_OPENVINO_DIR";
+const ENV_OPENVINO_PLUGINS_XML: &str = "OPENVINO_PLUGINS_XML";
 
 cfg_if! {
     if #[cfg(any(target_os = "linux"))] {
@@ -163,6 +164,47 @@ const KNOWN_BUILD_SUBDIRECTORIES: &[&str] = &[
     "temp/tbb/lib",
 ];
 
+/// Find the path to the `plugins.xml` configuration file.
+///
+/// OpenVINO records the location of its plugin libraries in a `plugins.xml` file. This file is
+/// examined by OpenVINO on initialization; not knowing the location to this file can lead to
+/// inference errors later (e.g., `Inference(GeneralError)`). OpenVINO uses the `plugins.xml` file
+/// to load target-specific libraries on demand for performing inference. The `plugins.xml` file
+/// maps targets (e.g., CPU) to their target-specific implementation library.
+///
+/// This file can be found in multiple locations, depending on the installation mechanism. For TAR
+/// installations, it is found in the same directory as the OpenVINO libraries themselves. For
+/// DEB/RPM installations, it is found in a version-suffixed directory beside the OpenVINO libraries
+/// (e.g., `openvino-2022.3.0/plugins.xml`).
+///
+/// This function will check:
+/// - the `OPENVINO_PLUGINS_XML` environment variable--this is specific to this library
+/// - the same directory as the `openvino_c` shared library, as discovered by [find]
+/// - the latest version directory beside the `openvino_c` shared library (i.e.,
+///   `openvino-<version>/`)
+pub fn find_plugins_xml() -> Option<PathBuf> {
+    const FILE_NAME: &str = "plugins.xml";
+
+    // The `OPENVINO_PLUGINS_XML` should point directly to the file.
+    if let Some(path) = env::var_os(ENV_OPENVINO_PLUGINS_XML) {
+        return Some(PathBuf::from(path));
+    }
+
+    // Check in the same directory as the `openvino_c` library; e.g.,
+    // `/opt/intel/openvino_.../runtime/lib/intel64/plugins.xml`.
+    let library = find("openvino_c")?;
+    let library_parent_dir = library.parent()?;
+    check_and_return!(library_parent_dir.join(FILE_NAME));
+
+    // Check in OpenVINO's special system installation directory; e.g.,
+    // `/usr/lib/x86_64-linux-gnu/openvino-2022.3.0/plugins.xml`.
+    let filenames = list_directory(library_parent_dir)?;
+    let versions = get_suffixes(filenames, "openvino-");
+    let path = build_latest_version(library_parent_dir, "openvino-", versions)?.join("plugins.xml");
+    check_and_return!(path);
+
+    None
+}
 
 #[inline]
 fn list_directory(dir: &Path) -> Option<impl IntoIterator<Item = String>> {
@@ -222,6 +264,21 @@ mod test {
             Some(PathBuf::from(
                 "/usr/lib/x86_64-linux-gnu/libopenvino.so.2022.3.0"
             ))
+        );
+    }
+
+    /// This test shows how the finder would discover the latest `plugins.xml` directory on an
+    /// APT installation.
+    #[test]
+    fn find_latest_plugin_xml() {
+        let path = build_latest_version(
+            &PathBuf::from("/usr/lib/x86_64-linux-gnu"),
+            "openvino-",
+            vec!["2022.3.0".into(), "2023.1.0".into(), "2022.1.0".into()],
+        );
+        assert_eq!(
+            path,
+            Some(PathBuf::from("/usr/lib/x86_64-linux-gnu/openvino-2023.1.0"))
         );
     }
 }
