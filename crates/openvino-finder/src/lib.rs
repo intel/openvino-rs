@@ -8,7 +8,8 @@
 
 use cfg_if::cfg_if;
 use std::env;
-use std::path::PathBuf;
+use std::fs;
+use std::path::{Path, PathBuf};
 
 /// Find the path to an OpenVINO library. This will try:
 /// - the `OPENVINO_INSTALL_DIR` environment variable with several subdirectories appended
@@ -74,6 +75,25 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
         }
     }
 
+    // Search in OpenVINO's installation directories; after v2022.3, Linux packages will be
+    // installed in the system's default library locations.
+    for install_dir in SYSTEM_INSTALLATION_DIRECTORIES
+        .iter()
+        .map(PathBuf::from)
+        .filter(|d| d.is_dir())
+    {
+        // Check if the file is located in the installation directory.
+        let search_path = install_dir.join(&file);
+        check_and_return!(search_path);
+
+        // Otherwise, check for version terminators: e.g., `libfoo.so.3.1.2`.
+        let filenames = list_directory(&install_dir).expect("cannot list installation directory");
+        let versions = get_suffixes(filenames, &file);
+        if let Some(path) = build_latest_version(&install_dir, &file, versions) {
+            check_and_return!(path);
+        }
+    }
+
     // Search in OpenVINO's default installation directories (if they exist).
     for default_dir in DEFAULT_INSTALLATION_DIRECTORIES
         .iter()
@@ -108,15 +128,29 @@ cfg_if! {
 
 cfg_if! {
     if #[cfg(any(target_os = "linux", target_os = "macos"))] {
-        const DEFAULT_INSTALLATION_DIRECTORIES: & [& str] =
-            &["/opt/intel/openvino_2022", "/opt/intel/openvino"];
+        const DEFAULT_INSTALLATION_DIRECTORIES: &[&str] = &[
+            "/opt/intel/openvino_2022",
+            "/opt/intel/openvino",
+        ];
     } else if #[cfg(target_os = "windows")] {
-        const DEFAULT_INSTALLATION_DIRECTORIES: & [& str] = &[
+        const DEFAULT_INSTALLATION_DIRECTORIES: &[&str] = &[
             "C:\\Program Files (x86)\\Intel\\openvino_2022",
             "C:\\Program Files (x86)\\Intel\\openvino",
         ];
     } else {
-        const DEFAULT_INSTALLATION_DIRECTORIES: & [& str] = &[];
+        const DEFAULT_INSTALLATION_DIRECTORIES: &[&str] = &[];
+    }
+}
+
+cfg_if! {
+    if #[cfg(target_os = "linux")] {
+        const SYSTEM_INSTALLATION_DIRECTORIES: &[&str] = &[
+            "/usr/lib/x86_64-linux-gnu", // DEB-installed package (OpenVINO >= 2022.3)
+            "/lib/x86_64-linux-gnu", // DEB-installed package (TBB)
+            "/usr/lib64", // RPM-installed package >= 2022.3
+        ];
+    } else {
+        const SYSTEM_INSTALLATION_DIRECTORIES: &[&str] = &[];
     }
 }
 
@@ -129,6 +163,39 @@ const KNOWN_BUILD_SUBDIRECTORIES: &[&str] = &[
     "temp/tbb/lib",
 ];
 
+
+#[inline]
+fn list_directory(dir: &Path) -> Option<impl IntoIterator<Item = String>> {
+    let traversal = fs::read_dir(dir).ok()?;
+    Some(
+        traversal
+            .filter_map(Result::ok)
+            .filter_map(|f| f.file_name().to_str().map(ToString::to_string)),
+    )
+}
+
+#[inline]
+fn get_suffixes(filenames: impl IntoIterator<Item = String>, prefix: &str) -> Vec<String> {
+    filenames
+        .into_iter()
+        .filter_map(|f| f.strip_prefix(prefix).map(ToString::to_string))
+        .collect()
+}
+
+#[inline]
+fn build_latest_version(dir: &Path, prefix: &str, mut versions: Vec<String>) -> Option<PathBuf> {
+    if versions.is_empty() {
+        return None;
+    }
+    versions.sort();
+    versions.reverse();
+    let latest_version = versions
+        .first()
+        .expect("already checked that a version exists");
+    let filename = format!("{}{}", prefix, latest_version);
+    Some(dir.join(filename))
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -139,5 +206,22 @@ mod test {
     fn find_openvino_c_locally() {
         pretty_env_logger::init();
         assert!(find("openvino_c").is_some());
+    }
+
+    /// This test shows how the finder would discover the latest shared library on an
+    /// APT installation.
+    #[test]
+    fn find_latest_library() {
+        let path = build_latest_version(
+            &PathBuf::from("/usr/lib/x86_64-linux-gnu"),
+            "libopenvino.so.",
+            vec!["2022.1.0".into(), "2022.3.0".into()],
+        );
+        assert_eq!(
+            path,
+            Some(PathBuf::from(
+                "/usr/lib/x86_64-linux-gnu/libopenvino.so.2022.3.0"
+            ))
+        );
     }
 }
