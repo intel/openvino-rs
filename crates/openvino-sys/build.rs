@@ -2,7 +2,7 @@ use std::env;
 use std::path::{Path, PathBuf};
 
 // These are the libraries we expect to be available to dynamically link to:
-const LIBRARIES: &[&str] = &["openvino", "openvino_c", "tbb"];
+const LIBRARIES: &[&str] = &["openvino", "openvino_c"];
 
 // A user-specified environment variable indicating that `build.rs` should not attempt to link
 // against any libraries (e.g. a doc build, user may link them later).
