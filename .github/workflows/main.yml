@@ -40,37 +40,36 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu18, ubuntu20]
-        version: [2022.1.0]
+        version: [2022.1.0, 2022.2.0, 2022.3.0]
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
         lfs: true
-    - name: Checkout LFS obects
+    - name: Checkout LFS objects
       run: git lfs checkout
     - name: Build the Docker image
       run: docker build . --tag openvino-rs:${{ matrix.OS }}-${{ matrix.version }}-$(date +%s) --build-arg OS=${{ matrix.os }} --build-arg VERSION=${{ matrix.version }}
 
-  # Build and test from an existing OpenVINO installation inside a Docker image (i.e. download the
-  # binaries, then compile against these).
+  # Build and test from an existing OpenVINO installation from an archive installed on the
+  # filesystem.
   runtime_binaries:
     name: From runtime-linked binaries
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
         lfs: true
-    - name: Checkout LFS obects
+    - name: Checkout LFS objects
       run: git lfs checkout
-    - uses: abrown/install-openvino-action@v3
+    - uses: abrown/install-openvino-action@v6
+      with:
+        apt: true
     - name: Build and run tests
-      run: |
-        source /opt/intel/openvino_2022/setupvars.sh
-        cargo test --features openvino-sys/runtime-linking
+      run: cargo test --features openvino-sys/runtime-linking
 
-  # Build and test from an existing OpenVINO installation inside a Docker image (i.e. download the
-  # binaries, then compile against these).
+  # Check that the documentation builds.
   docs:
     name: Documentation
     runs-on: ubuntu-latest
