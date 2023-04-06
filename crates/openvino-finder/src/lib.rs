@@ -1,4 +1,36 @@
-//! Provides a mechanism for locating the OpenVINO shared libraries installed on a system.
+//! This crate provides a mechanism for locating the OpenVINO files installed on a system.
+//!
+//! OpenVINO can be installed several ways: [from an archive][install-archive], [from an APT
+//! repository][install-apt], [via Python `pip`][install-pip]. The Rust bindings need to be able to:
+//!  1. locate the shared libraries (e.g., `libopenvino_c.so` on Linux) &mdash; see [`find`]
+//!  2. locate the plugin configuration file (i.e., `plugins.xml`) &mdash; see [`find_plugins_xml`].
+//! These files are located in different locations based on the installation method, so this crate
+//! encodes "how to find" OpenVINO files. This crate's goal is to locate __only the latest version__
+//! of OpenVINO; older versions may continue to be supported on a best-effort basis.
+//!
+//! [install-archive]: https://docs.openvino.ai/latest/openvino_docs_install_guides_installing_openvino_from_archive_linux.html
+//! [install-apt]: https://docs.openvino.ai/latest/openvino_docs_install_guides_installing_openvino_apt.html
+//! [install-pip]: https://docs.openvino.ai/latest/openvino_docs_install_guides_installing_openvino_pip.html
+//!
+//! Problems with the OpenVINO bindings are most likely to be due to "finding" the right files. Both
+//! [`find`] and [`find_plugins_xml`] provide various ways of configuring the search paths, first by
+//! examining _special environment variables_ and then by looking in _known installation locations_.
+//! When [installing from an archive][install-archive], OpenVINO provides a setup script (e.g.,
+//! `source /opt/intel/openvino/setupvars.sh`) that sets these special environment variables. Note
+//! that you may need to have the OpenVINO environment ready both when building (`cargo build`) and
+//! running (e.g., `cargo test`) when the libraries are linked at compile-time (the default). By
+//! using the `runtime-linking` feature, the libraries are only searched for at run-time.
+//!
+//! If you do run into problems, the following chart summarizes some of the known installation
+//! locations of the OpenVINO files as of version `2022.3.0`:
+//!
+//! | Installation Method | Path                                               | Available on          | Notes                            |
+//! | ------------------- | -------------------------------------------------- | --------------------- | -------------------------------- |
+//! | Archive (`.tar.gz`) | `<extracted folder>/runtime/lib/<arch>`            | Linux, MacOS          | `<arch>`: `intel64,armv7l,arm64` |
+//! | Archive (`.zip`)    | `<unzipped folder>/runtime/bin/<arch>/Release`     | Windows               | `<arch>`: `intel64,armv7l,arm64` |
+//! | PyPI                | `<pip install folder>/site-packages/openvino/libs` | Linux, MacOS, Windows | Find install folder with `pip show openvino` |
+//! | DEB                 | `/usr/lib/x86_64-linux-gnu/openvino-<version>/`    | Linux (APT-based)     | This path is for plugins; the libraries are one directory above |
+//! | RPM                 | `/usr/lib64/`                                      | Linux (YUM-based)     |                                  |
 
 #![deny(missing_docs)]
 #![deny(clippy::all)]
@@ -22,11 +54,33 @@ macro_rules! check_and_return {
     };
 }
 
-/// Find the path to an OpenVINO library. This will try:
-/// - the `OPENVINO_INSTALL_DIR` environment variable with several subdirectories appended
-/// - the `INTEL_OPENVINO_DIR` environment variable with several subdirectories appended
-/// - the environment's library path (e.g. `LD_LIBRARY_PATH` in Linux)
-/// - OpenVINO's default installation paths for the OS
+/// Find the path to an OpenVINO library.
+///
+/// Because OpenVINO can be installed in quite a few ways (see module documentation), this function
+/// attempts the difficult and thankless task of locating the installation's shared libraries for
+/// use in the Rust bindings (i.e., [openvino] and [openvino-sys]). It uses observations from
+/// various OpenVINO releases across several operating systems and conversations with the OpenVINO
+/// development team, but it may not perfectly locate the libraries in every environment &mdash;
+/// hence the `Option<PathBuf>` return type.
+///
+/// [openvino]: https://docs.rs/openvino
+/// [openvino-sys]: https://docs.rs/openvino-sys
+///
+/// This function will probe:
+/// - the `OPENVINO_BUILD_DIR` environment variable with known build subdirectories appended &mdash;
+///   this is useful for finding libraries built from source
+/// - the `OPENVINO_INSTALL_DIR`, `INTEL_OPENVINO_DIR`, and `LD_LIBRARY_PATH` (or OS-equivalent)
+///   environment variables with known install subdirectories appended &mdash; one of these is set
+///   by a version of OpenVINO's environment script (e.g., `source
+///   /opt/intel/openvino/setupvars.sh`)
+/// - OpenVINO's package installation paths for the OS (e.g., `/usr/lib64`) &mdash; this is useful
+///   for DEB or RPM installations
+/// - OpenVINO's documented extract paths &mdash; this is useful for users who extract the TAR or
+///   ZIP archive to the default locations or use the Docker images
+///
+/// The locations above may change over time. As OpenVINO has released new versions, the documented
+/// locations of the shared libraries has changed. New versions of this function will reflect this,
+/// removing older, unused locations over time.
 pub fn find(library_name: &str) -> Option<PathBuf> {
     let file = format!(
         "{}{}{}",
@@ -177,11 +231,11 @@ const KNOWN_BUILD_SUBDIRECTORIES: &[&str] = &[
 /// DEB/RPM installations, it is found in a version-suffixed directory beside the OpenVINO libraries
 /// (e.g., `openvino-2022.3.0/plugins.xml`).
 ///
-/// This function will check:
-/// - the `OPENVINO_PLUGINS_XML` environment variable--this is specific to this library
+/// This function will probe:
+/// - the `OPENVINO_PLUGINS_XML` environment variable &mdash; this is specific to this library
 /// - the same directory as the `openvino_c` shared library, as discovered by [find]
 /// - the latest version directory beside the `openvino_c` shared library (i.e.,
-///   `openvino-<version>/`)
+///   `openvino-<latest version>/`)
 pub fn find_plugins_xml() -> Option<PathBuf> {
     const FILE_NAME: &str = "plugins.xml";
 
