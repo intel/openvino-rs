@@ -17,35 +17,41 @@ crate (high-level, ergonomic bindings) for accessing OpenVINO™ functionality i
 
 ### Prerequisites
 
-The [openvino-sys] crate creates bindings to the OpenVINO™ C API using `bindgen`; this requires a
-local installation of `libclang`. Also, be sure to retrieve all Git submodules.
+1. The [openvino-sys] crate creates bindings to the OpenVINO™ C API using `bindgen`; this requires a
+   local installation of `libclang`. Also, be sure to retrieve all Git submodules.
 
-This repo currently uses [git-lfs](https://git-lfs.github.com/) for large file storage. If you
-[install it](https://github.com/git-lfs/git-lfs/wiki/Installation) before cloning this repository,
-it should have downloaded all large files. To check this, verify that `find crates/openvino -name
-*.bin | xargs ls -lhr` returns `.bin` files of tens of megabytes. If not, download the large files
-with:
+2. This repo currently uses [git-lfs](https://git-lfs.github.com/) for large file storage. If you
+   [install it](https://github.com/git-lfs/git-lfs/wiki/Installation) before cloning this
+   repository, it should have downloaded all large files. To check this, verify that `find
+   crates/openvino -name *.bin | xargs ls -lhr` returns `.bin` files of tens of megabytes. If not,
+   download the large files with:
 
-```shell
-git lfs fetch
-git lfs checkout
-```
+   ```shell
+   git lfs fetch
+   git lfs checkout
+   ```
 
+3. This library binds to OpenVINO™'s shared libraries; how those native libraries are configured and
+   installed on your system determines how these Rust bindings work. The [openvino-finder] crate
+   attempts to locate the necessary libraries and configuration; if you run into problems, you may
+   need to understand additional details documented in the [`openvino-finder`
+   docs][openvino-finder-docs].
+
+[openvino-finder-docs]: https://docs.rs/openvino-finder
 
 ### Build from an OpenVINO™ installation
 
 ```shell script
 cargo build
-source /opt/intel/openvino/setupvars.sh
 cargo test
 ```
 
 The quickest method to build the [openvino] and [openvino-sys] crates is with a local installation
-of OpenVINO™ (see, e.g., [installing from an apt repository][install-apt]). The build script will
+of OpenVINO™ (see, e.g., [installing from an APT repository][install-apt]). The build script will
 attempt to locate an existing installation (see [openvino-finder]) and link against its shared
 libraries. Provide the `OPENVINO_INSTALL_DIR` environment variable to point at a specific
 installation. Ensure that the correct libraries are available on the system's load path; OpenVINO™'s
-`setupvars.sh` script will do this automatically.
+`setupvars.sh` script will do this automatically (e.g., `source /opt/intel/openvino/setupvars.sh`).
 
 [install-apt]: https://docs.openvinotoolkit.org/latest/openvino_docs_install_guides_installing_openvino_apt.html
 
@@ -54,17 +60,17 @@ installation. Ensure that the correct libraries are available on the system's lo
 ### Build for runtime linking
 
 ```shell script
-cargo build --features openvino-sys/runtime-linking
-source /opt/intel/openvino/setupvars.sh
-cargo test --features openvino-sys/runtime-linking
+cargo build --features runtime-linking
+cargo test --features runtime-linking
 ```
 
 The `openvino-rs` crates also support linking from a shared library at runtime (i.e.
 `dlopen`-style). This allow building the crates with no OpenVINO™ installation or source code
-present and only later--at runtime--providing the OpenVINO™ shared libraries. All underlying system
-calls are wrapped so that a call to `openvino_sys::library::load` will link them to their shared
-library implementation (using the logic in [openvino-finder] to locate the shared libraries). For
-high-level users, call `openvino::Core::new` first to automatically load and link the libraries.
+present and only later &mdash; at runtime &mdash; providing the OpenVINO™ shared libraries. All
+underlying system calls are wrapped so that a call to `openvino_sys::library::load` will link them
+to their shared library implementation (using the logic in [openvino-finder] to locate the shared
+libraries). For high-level users, call `openvino::Core::new` first to automatically load and link
+the libraries.
 
 
 

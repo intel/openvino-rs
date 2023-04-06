@@ -16,7 +16,7 @@ pub struct BumpCommand {
     /// 'Release v[bumped version]'`.
     #[structopt(long)]
     git: bool,
-    /// What part of the semver version to change: major | minor | patch | <version string>
+    /// What part of the semver version to change: major | minor | patch | [version string]
     #[structopt(name = "KIND")]
     bump: Bump,
 }
