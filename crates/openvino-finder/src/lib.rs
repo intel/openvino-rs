@@ -4,6 +4,7 @@
 //! repository][install-apt], [via Python `pip`][install-pip]. The Rust bindings need to be able to:
 //!  1. locate the shared libraries (e.g., `libopenvino_c.so` on Linux) &mdash; see [`find`]
 //!  2. locate the plugin configuration file (i.e., `plugins.xml`) &mdash; see [`find_plugins_xml`].
+//!
 //! These files are located in different locations based on the installation method, so this crate
 //! encodes "how to find" OpenVINO files. This crate's goal is to locate __only the latest version__
 //! of OpenVINO; older versions may continue to be supported on a best-effort basis.
