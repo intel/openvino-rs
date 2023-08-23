@@ -182,8 +182,13 @@ const ENV_OPENVINO_INSTALL_DIR: &str = "OPENVINO_INSTALL_DIR";
 const ENV_OPENVINO_BUILD_DIR: &str = "OPENVINO_BUILD_DIR";
 const ENV_INTEL_OPENVINO_DIR: &str = "INTEL_OPENVINO_DIR";
 const ENV_OPENVINO_PLUGINS_XML: &str = "OPENVINO_PLUGINS_XML";
-const ENV_HOMEBREW_PREFIX: &str = "HOMEBREW_PREFIX";
-const DEFAULT_HOMEBREW_PREFIX: &str = "/opt/homebrew";
+
+cfg_if! {
+  if #[cfg(target_os = "macos")] {
+    const ENV_HOMEBREW_PREFIX: &str = "HOMEBREW_PREFIX";
+    const DEFAULT_HOMEBREW_PREFIX: &str = "/opt/homebrew";
+  }
+}
 
 cfg_if! {
     if #[cfg(any(target_os = "linux"))] {
