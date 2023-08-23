@@ -27,9 +27,9 @@
 //!
 //! | Installation Method | Path                                               | Available on          | Notes                            |
 //! | ------------------- | -------------------------------------------------- | --------------------- | -------------------------------- |
-//! | Archive (`.tar.gz`) | `<extracted folder>/runtime/lib/<arch>`            | Linux, MacOS          | `<arch>`: `intel64,armv7l,arm64` |
+//! | Archive (`.tar.gz`) | `<extracted folder>/runtime/lib/<arch>`            | Linux, `MacOS`        | `<arch>`: `intel64,armv7l,arm64` |
 //! | Archive (`.zip`)    | `<unzipped folder>/runtime/bin/<arch>/Release`     | Windows               | `<arch>`: `intel64,armv7l,arm64` |
-//! | PyPI                | `<pip install folder>/site-packages/openvino/libs` | Linux, MacOS, Windows | Find install folder with `pip show openvino` |
+//! | `PyPI`              | `<pip install folder>/site-packages/openvino/libs` | Linux, `MacOS`, Windows | Find install folder with `pip show openvino` |
 //! | DEB                 | `/usr/lib/x86_64-linux-gnu/openvino-<version>/`    | Linux (APT-based)     | This path is for plugins; the libraries are one directory above |
 //! | RPM                 | `/usr/lib64/`                                      | Linux (YUM-based)     |                                  |
 
@@ -161,6 +161,20 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
         }
     }
 
+    cfg_if! {
+        if #[cfg(target_os = "macos")] {
+            // search homebrew two ways: first with HOMEBREW_PATH, if defined,
+            if let Some(path) = env::var_os(ENV_HOMEBREW_PREFIX) {
+                let search_path = PathBuf::from(path).join("lib").join(&file);
+                check_and_return!(search_path);
+            }
+
+            // then try the default homebrew installation path /opt/homebrew
+            let search_path = PathBuf::from(DEFAULT_HOMEBREW_PREFIX).join("lib").join(&file);
+            check_and_return!(search_path);
+        }
+    }
+
     None
 }
 
@@ -168,6 +182,8 @@ const ENV_OPENVINO_INSTALL_DIR: &str = "OPENVINO_INSTALL_DIR";
 const ENV_OPENVINO_BUILD_DIR: &str = "OPENVINO_BUILD_DIR";
 const ENV_INTEL_OPENVINO_DIR: &str = "INTEL_OPENVINO_DIR";
 const ENV_OPENVINO_PLUGINS_XML: &str = "OPENVINO_PLUGINS_XML";
+const ENV_HOMEBREW_PREFIX: &str = "HOMEBREW_PREFIX";
+const DEFAULT_HOMEBREW_PREFIX: &str = "/opt/homebrew";
 
 cfg_if! {
     if #[cfg(any(target_os = "linux"))] {
@@ -289,7 +305,7 @@ fn build_latest_version(dir: &Path, prefix: &str, mut versions: Vec<String>) -> 
     let latest_version = versions
         .first()
         .expect("already checked that a version exists");
-    let filename = format!("{}{}", prefix, latest_version);
+    let filename = format!("{prefix}{latest_version}");
     Some(dir.join(filename))
 }
 
