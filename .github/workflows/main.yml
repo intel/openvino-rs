@@ -69,6 +69,30 @@ jobs:
     - name: Build and run tests
       run: cargo test --features openvino-sys/runtime-linking
 
+  # Check that libraries can be found
+  test:
+    name: From runtime-linked binaries
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04, macos-latest, windows-latest]
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+        lfs: true
+    - name: Checkout LFS objects
+      run: git lfs checkout
+    - uses: abrown/install-openvino-action@v6
+    - name: List files
+      run: find $OPENVINO_INSTALL_DIR
+      shell: bash
+    - name: Build and run tests
+      run: cargo test --features openvino-sys/runtime-linking
+      env:
+        RUST_LOG: debug
+        RUST_BACKTRACE: 1
+
   # Check that the documentation builds.
   docs:
     name: Documentation
