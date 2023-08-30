@@ -210,8 +210,12 @@ cfg_if! {
     }
 }
 
-const KNOWN_INSTALLATION_SUBDIRECTORIES: &[&str] =
-    &["runtime/lib/intel64", "runtime/3rdparty/tbb/lib"];
+const KNOWN_INSTALLATION_SUBDIRECTORIES: &[&str] = &[
+    "runtime/lib/intel64",
+    "runtime/3rdparty/tbb/lib",
+    "runtime/bin/intel64",
+    "runtime/3rdparty/tbb/bin",
+];
 
 const KNOWN_BUILD_SUBDIRECTORIES: &[&str] = &[
     "bin/intel64/Debug/lib",
