@@ -83,10 +83,12 @@ macro_rules! check_and_return {
 /// locations of the shared libraries has changed. New versions of this function will reflect this,
 /// removing older, unused locations over time.
 pub fn find(library_name: &str) -> Option<PathBuf> {
+    let suffix = if cfg!(target_os = "macos") { "d" } else { "" };
     let file = format!(
-        "{}{}{}",
+        "{}{}{}{}",
         env::consts::DLL_PREFIX,
         library_name,
+        suffix,
         env::consts::DLL_SUFFIX
     );
     log::info!("Attempting to find library: {}", file);
