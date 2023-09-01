@@ -37,7 +37,7 @@ impl Core {
                 .ok_or(LoadingError::CannotStringifyPath)?
                 .to_string())
         } else {
-            std::ptr::null()
+            cstr!("".to_string())
         };
 
         let mut instance = std::ptr::null_mut();
