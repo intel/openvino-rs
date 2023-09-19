@@ -1,17 +1,16 @@
 use crate::util::{exec, get_crates, path_to_crates, Crate};
 use anyhow::{anyhow, Result};
+use clap::Args;
 use std::{process::Command, thread::sleep, time::Duration};
-use structopt::StructOpt;
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "bump")]
+#[derive(Debug, Args)]
 pub struct PublishCommand {
     /// Tag the current commit and push the tags to the default upstream; equivalent to `git tag
     /// v[version] && git push origin v[version]`.
-    #[structopt(long)]
+    #[arg(long)]
     git: bool,
     /// Do not publish any crates; instead, simply print the actions that would have been taken.
-    #[structopt(long = "dry-run")]
+    #[arg(long = "dry-run")]
     dry_run: bool,
 }
 

@@ -1,21 +1,20 @@
 use crate::util::path_to_crates;
 use anyhow::{anyhow, ensure, Context, Result};
+use clap::Args;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use structopt::StructOpt;
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "codegen")]
+#[derive(Debug, Args)]
 pub struct CodegenCommand {
     /// The path to OpenVINO's Inference Engine C API header; by default,
     /// `.../openvino-sys/upstream/inference-engine/ie_bridges/c/include/c_api/ie_c_api.h`.
-    #[structopt(short = "i", long = "input-header-file")]
+    #[arg(short = 'i', long = "input-header-file")]
     header_file: Option<PathBuf>,
 
     /// The path to the directory in which to output the generated files; by default,
     /// `.../openvino-sys/crates/src/generated`.
-    #[structopt(short = "o", long = "output-directory")]
+    #[arg(short = 'o', long = "output-directory")]
     output_directory: Option<PathBuf>,
 }
 

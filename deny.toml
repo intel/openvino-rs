@@ -17,8 +17,4 @@ multiple-versions = "deny"
 wildcards = "allow"
 
 # Skip some multiple-versions checks until they can be fixed.
-skip-tree = [
-    # `pretty_env_logger` depends on an old version of `env_logger` that has a version mismatch with
-    # the `env_logger` depended upon by `bindgen`.
-    { name = "pretty_env_logger", depth = 5 },
-]
+skip-tree = []

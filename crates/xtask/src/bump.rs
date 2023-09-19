@@ -1,23 +1,22 @@
 use crate::util::{get_crates, Crate};
 use anyhow::{anyhow, Context, Result};
+use clap::Args;
 use semver::{BuildMetadata, Prerelease};
 use std::fs;
 use std::process::Command;
-use structopt::StructOpt;
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "bump")]
+#[derive(Debug, Args)]
 pub struct BumpCommand {
     /// Do not modify the Cargo.toml files; instead, simply print the actions that would have been
     /// taken.
-    #[structopt(long = "dry-run")]
+    #[arg(long = "dry-run")]
     dry_run: bool,
     /// Add a conventional Git commit message for the bump changes; equivalent to `git commit -a -m
     /// 'Release v[bumped version]'`.
-    #[structopt(long)]
+    #[arg(long)]
     git: bool,
     /// What part of the semver version to change: major | minor | patch | [version string]
-    #[structopt(name = "KIND")]
+    #[arg(name = "KIND")]
     bump: Bump,
 }
 
@@ -91,7 +90,7 @@ impl BumpCommand {
 }
 
 /// Enumerate the ways a version can change.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Bump {
     Major,
     Minor,
