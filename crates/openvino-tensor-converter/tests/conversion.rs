@@ -1,5 +1,5 @@
+use env_logger;
 use openvino_tensor_converter::{convert, Dimensions, Precision};
-use pretty_env_logger;
 
 #[test]
 fn same_result_twice_u8() {
@@ -13,7 +13,7 @@ fn same_result_twice_u8() {
 
 #[test]
 fn same_result_twice_fp32() {
-    pretty_env_logger::init();
+    env_logger::init();
     let input = "tests/test.jpg";
     let dimensions = Dimensions::new(227, 227, 3, Precision::FP32);
 
