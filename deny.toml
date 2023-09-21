@@ -3,13 +3,7 @@
 
 # See https://embarkstudios.github.io/cargo-deny/checks/licenses/cfg.html.
 [licenses]
-allow = [
-    "Apache-2.0",
-    "BSD-3-Clause",
-    "ISC",
-    "MIT",
-    "Unicode-DFS-2016"
-]
+allow = ["Apache-2.0", "BSD-3-Clause", "ISC", "MIT", "Unicode-DFS-2016"]
 
 # See https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html.
 [bans]
@@ -17,8 +11,9 @@ multiple-versions = "deny"
 wildcards = "allow"
 
 # Skip some multiple-versions checks until they can be fixed.
-skip-tree = [
-    # `pretty_env_logger` depends on an old version of `env_logger` that has a version mismatch with
-    # the `env_logger` depended upon by `bindgen`.
-    { name = "pretty_env_logger", depth = 5 },
+skip = [
+    # `bindgen` is still using an older version of `libloading` than we choose to, causing a
+    # duplicate version issue (this isn't a real issue because `bindgen` is only used for `xtask`
+    # tooling and is not deployed).
+    { name = "libloading", version = "<= 0.8.0" },
 ]

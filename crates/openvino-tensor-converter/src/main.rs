@@ -1,10 +1,10 @@
+use env_logger;
 use openvino_tensor_converter::{convert, Dimensions};
-use pretty_env_logger;
 use std::{fs, path::PathBuf, str::FromStr};
 use structopt::StructOpt;
 
 fn main() {
-    pretty_env_logger::init();
+    env_logger::init();
     let options = Options::from_args();
     let dimensions = Dimensions::from_str(&options.dimensions).expect("Failed to parse dimensions");
     let tensor_data = convert(options.input, dimensions).expect("Failed to convert image");

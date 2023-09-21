@@ -301,7 +301,7 @@ mod test {
     /// system.
     #[test]
     fn find_openvino_c_locally() {
-        pretty_env_logger::init();
+        env_logger::init();
         assert!(find("openvino_c").is_some());
     }
 

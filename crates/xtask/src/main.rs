@@ -10,24 +10,31 @@ mod util;
 
 use anyhow::Result;
 use bump::BumpCommand;
+use clap::{Parser, Subcommand};
 use codegen::CodegenCommand;
 use publish::PublishCommand;
-use structopt::{clap::AppSettings, StructOpt};
 
 fn main() -> Result<()> {
-    let command = XtaskCommand::from_args();
-    command.execute()?;
+    let cli = Cli::parse();
+    cli.command.execute()?;
     Ok(())
 }
 
-#[derive(StructOpt, Debug)]
-#[structopt(
-    version = env!("CARGO_PKG_VERSION"),
-    global_settings = &[
-        AppSettings::VersionlessSubcommands,
-        AppSettings::ColoredHelp
-    ],
-)]
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Cli {
+    #[command(subcommand)]
+    command: XtaskCommand,
+}
+
+// #[structopt(
+//     version = env!("CARGO_PKG_VERSION"),
+//     global_settings = &[
+//         AppSettings::VersionlessSubcommands,
+//         AppSettings::ColoredHelp
+//     ],
+// )]
+#[derive(Debug, Subcommand)]
 enum XtaskCommand {
     /// Generate the Rust bindings for OpenVINO to use in the openvino-sys crate.
     Codegen(CodegenCommand),

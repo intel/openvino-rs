@@ -34,8 +34,9 @@ pub fn get_crates() -> Result<Vec<Crate>> {
     let mut crates = Vec::new();
     for entry in fs::read_dir(crates_dir)? {
         let path = entry?.path().join("Cargo.toml");
-        let contents: Vec<u8> = fs::read(&path)?;
-        let toml: Value = toml::from_slice(&contents)
+        let contents = fs::read_to_string(&path)?;
+        let toml: Value = contents
+            .parse()
             .with_context(|| format!("unable to parse TOML of {}", &path.display()))?;
 
         let name = toml["package"]["name"]

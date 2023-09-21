@@ -18,7 +18,7 @@ const ENV_OPENVINO_BUILD_DIR: &str = "OPENVINO_BUILD_DIR";
 
 fn main() {
     // This allows us to log the `openvino-finder` search paths, for troubleshooting.
-    let _ = pretty_env_logger::try_init();
+    let _ = env_logger::try_init();
 
     // Trigger rebuild on changes to build.rs and Cargo.toml and every source file.
     println!("cargo:rerun-if-changed=build.rs");
