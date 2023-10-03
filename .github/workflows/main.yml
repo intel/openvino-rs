@@ -83,7 +83,7 @@ jobs:
         lfs: true
     - name: Checkout LFS objects
       run: git lfs checkout
-    - uses: abrown/install-openvino-action@3e8a9fd5e8e070ebfbe8ee142353b9c239313c42
+    - uses: abrown/install-openvino-action@c342a85472cdd26e0a76fd5e135dd19a768118ec
     - name: List files
       run: find $OPENVINO_INSTALL_DIR
       shell: bash
