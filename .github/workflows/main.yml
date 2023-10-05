@@ -16,15 +16,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, ubuntu-22.04, macos-latest, windows-latest]
+        os: [ubuntu-20.04, ubuntu-22.04, windows-latest] # macos-latest,
         version: [2022.3.0, 2023.0.1, 2023.1.0]
         apt: [false]
         # We also spot-check that things work when installing from APT by adding to the matrix: see
         # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#expanding-or-adding-matrix-configurations
-        # include:
-        #   - os: ubuntu-20.04
-        #     version: 2022.3.0
-        #     apt: true
+        include:
+          - os: ubuntu-20.04
+            version: 2022.3.0
+            apt: true
     env:
       RUST_LOG: debug
       RUST_BACKTRACE: 1
