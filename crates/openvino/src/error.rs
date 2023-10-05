@@ -66,9 +66,9 @@ impl InferenceError {
 #[allow(missing_docs)]
 #[derive(Debug, Error)]
 pub enum SetupError {
-    #[error("inference error")]
+    #[error("inference error: {0}")]
     Inference(#[from] InferenceError),
-    #[error("library loading error")]
+    #[error("library loading error: {0}")]
     Loading(#[from] LoadingError),
 }
 
