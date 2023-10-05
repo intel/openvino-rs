@@ -28,7 +28,7 @@
 //! | Installation Method | Path                                               | Available on          | Notes                            |
 //! | ------------------- | -------------------------------------------------- | --------------------- | -------------------------------- |
 //! | Archive (`.tar.gz`) | `<extracted folder>/runtime/lib/<arch>`            | Linux                 | `<arch>`: `intel64,armv7l,arm64` |
-//! | Archive (`.tar.gz`) | `<extracted folder>/runtime/lib/Release/<arch>`    | MacOS                 | `<arch>`: `intel64,armv7l,arm64` |
+//! | Archive (`.tar.gz`) | `<extracted folder>/runtime/lib/<arch>/Release`    | MacOS                 | `<arch>`: `intel64,armv7l,arm64` |
 //! | Archive (`.zip`)    | `<unzipped folder>/runtime/bin/<arch>/Release`     | Windows               | `<arch>`: `intel64,armv7l,arm64` |
 //! | PyPI                | `<pip install folder>/site-packages/openvino/libs` | Linux, MacOS, Windows | Find install folder with `pip show openvino` |
 //! | DEB                 | `/usr/lib/x86_64-linux-gnu/openvino-<version>/`    | Linux (APT-based)     | This path is for plugins; the libraries are one directory above |
