@@ -37,7 +37,7 @@ jobs:
       run: git lfs checkout
     - uses: abrown/install-openvino-action@fe7412dddbed9fbd2243731a8d49f1bc55c2ba20
       with:
-        with: ${{ matrix.version }}
+        version: ${{ matrix.version }}
         apt: ${{ matrix.apt }}
     - name: List files
       run: find $OPENVINO_INSTALL_DIR
