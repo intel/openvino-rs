@@ -87,6 +87,9 @@ jobs:
     - name: List files
       run: find $OPENVINO_INSTALL_DIR
       shell: bash
+    - name: Add more to MacOS environment
+      run: echo DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH >> $GITHUB_ENV
+      if: ${{ startsWith(runner.os, 'macos') }}
     - name: Check openvino-finder
       run: cargo test --package openvino-finder
       env:
