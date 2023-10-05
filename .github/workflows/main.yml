@@ -48,10 +48,13 @@ jobs:
     # tests) for troubleshooting.
     - name: Check openvino-finder
       run: cargo test --package openvino-finder
-    # Now, run the dynamic-linking tests: this assumes the OpenVINO library is "findable" on the path
-    # and Cargo links the binary to it in the `build.rs` script.
+    # Now, run the dynamic-linking tests: this assumes the OpenVINO library is "findable" on the
+    # path and Cargo links the binary to it in the `build.rs` script. Note the Windows-skipping: the
+    # finder does not yet know how to distinguish between `*.lib` (required here) and `*.dll`
+    # (required by runtime-linking).
     - name: Check dynamic linking
       run: cargo test
+      if: ${{ !startsWith(runner.os, 'windows') }}
     # Finally, run the runtime-linking tests: the binddings do not link at build time, instead
     # as the tests are run.
     - name: Check runtime linking
