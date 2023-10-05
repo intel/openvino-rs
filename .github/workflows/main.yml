@@ -63,7 +63,7 @@ jobs:
         lfs: true
     - name: Checkout LFS objects
       run: git lfs checkout
-    - uses: abrown/install-openvino-action@v6
+    - uses: abrown/install-openvino-action@c342a85472cdd26e0a76fd5e135dd19a768118ec
       with:
         apt: true
     - name: Build and run tests
