@@ -19,10 +19,11 @@ jobs:
         os: [ubuntu-20.04, ubuntu-22.04, macos-latest, windows-latest]
         version: [2022.3.0, 2023.0.1, 2023.1.0]
         apt: [false]
-        # We also check that things work when installing from APT by adding to the matrix: see
+        # We also spot-check that things work when installing from APT by adding to the matrix: see
         # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#expanding-or-adding-matrix-configurations
         include:
           - os: ubuntu-20.04
+            version: 2022.3.0
             apt: true
     env:
       RUST_LOG: debug
@@ -92,7 +93,7 @@ jobs:
   # the OpenCV dependency is a bit fragile so the crate is not included by the default workspace
   # commands.
   converter:
-    name: Converter tool
+    name: Check converter tool
     runs-on: ubuntu-20.04
     defaults:
       run:
