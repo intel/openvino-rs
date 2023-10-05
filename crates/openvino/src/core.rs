@@ -29,19 +29,19 @@ impl Core {
     pub fn new(xml_config_file: Option<&str>) -> std::result::Result<Core, SetupError> {
         openvino_sys::library::load().map_err(LoadingError::SystemFailure)?;
 
-        let file = match xml_config_file {
-            None => openvino_finder::find_plugins_xml()
-                .ok_or(LoadingError::CannotFindPluginPath)?
+        let file = if let Some(file) = xml_config_file {
+            cstr!(file.to_string())
+        } else if let Some(file) = openvino_finder::find_plugins_xml() {
+            cstr!(file
                 .to_str()
                 .ok_or(LoadingError::CannotStringifyPath)?
-                .to_string(),
-            Some(f) => f.to_string(),
+                .to_string())
+        } else {
+            cstr!("".to_string())
         };
+
         let mut instance = std::ptr::null_mut();
-        try_unsafe!(ie_core_create(
-            cstr!(file),
-            std::ptr::addr_of_mut!(instance)
-        ))?;
+        try_unsafe!(ie_core_create(file, std::ptr::addr_of_mut!(instance)))?;
         Ok(Core { instance })
     }
 
