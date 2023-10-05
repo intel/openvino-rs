@@ -87,7 +87,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        submodules: recursive
+        submodules: true
         lfs: true
     - name: Build documentation
       run: cargo doc --no-deps --features openvino-sys/runtime-linking
@@ -104,7 +104,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        submodules: recursive
+        submodules: true
     - name: Install OpenCV
       run: sudo apt update && sudo apt install libclang-dev libopencv-dev libopencv-core4.2
     - name: Build
