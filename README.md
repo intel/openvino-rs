@@ -39,6 +39,14 @@ crate (high-level, ergonomic bindings) for accessing OpenVINO™ functionality i
 
 [openvino-finder-docs]: https://docs.rs/openvino-finder
 
+4. __For macOS (homebrew) users__. Install the openvino toolkit, which includes the native C library,
+   and set `DYLD_LIBRARY_PATH`:
+   ```
+       brew install openvino
+       export DYLD_LIBRARY_PATH="$(brew --prefix)/lib"
+   ```
+   Then you can build and run openvino-rs for [runtime linking](#build-for-runtime-linking).
+
 ### Build from an OpenVINO™ installation
 
 ```shell script
