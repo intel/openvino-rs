@@ -31,10 +31,10 @@ impl BumpCommand {
             .windows(2)
             .all(|w| w[0].version == w[1].version)
         {
-            anyhow!(
+            return Err(anyhow!(
                 "Not all crate versions are the same: {:?}",
                 publishable_crates
-            );
+            ));
         }
 
         // Change the version. Unless specified with a custom version, the `pre` and `build`
@@ -70,7 +70,7 @@ impl BumpCommand {
         }
 
         // Add a Git commit.
-        let commit_message = format!("Release v{}", next_version_str);
+        let commit_message = format!("Release v{next_version_str}");
         if self.git {
             println!("> add Git commit: {}", &commit_message);
             if !self.dry_run && self.git {

@@ -25,10 +25,10 @@ impl PublishCommand {
             .windows(2)
             .all(|w| w[0].version == w[1].version)
         {
-            anyhow!(
+            return Err(anyhow!(
                 "Not all crate versions are the same: {:?}",
                 publishable_crates
-            );
+            ));
         }
 
         // Check that all of the publishable crates are in `PUBLICATION_ORDER`.
@@ -40,7 +40,7 @@ impl PublishCommand {
         // Publish each crate.
         let crates_dir = path_to_crates()?;
         for krate in PUBLICATION_ORDER {
-            println!("> publish {}", krate);
+            println!("> publish {krate}");
             if !self.dry_run {
                 let krate_dir = crates_dir.clone().join(krate);
                 let exec_result = exec(
@@ -53,7 +53,7 @@ impl PublishCommand {
                 // We want to continue even if a crate does not publish: this allows us to re-run
                 // the `publish` command if uploading one or more crates fails.
                 if let Err(e) = exec_result {
-                    println!("Failed to publish crate {}, continuing:\n  {}", krate, e);
+                    println!("Failed to publish crate {krate}, continuing:\n  {e}");
                 }
 
                 // Hopefully this gives crates.io enough time for subsequent publications to work.
@@ -64,7 +64,7 @@ impl PublishCommand {
         // Tag the repository.
         let tag = format!("v{}", publishable_crates[0].version);
         if self.git {
-            println!("> push Git tag: {}", tag);
+            println!("> push Git tag: {tag}");
             if !self.dry_run {
                 exec(Command::new("git").arg("tag").arg(&tag))?;
                 exec(Command::new("git").arg("push").arg("origin").arg(&tag))?;

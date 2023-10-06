@@ -25,14 +25,14 @@
 //! If you do run into problems, the following chart summarizes some of the known installation
 //! locations of the OpenVINO files as of version `2022.3.0`:
 //!
-//! | Installation Method | Path                                               | Available on          | Notes                            |
-//! | ------------------- | -------------------------------------------------- | --------------------- | -------------------------------- |
-//! | Archive (`.tar.gz`) | `<extracted folder>/runtime/lib/<arch>`            | Linux                 | `<arch>`: `intel64,armv7l,arm64` |
-//! | Archive (`.tar.gz`) | `<extracted folder>/runtime/lib/<arch>/Release`    | MacOS                 | `<arch>`: `intel64,armv7l,arm64` |
-//! | Archive (`.zip`)    | `<unzipped folder>/runtime/bin/<arch>/Release`     | Windows               | `<arch>`: `intel64,armv7l,arm64` |
-//! | PyPI                | `<pip install folder>/site-packages/openvino/libs` | Linux, MacOS, Windows | Find install folder with `pip show openvino` |
-//! | DEB                 | `/usr/lib/x86_64-linux-gnu/openvino-<version>/`    | Linux (APT-based)     | This path is for plugins; the libraries are one directory above |
-//! | RPM                 | `/usr/lib64/`                                      | Linux (YUM-based)     |                                  |
+//! | Installation Method | Path                                               | Available on            | Notes                            |
+//! | ------------------- | -------------------------------------------------- | ----------------------- | -------------------------------- |
+//! | Archive (`.tar.gz`) | `<extracted folder>/runtime/lib/<arch>`            | Linux                   | `<arch>`: `intel64,armv7l,arm64` |
+//! | Archive (`.tar.gz`) | `<extracted folder>/runtime/lib/<arch>/Release`    | `MacOS`                 | `<arch>`: `intel64,armv7l,arm64` |
+//! | Archive (`.zip`)    | `<unzipped folder>/runtime/bin/<arch>/Release`     | Windows                 | `<arch>`: `intel64,armv7l,arm64` |
+//! | `PyPI`              | `<pip install folder>/site-packages/openvino/libs` | Linux, `MacOS`, Windows | Find install folder with `pip show openvino` |
+//! | DEB                 | `/usr/lib/x86_64-linux-gnu/openvino-<version>/`    | Linux (APT-based)       | This path is for plugins; the libraries are one directory above |
+//! | RPM                 | `/usr/lib64/`                                      | Linux (YUM-based)       |                                  |
 
 #![deny(missing_docs)]
 #![deny(clippy::all)]
@@ -56,6 +56,8 @@ macro_rules! check_and_return {
     };
 }
 
+/// # Panics
+///
 /// Find the path to an OpenVINO library.
 ///
 /// Because OpenVINO can be installed in quite a few ways (see module documentation), this function
@@ -295,7 +297,7 @@ fn build_latest_version(dir: &Path, prefix: &str, mut versions: Vec<String>) -> 
     let latest_version = versions
         .first()
         .expect("already checked that a version exists");
-    let filename = format!("{}{}", prefix, latest_version);
+    let filename = format!("{prefix}{latest_version}");
     Some(dir.join(filename))
 }
 
