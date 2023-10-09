@@ -69,6 +69,8 @@ jobs:
     # as the tests are run.
     - name: Check runtime linking
       run: cargo test --features openvino-sys/runtime-linking
+      env:
+        DYLD_PRINT_LIBRARIES: 1
 
   format:
     name: Check code format
