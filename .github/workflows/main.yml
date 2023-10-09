@@ -41,9 +41,9 @@ jobs:
     - name: Add realpath
       run: |
         echo $PATH
-        mv ci/realpath /usr/bin
-        chmod +x /usr/bin/realpath
-        ls -al /usr/bin/realpath
+        chmod +x ci/realpath
+        ls -al ci/realpath
+        echo PATH="ci:$PATH" >> $GITHUB_ENV
       if: ${{ startsWith(runner.os, 'macos') }}
     - uses: abrown/install-openvino-action@fe7412dddbed9fbd2243731a8d49f1bc55c2ba20
       with:
