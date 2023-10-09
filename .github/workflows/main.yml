@@ -19,7 +19,7 @@ jobs:
         # TODO: macos-latest cannot yet be included in the list because a dependency cannot be
         # found ("dyld: Library not loaded; '@rpath/libopenvino.2310.dylib'"). See
         # https://github.com/abrown/openvino-rs/actions/runs/6423141936/job/17441022932#step:7:154
-        os: [ubuntu-20.04, ubuntu-22.04, windows-latest]
+        os: [ubuntu-20.04, ubuntu-22.04, windows-latest, macos-latest]
         version: [2022.3.0, 2023.0.1, 2023.1.0]
         apt: [false]
         # We also spot-check that things work when installing from APT by adding to the matrix: see
@@ -38,6 +38,13 @@ jobs:
         lfs: true
     - name: Checkout LFS objects
       run: git lfs checkout
+    - name: Add realpath
+      run: |
+        echo $PATH
+        chmod +x ci/realpath
+        ls -al ci/realpath
+        echo PATH="ci:$PATH" >> $GITHUB_ENV
+      if: ${{ startsWith(runner.os, 'macos') }}
     - uses: abrown/install-openvino-action@fe7412dddbed9fbd2243731a8d49f1bc55c2ba20
       with:
         version: ${{ matrix.version }}
@@ -57,11 +64,13 @@ jobs:
       run: cargo test
       # TODO: the finder does not yet know how to distinguish between `*.lib` (required here) and
       # `*.dll` (required by runtime-linking).
-      if: ${{ !startsWith(runner.os, 'windows') }}
+      if: ${{ !startsWith(runner.os, 'windows') && !startsWith(runner.os, 'macos') }}
     # Finally, run the runtime-linking tests: the binddings do not link at build time, instead
     # as the tests are run.
     - name: Check runtime linking
       run: cargo test --features openvino-sys/runtime-linking
+      env:
+        DYLD_PRINT_LIBRARIES: 1
 
   format:
     name: Check code format
