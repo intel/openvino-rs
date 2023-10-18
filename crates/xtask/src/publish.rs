@@ -1,5 +1,5 @@
 use crate::util::{exec, get_crates, path_to_crates, Crate};
-use anyhow::{anyhow, Result};
+use anyhow::{bail, Result};
 use clap::Args;
 use std::{process::Command, thread::sleep, time::Duration};
 
@@ -25,10 +25,7 @@ impl PublishCommand {
             .windows(2)
             .all(|w| w[0].version == w[1].version)
         {
-            return Err(anyhow!(
-                "Not all crate versions are the same: {:?}",
-                publishable_crates
-            ));
+            bail!("Not all crate versions are the same: {publishable_crates:?}");
         }
 
         // Check that all of the publishable crates are in `PUBLICATION_ORDER`.

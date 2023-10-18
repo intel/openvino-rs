@@ -56,8 +56,6 @@ macro_rules! check_and_return {
     };
 }
 
-/// # Panics
-///
 /// Find the path to an OpenVINO library.
 ///
 /// Because OpenVINO can be installed in quite a few ways (see module documentation), this function
@@ -85,6 +83,10 @@ macro_rules! check_and_return {
 /// The locations above may change over time. As OpenVINO has released new versions, the documented
 /// locations of the shared libraries has changed. New versions of this function will reflect this,
 /// removing older, unused locations over time.
+///
+/// # Panics
+///
+/// Panics if it cannot list the contents of a search directory.
 pub fn find(library_name: &str) -> Option<PathBuf> {
     let file = format!(
         "{}{}{}",
