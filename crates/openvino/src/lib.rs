@@ -46,6 +46,10 @@ pub use request::InferRequest;
 pub use tensor_desc::TensorDesc;
 
 /// Emit the version string of the OpenVINO C API backing this implementation.
+///
+/// # Panics
+///
+/// Panics if no OpenVINO library can be found.
 pub fn version() -> String {
     use std::ffi::CStr;
     openvino_sys::load().expect("to have an OpenVINO shared library available");

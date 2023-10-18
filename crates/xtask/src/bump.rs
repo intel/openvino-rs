@@ -1,5 +1,5 @@
 use crate::util::{get_crates, Crate};
-use anyhow::{anyhow, Context, Result};
+use anyhow::{bail, Context, Result};
 use clap::Args;
 use semver::{BuildMetadata, Prerelease};
 use std::fs;
@@ -31,10 +31,7 @@ impl BumpCommand {
             .windows(2)
             .all(|w| w[0].version == w[1].version)
         {
-            anyhow!(
-                "Not all crate versions are the same: {:?}",
-                publishable_crates
-            );
+            bail!("Not all crate versions are the same: {publishable_crates:?}");
         }
 
         // Change the version. Unless specified with a custom version, the `pre` and `build`
@@ -70,7 +67,7 @@ impl BumpCommand {
         }
 
         // Add a Git commit.
-        let commit_message = format!("Release v{}", next_version_str);
+        let commit_message = format!("Release v{next_version_str}");
         if self.git {
             println!("> add Git commit: {}", &commit_message);
             if !self.dry_run && self.git {

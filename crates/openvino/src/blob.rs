@@ -57,7 +57,7 @@ impl Blob {
     /// dimensions array with a size different than the one auto-generated in the bindings; see
     /// `struct dimensions` in `openvino-sys/src/generated/types.rs`.
     pub fn tensor_desc(&self) -> Result<TensorDesc> {
-        let blob = self.instance as *const ie_blob_t;
+        let blob = self.instance.cast_const();
 
         let mut layout = MaybeUninit::uninit();
         try_unsafe!(ie_blob_get_layout(blob, layout.as_mut_ptr()))?;
