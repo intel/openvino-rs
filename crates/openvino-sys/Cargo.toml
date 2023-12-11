@@ -1,6 +1,6 @@
 [package]
 name = "openvino-sys"
-version = "0.5.0"
+version = "0.6.0"
 license = "Apache-2.0"
 description = "Low-level bindings for OpenVINO (use the `openvino` crate for easier-to-use bindings)."
 readme = "README.md"
@@ -27,10 +27,10 @@ links = "inference_engine_c_api"
 [dependencies]
 once_cell = { version = "1.18", optional = true }
 libloading = { version = "0.8", optional = true }
-openvino-finder = { version = "0.5.0", path = "../openvino-finder" }
+openvino-finder = { version = "0.6.0", path = "../openvino-finder" }
 
 [build-dependencies]
-openvino-finder = { version = "0.5.0", path = "../openvino-finder" }
+openvino-finder = { version = "0.6.0", path = "../openvino-finder" }
 env_logger = "0.10"
 
 [features]
