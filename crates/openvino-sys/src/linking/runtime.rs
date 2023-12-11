@@ -106,6 +106,7 @@ macro_rules! link {
         // on the local thread and into the loaded shared library implementation.
         $(
             $(#[doc=$doc])* $(#[cfg($cfg)])*
+            #[allow(clippy::missing_safety_doc)] // These are bindgen-generated functions.
             pub unsafe fn $name($($pname: $pty), *) $(-> $ret)* {
                 let f = with_library(|l| {
                     l.functions.$name.expect(concat!(
