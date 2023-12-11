@@ -38,7 +38,7 @@ jobs:
         lfs: true
     - name: Checkout LFS objects
       run: git lfs checkout
-    - uses: abrown/install-openvino-action@v7
+    - uses: abrown/install-openvino-action@19069ca51a79e60142a6ca53241572853b0f1d76
       with:
         version: ${{ matrix.version }}
         apt: ${{ matrix.apt }}
