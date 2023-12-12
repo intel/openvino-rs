@@ -25,9 +25,6 @@ jobs:
         # We also spot-check that things work when installing from APT by adding to the matrix: see
         # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#expanding-or-adding-matrix-configurations
         include:
-          - os: ubuntu-20.04
-            version: 2022.3.0
-            apt: true
           - os: ubuntu-22.04
             version: 2023.2.0
             apt: true
