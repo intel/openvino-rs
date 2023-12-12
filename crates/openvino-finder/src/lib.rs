@@ -206,6 +206,7 @@ cfg_if! {
 cfg_if! {
     if #[cfg(target_os = "linux")] {
         const SYSTEM_INSTALLATION_DIRECTORIES: &[&str] = &[
+            "/lib", // DEB-installed package (OpenVINO >= 2023.2)
             "/usr/lib/x86_64-linux-gnu", // DEB-installed package (OpenVINO >= 2022.3)
             "/lib/x86_64-linux-gnu", // DEB-installed package (TBB)
             "/usr/lib64", // RPM-installed package >= 2022.3
