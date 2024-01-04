@@ -27,13 +27,6 @@ struct Cli {
     command: XtaskCommand,
 }
 
-// #[structopt(
-//     version = env!("CARGO_PKG_VERSION"),
-//     global_settings = &[
-//         AppSettings::VersionlessSubcommands,
-//         AppSettings::ColoredHelp
-//     ],
-// )]
 #[derive(Debug, Subcommand)]
 enum XtaskCommand {
     /// Generate the Rust bindings for OpenVINO to use in the openvino-sys crate.
