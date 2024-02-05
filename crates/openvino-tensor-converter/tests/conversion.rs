@@ -6,8 +6,8 @@ fn same_result_twice_u8() {
     let input = "tests/test.jpg";
     let dimensions = Dimensions::new(227, 227, 3, Precision::U8);
 
-    let first = convert(input, dimensions.clone()).unwrap();
-    let second = convert(input, dimensions).unwrap();
+    let first = convert(input, &dimensions).unwrap();
+    let second = convert(input, &dimensions).unwrap();
     assert_same_bytes(&first, &second);
 }
 
@@ -17,8 +17,8 @@ fn same_result_twice_fp32() {
     let input = "tests/test.jpg";
     let dimensions = Dimensions::new(227, 227, 3, Precision::FP32);
 
-    let first = convert(input, dimensions.clone()).unwrap();
-    let second = convert(input, dimensions).unwrap();
+    let first = convert(input, &dimensions).unwrap();
+    let second = convert(input, &dimensions).unwrap();
     assert_same_bytes(&first, &second);
 }
 
