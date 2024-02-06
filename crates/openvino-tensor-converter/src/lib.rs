@@ -1,4 +1,4 @@
-//! An experimental library demonstrating how to use OpenCV in Rust to convert images into
+//! An experimental library demonstrating how to use `OpenCV` in Rust to convert images into
 //! OpenVINO-compatible tensors.
 //!
 //! > WARNING: this is still experimental--no correctness guarantees!
@@ -10,14 +10,19 @@
 
 use core::{fmt, slice};
 use log::info;
-use opencv;
-use opencv::core::{MatTrait, MatTraitManual, Scalar_};
+use opencv::core::{MatTraitConst, Scalar_};
+use std::convert::TryInto;
 use std::{num::ParseIntError, path::Path, str::FromStr};
 
 /// Convert an image a path to a resized sequence of bytes.
+///
+/// # Errors
+///
+/// This function will return an error if the path is not a valid file, if the path cannot be
+/// converted to a string, or if the conversion fails for any other reason.
 pub fn convert<P: AsRef<Path>>(
     path: P,
-    dimensions: Dimensions,
+    dimensions: &Dimensions,
 ) -> Result<Vec<u8>, ConversionError> {
     let path = path.as_ref();
     info!("Converting {} to {:?}", path.display(), dimensions);
@@ -29,13 +34,11 @@ pub fn convert<P: AsRef<Path>>(
     // https://docs.opencv.org/master/d4/da8/group__imgcodecs.html#ga288b8b3da0892bd651fce07b3bbd3a56) to match what
     // OpenVINO's wrapper does (see
     // https://github.com/openvinotoolkit/openvino/blob/7566e8202fa6c00f27de27889e7bf99d7ddf2636/inference-engine/ie_bridges/c/samples/common/opencv_c_wraper.cpp#L25).
-    let src = opencv::imgcodecs::imread(
-        &path
-            .to_str()
-            .ok_or(ConversionError("Unable to stringify the path.".to_string()))?,
-        opencv::imgcodecs::IMREAD_COLOR,
-    )?;
-    info!("The input image has size = {:?}, channels = {}, type = {}, total items = {}, item size (bytes) = {}", src.size()?, src.channels()?, src.typ()?, src.total()?, src.elem_size1()?);
+    let path_as_str = path
+        .to_str()
+        .ok_or(ConversionError("Unable to stringify the path.".to_string()))?;
+    let src = opencv::imgcodecs::imread(path_as_str, opencv::imgcodecs::IMREAD_COLOR)?;
+    info!("The input image has size = {:?}, channels = {}, type = {}, total items = {}, item size (bytes) = {}", src.size()?, src.channels(), src.typ(), src.total(), src.elem_size1());
 
     // Create a destination Mat of the right shape, filling it with 0s (see
     // https://docs.rs/opencv/0.46.3/opencv/core/struct.Mat.html#method.new_rows_cols_with_default).
@@ -45,7 +48,7 @@ pub fn convert<P: AsRef<Path>>(
         dimensions.as_type(),
         Scalar_::all(0.0),
     )?;
-    info!("Before resizing, the `resize` image has size = {:?}, channels = {}, type = {}, total items = {}, item size (bytes) = {}", resized.size()?, resized.channels()?, resized.typ()?, resized.total()?, resized.elem_size1()?);
+    info!("Before resizing, the `resize` image has size = {:?}, channels = {}, type = {}, total items = {}, item size (bytes) = {}", resized.size(), resized.channels(), resized.typ(), resized.total(), resized.elem_size1());
 
     // Resize the `src` Mat into the `dst` Mat using bilinear interpolation (see
     // https://docs.rs/opencv/0.46.3/opencv/imgproc/fn.resize.html).
@@ -58,7 +61,7 @@ pub fn convert<P: AsRef<Path>>(
         0.0,
         opencv::imgproc::INTER_LINEAR,
     )?;
-    info!("After resizing, the `resize` image has size = {:?}, channels = {}, type = {}, total items = {}, item size (bytes) = {}", resized.size()?, resized.channels()?, resized.typ()?, resized.total()?, resized.elem_size1()?);
+    info!("After resizing, the `resize` image has size = {:?}, channels = {}, type = {}, total items = {}, item size (bytes) = {}", resized.size(), resized.channels(), resized.typ(), resized.total(), resized.elem_size1());
 
     // Because `imgproc::resize` can alter the depth/precision of our destination image, we convert the `resized` image
     // to the appropriate `Precision`.
@@ -70,10 +73,10 @@ pub fn convert<P: AsRef<Path>>(
     )?;
     // The alpha/beta values are the defaults from C++.
     resized.convert_to(&mut dst, dimensions.as_type(), 1.0, 0.0)?;
-    info!("After conversion, the `dst` image has size = {:?}, channels = {}, type = {}, total items = {}, item size (bytes) = {}", dst.size()?, dst.channels()?, dst.typ()?, dst.total()?, dst.elem_size1()?);
+    info!("After conversion, the `dst` image has size = {:?}, channels = {}, type = {}, total items = {}, item size (bytes) = {}", dst.size(), dst.channels(), dst.typ(), dst.total(), dst.elem_size1());
 
     // Copy the bytes of the Mat out to a Vec<u8>.
-    let dst_slice = unsafe { slice::from_raw_parts(dst.data()? as *const u8, dimensions.bytes()) };
+    let dst_slice = unsafe { slice::from_raw_parts(dst.data(), dimensions.bytes()) };
     Ok(dst_slice.to_vec())
 }
 
@@ -92,7 +95,7 @@ impl From<opencv::Error> for ConversionError {
 }
 impl From<ParseIntError> for ConversionError {
     fn from(e: ParseIntError) -> Self {
-        Self(format!("parsing error: {}", e.to_string()))
+        Self(format!("parsing error: {e}"))
     }
 }
 
@@ -106,6 +109,7 @@ pub struct Dimensions {
 }
 impl Dimensions {
     /// Construct a new dimensions object.
+    #[must_use]
     pub fn new(height: i32, width: i32, channels: i32, precision: Precision) -> Self {
         Self {
             height,
@@ -116,14 +120,23 @@ impl Dimensions {
     }
 
     /// Return the number of bytes that the dimensions should occupy.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if the number of items overflows a `usize`.
+    #[must_use]
     pub fn bytes(&self) -> usize {
-        self.height as usize * self.width as usize * self.channels as usize * self.precision.bytes()
+        let num_items: usize = (self.height * self.width * self.channels)
+            .try_into()
+            .expect("overflow in number of items");
+        num_items * self.precision.bytes()
     }
 
-    /// See https://docs.opencv.org/2.4/modules/core/doc/basic_structures.html for a description of the various OpenCV
-    /// primitive types.
+    /// See `OpenCV`'s [basic structures] for a description of the various primitive types.
+    ///
+    /// [basic structures]: https://docs.opencv.org/2.4/modules/core/doc/basic_structures.html
     fn as_type(&self) -> i32 {
-        use Precision::*;
+        use Precision::{FP32, U8};
         match (self.precision, self.channels) {
             (FP32, 3) => opencv::core::CV_32FC3,
             (U8, 3) => opencv::core::CV_8UC3,
@@ -162,6 +175,7 @@ pub enum Precision {
 }
 impl Precision {
     /// Return the number of bytes occupied by the precision.
+    #[must_use]
     pub fn bytes(&self) -> usize {
         match self {
             Self::U8 => 1,
@@ -176,7 +190,7 @@ impl FromStr for Precision {
         match s.to_ascii_lowercase().as_str() {
             "u8" => Ok(Self::U8),
             "fp32" => Ok(Self::FP32),
-            _ => Err(ConversionError(format!("unrecognized precision: {}", s))),
+            _ => Err(ConversionError(format!("unrecognized precision: {s}"))),
         }
     }
 }
