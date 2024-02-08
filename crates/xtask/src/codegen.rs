@@ -99,7 +99,9 @@ impl CodegenCommand {
     fn generate_type_bindings<P: AsRef<Path>>(header_file: P) -> Result<bindgen::Bindings> {
         bindgen::Builder::default()
             .header(header_file.as_ref().to_string_lossy())
-            .allowlist_type("ie_.*")
+            .clang_arg("-I/home/rahul/repos/openvino-binding/openvino-rs/crates/openvino-sys/upstream/src/bindings/c/include")
+            // .allowlist_type("ie_.*")
+            .allowlist_type("ov_.*")
             // Enumerations.
             .allowlist_type("precision_e")
             .allowlist_type("layout_e")
@@ -132,7 +134,9 @@ impl CodegenCommand {
     fn generate_function_bindings<P: AsRef<Path>>(header_file: P) -> Result<bindgen::Bindings> {
         bindgen::Builder::default()
             .header(header_file.as_ref().to_string_lossy())
-            .allowlist_function("ie_.*")
+            .clang_arg("-I/home/rahul/repos/openvino-binding/openvino-rs/crates/openvino-sys/upstream/src/bindings/c/include")
+            //.allowlist_function("ie_.*")
+            .allowlist_function("ov_.*")
             .blocklist_type("__uint8_t")
             .blocklist_type("__int64_t")
             .size_t_is_usize(true)
@@ -156,4 +160,6 @@ impl CodegenCommand {
 const TYPES_FILE: &str = "types.rs";
 const FUNCTIONS_FILE: &str = "functions.rs";
 const DEFAULT_OUTPUT_DIRECTORY: &str = "openvino-sys/src/generated";
-const DEFAULT_HEADER_FILE: &str = "openvino-sys/upstream/src/bindings/c/include/c_api/ie_c_api.h";
+//const DEFAULT_HEADER_FILE: &str = "openvino-sys/upstream/src/bindings/c/include/c_api/ie_c_api.h";
+const DEFAULT_HEADER_FILE: &str =
+    "openvino-sys/upstream/src/bindings/c/include/openvino/c/openvino.h";
