@@ -3,6 +3,7 @@ use crate::{cstr, drop_using_function, try_unsafe, util::Result};
 use openvino_sys::{
     ie_infer_request_free, ie_infer_request_get_blob, ie_infer_request_infer,
     ie_infer_request_set_batch, ie_infer_request_set_blob, ie_infer_request_t,
+    ie_infer_request_infer_async, ie_infer_request_wait,
 };
 
 /// See
@@ -44,5 +45,15 @@ impl InferRequest {
     /// Execute the inference request.
     pub fn infer(&mut self) -> Result<()> {
         try_unsafe!(ie_infer_request_infer(self.instance))
+    }
+
+    /// Execute the inference request asyncroneously.
+    pub fn infer_async(&mut self) -> Result<()> {
+        try_unsafe!(ie_infer_request_infer_async(self.instance))
+    }
+
+    /// Wait for the result of the inference asyncroneous request.
+    pub fn wait(&mut self, timeout: i64) -> Result<()> {
+        try_unsafe!(ie_infer_request_wait(self.instance, timeout))
     }
 }
