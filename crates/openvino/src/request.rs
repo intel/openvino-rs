@@ -2,8 +2,8 @@ use crate::blob::Blob;
 use crate::{cstr, drop_using_function, try_unsafe, util::Result};
 use openvino_sys::{
     ie_infer_request_free, ie_infer_request_get_blob, ie_infer_request_infer,
-    ie_infer_request_set_batch, ie_infer_request_set_blob, ie_infer_request_t,
-    ie_infer_request_infer_async, ie_infer_request_wait,
+    ie_infer_request_infer_async, ie_infer_request_set_batch, ie_infer_request_set_blob,
+    ie_infer_request_t, ie_infer_request_wait,
 };
 
 /// See
