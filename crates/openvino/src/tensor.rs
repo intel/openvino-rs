@@ -187,8 +187,11 @@ mod tests {
         openvino_sys::library::load()
             .map_err(LoadingError::SystemFailure)
             .unwrap();
-        let tensor =
-            Tensor::new(ElementType::F32, &Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
+        let tensor = Tensor::new(
+            ElementType::F32,
+            &Shape::new(&vec![1, 3, 227, 227]).unwrap(),
+        )
+        .unwrap();
         let shape = tensor.get_shape().unwrap();
         assert_eq!(shape.get_rank().unwrap(), 4);
     }
@@ -198,8 +201,11 @@ mod tests {
         openvino_sys::library::load()
             .map_err(LoadingError::SystemFailure)
             .unwrap();
-        let tensor =
-            Tensor::new(ElementType::F32, &Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
+        let tensor = Tensor::new(
+            ElementType::F32,
+            &Shape::new(&vec![1, 3, 227, 227]).unwrap(),
+        )
+        .unwrap();
         let element_type = tensor.get_element_type().unwrap();
         assert_eq!(element_type, ElementType::F32 as u32);
     }
@@ -209,8 +215,11 @@ mod tests {
         openvino_sys::library::load()
             .map_err(LoadingError::SystemFailure)
             .unwrap();
-        let tensor =
-            Tensor::new(ElementType::F32, &Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
+        let tensor = Tensor::new(
+            ElementType::F32,
+            &Shape::new(&vec![1, 3, 227, 227]).unwrap(),
+        )
+        .unwrap();
         let size = tensor.get_size().unwrap();
         assert_eq!(size, 1 * 3 * 227 * 227);
     }
@@ -220,8 +229,11 @@ mod tests {
         openvino_sys::library::load()
             .map_err(LoadingError::SystemFailure)
             .unwrap();
-        let tensor =
-            Tensor::new(ElementType::F32, &Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
+        let tensor = Tensor::new(
+            ElementType::F32,
+            &Shape::new(&vec![1, 3, 227, 227]).unwrap(),
+        )
+        .unwrap();
         let byte_size = tensor.get_byte_size().unwrap();
         assert_eq!(
             byte_size,
