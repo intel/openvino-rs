@@ -67,7 +67,7 @@ impl Core {
     pub fn read_model_from_buffer(
         &mut self,
         model_str: &str,
-        weights_buffer: Tensor,
+        weights_buffer: &Tensor,
     ) -> Result<Model> {
         let mut instance = std::ptr::null_mut();
         try_unsafe!(ov_core_read_model_from_memory_buffer(
@@ -80,8 +80,8 @@ impl Core {
         Ok(Model { instance })
     }
 
-    /// Compile a model to CompiledModel
-    pub fn compile_model(&mut self, model: Model, device: &str) -> Result<CompiledModel> {
+    /// Compile a model to `CompiledModel`
+    pub fn compile_model(&mut self, model: &Model, device: &str) -> Result<CompiledModel> {
         let mut compiled_model = CompiledModel {
             instance: std::ptr::null_mut(),
         };

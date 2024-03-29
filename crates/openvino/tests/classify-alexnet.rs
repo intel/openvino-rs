@@ -36,7 +36,7 @@ fn classify_alexnet() {
     let data = fs::read(Fixture::tensor()).unwrap();
     let input_shape = Shape::new(&vec![1, 227, 227, 3]).unwrap();
     let element_type = ElementType::F32;
-    let tensor = Tensor::new_from_host_ptr(element_type, input_shape, &data).unwrap();
+    let tensor = Tensor::new_from_host_ptr(element_type, &input_shape, &data).unwrap();
 
     //configure preprocessing
     let pre_post_process = PrePostprocess::new(&mut model).unwrap();
@@ -61,7 +61,7 @@ fn classify_alexnet() {
     //set model input layout
     let layout_string = "NCHW";
     let model_layout = Layout::new(&layout_string).unwrap();
-    model_info.model_info_set_layout(model_layout).unwrap();
+    model_info.model_info_set_layout(&model_layout).unwrap();
 
     let output_info = pre_post_process.get_output_info_by_index(0).unwrap();
     let output_tensor_info = output_info.get_output_info_get_tensor_info().unwrap();
@@ -72,7 +72,7 @@ fn classify_alexnet() {
     pre_post_process.build(&mut new_model).unwrap();
 
     // Load the model.
-    let mut executable_model = core.compile_model(new_model, "CPU").unwrap();
+    let mut executable_model = core.compile_model(&new_model, "CPU").unwrap();
 
     //create an inference request
     let mut infer_request = executable_model.create_infer_request().unwrap();

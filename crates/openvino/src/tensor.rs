@@ -26,7 +26,7 @@ impl Tensor {
     /// # Returns
     ///
     /// A new `Tensor` object.
-    pub fn new(data_type: ElementType, shape: Shape) -> Result<Self> {
+    pub fn new(data_type: ElementType, shape: &Shape) -> Result<Self> {
         let mut tensor = std::ptr::null_mut();
         let element_type = data_type as u32;
         let code = try_unsafe!(ov_tensor_create(
@@ -49,7 +49,7 @@ impl Tensor {
     /// # Returns
     ///
     /// A new `Tensor` object.
-    pub fn new_from_host_ptr(data_type: ElementType, shape: Shape, data: &[u8]) -> Result<Self> {
+    pub fn new_from_host_ptr(data_type: ElementType, shape: &Shape, data: &[u8]) -> Result<Self> {
         let mut tensor: *mut ov_tensor_t = std::ptr::null_mut();
         let element_type: u32 = data_type as u32;
         let buffer = data.as_ptr() as *mut std::os::raw::c_void;
@@ -178,7 +178,7 @@ mod tests {
             .map_err(LoadingError::SystemFailure)
             .unwrap();
         let shape = Shape::new(&vec![1, 3, 227, 227]).unwrap();
-        let tensor = Tensor::new(ElementType::F32, shape).unwrap();
+        let tensor = Tensor::new(ElementType::F32, &shape).unwrap();
         assert!(!tensor.instance.is_null());
     }
 
@@ -188,7 +188,7 @@ mod tests {
             .map_err(LoadingError::SystemFailure)
             .unwrap();
         let tensor =
-            Tensor::new(ElementType::F32, Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
+            Tensor::new(ElementType::F32, &Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
         let shape = tensor.get_shape().unwrap();
         assert_eq!(shape.get_rank().unwrap(), 4);
     }
@@ -199,7 +199,7 @@ mod tests {
             .map_err(LoadingError::SystemFailure)
             .unwrap();
         let tensor =
-            Tensor::new(ElementType::F32, Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
+            Tensor::new(ElementType::F32, &Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
         let element_type = tensor.get_element_type().unwrap();
         assert_eq!(element_type, ElementType::F32 as u32);
     }
@@ -210,7 +210,7 @@ mod tests {
             .map_err(LoadingError::SystemFailure)
             .unwrap();
         let tensor =
-            Tensor::new(ElementType::F32, Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
+            Tensor::new(ElementType::F32, &Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
         let size = tensor.get_size().unwrap();
         assert_eq!(size, 1 * 3 * 227 * 227);
     }
@@ -221,7 +221,7 @@ mod tests {
             .map_err(LoadingError::SystemFailure)
             .unwrap();
         let tensor =
-            Tensor::new(ElementType::F32, Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
+            Tensor::new(ElementType::F32, &Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
         let byte_size = tensor.get_byte_size().unwrap();
         assert_eq!(
             byte_size,

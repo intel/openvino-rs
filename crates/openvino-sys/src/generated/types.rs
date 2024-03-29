@@ -239,7 +239,7 @@ pub type ov_output_port_t = ov_output_port;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ov_tensor {
-    pub _unused: [u8; 0],
+    _unused: [u8; 0],
 }
 #[doc = " @struct ov_tensor_t\n @ingroup ov_tensor_c_api\n @brief type define ov_tensor_t from ov_tensor"]
 pub type ov_tensor_t = ov_tensor;

@@ -14,7 +14,7 @@ impl Drop for Shape {
         let code = unsafe { ov_shape_free(std::ptr::addr_of_mut!(self.instance)) };
         assert_eq!(code, 0);
         debug_assert!(self.instance.dims.is_null());
-        debug_assert_eq!(self.instance.rank, 0)
+        debug_assert_eq!(self.instance.rank, 0);
     }
 }
 
@@ -24,7 +24,7 @@ impl Shape {
     /// # Arguments
     ///
     /// * `dimensions` - A vector of dimensions for the shape.
-    pub fn new(dimensions: &Vec<i64>) -> Result<Self> {
+    pub fn new(dimensions: &[i64]) -> Result<Self> {
         let mut shape = ov_shape_t {
             rank: 8,
             dims: std::ptr::null_mut(),

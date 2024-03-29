@@ -29,7 +29,7 @@ fn classify_inception() {
     let input_shape = Shape::new(&vec![1, 299, 299, 3]).unwrap();
     //let input_shape = Shape::new(&vec![1, 3, 299, 299]);
     let element_type = ElementType::F32;
-    let tensor = Tensor::new_from_host_ptr(element_type, input_shape, &data).unwrap();
+    let tensor = Tensor::new_from_host_ptr(element_type, &input_shape, &data).unwrap();
 
     let pre_post_process = PrePostprocess::new(&mut model).unwrap();
     let input_info = pre_post_process.get_input_info_by_name("input").unwrap();
@@ -49,7 +49,7 @@ fn classify_inception() {
     let model_info = input_info.get_model_info().unwrap();
     let layout_string = "NCHW";
     let model_layout = Layout::new(&layout_string).unwrap();
-    model_info.model_info_set_layout(model_layout).unwrap();
+    model_info.model_info_set_layout(&model_layout).unwrap();
 
     pre_post_process.build(&mut new_model).unwrap();
 
@@ -64,7 +64,7 @@ fn classify_inception() {
     );
 
     // Load the model.
-    let mut executable_model = core.compile_model(new_model, "CPU").unwrap();
+    let mut executable_model = core.compile_model(&new_model, "CPU").unwrap();
     let mut infer_request = executable_model.create_infer_request().unwrap();
 
     // Execute inference.
