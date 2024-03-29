@@ -170,10 +170,13 @@ impl Tensor {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{ElementType, Shape};
+    use crate::{ElementType, LoadingError, Shape};
 
     #[test]
     fn test_create_tensor() {
+        openvino_sys::library::load()
+            .map_err(LoadingError::SystemFailure)
+            .unwrap();
         let shape = Shape::new(&vec![1, 3, 227, 227]).unwrap();
         let tensor = Tensor::new(ElementType::F32, shape).unwrap();
         assert!(!tensor.instance.is_null());
@@ -181,6 +184,9 @@ mod tests {
 
     #[test]
     fn test_get_shape() {
+        openvino_sys::library::load()
+            .map_err(LoadingError::SystemFailure)
+            .unwrap();
         let tensor =
             Tensor::new(ElementType::F32, Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
         let shape = tensor.get_shape().unwrap();
@@ -189,6 +195,9 @@ mod tests {
 
     #[test]
     fn test_get_element_type() {
+        openvino_sys::library::load()
+            .map_err(LoadingError::SystemFailure)
+            .unwrap();
         let tensor =
             Tensor::new(ElementType::F32, Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
         let element_type = tensor.get_element_type().unwrap();
@@ -197,6 +206,9 @@ mod tests {
 
     #[test]
     fn test_get_size() {
+        openvino_sys::library::load()
+            .map_err(LoadingError::SystemFailure)
+            .unwrap();
         let tensor =
             Tensor::new(ElementType::F32, Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
         let size = tensor.get_size().unwrap();
@@ -205,6 +217,9 @@ mod tests {
 
     #[test]
     fn test_get_byte_size() {
+        openvino_sys::library::load()
+            .map_err(LoadingError::SystemFailure)
+            .unwrap();
         let tensor =
             Tensor::new(ElementType::F32, Shape::new(&vec![1, 3, 227, 227]).unwrap()).unwrap();
         let byte_size = tensor.get_byte_size().unwrap();

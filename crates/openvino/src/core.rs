@@ -21,10 +21,11 @@ unsafe impl Send for Core {}
 
 impl Core {
     /// Construct a new OpenVINO [`Core`].
-    pub fn new() -> Result<Self> {
+    pub fn new() -> std::result::Result<Core, SetupError> {
+        openvino_sys::library::load().map_err(LoadingError::SystemFailure)?;
         let mut instance = std::ptr::null_mut();
         try_unsafe!(ov_core_create(std::ptr::addr_of_mut!(instance)))?;
-        Ok(Self { instance })
+        Ok(Core { instance })
     }
 
     ///Construct a new OpenVINO [`Core`] with config specified in an xml file
@@ -46,7 +47,7 @@ impl Core {
             file,
             std::ptr::addr_of_mut!(instance)
         ))?;
-        Ok(Self { instance })
+        Ok(Core { instance })
     }
 
     /// Read a Model from a pair of files: `model_path` points to an XML file containing the

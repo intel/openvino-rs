@@ -31,10 +31,15 @@ impl Layout {
 
 #[cfg(test)]
 mod tests {
+    use crate::LoadingError;
+
     use super::*;
 
     #[test]
     fn test_new_layout() {
+        openvino_sys::library::load()
+            .map_err(LoadingError::SystemFailure)
+            .unwrap();
         let layout_desc = "NCHW";
         let layout = Layout::new(layout_desc).unwrap();
         assert_eq!(layout.instance.is_null(), false);

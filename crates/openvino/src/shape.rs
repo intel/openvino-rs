@@ -49,10 +49,15 @@ impl Shape {
 
 #[cfg(test)]
 mod tests {
+    use crate::LoadingError;
+
     use super::*;
 
     #[test]
     fn test_new_shape() {
+        openvino_sys::library::load()
+            .map_err(LoadingError::SystemFailure)
+            .unwrap();
         let dimensions = vec![1, 2, 3, 4];
         let shape = Shape::new(&dimensions).unwrap();
         assert_eq!(shape.get_rank().unwrap(), 4);
