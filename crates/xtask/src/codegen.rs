@@ -99,8 +99,7 @@ impl CodegenCommand {
     fn generate_type_bindings<P: AsRef<Path>>(header_file: P) -> Result<bindgen::Bindings> {
         bindgen::Builder::default()
             .header(header_file.as_ref().to_string_lossy())
-            .clang_arg("-I/home/rahul/repos/openvino-binding/openvino-rs/crates/openvino-sys/upstream/src/bindings/c/include")
-            // .allowlist_type("ie_.*")
+            .clang_arg("-I./crates/openvino-sys/upstream/src/bindings/c/include")
             .allowlist_type("ov_.*")
             // Enumerations.
             .allowlist_type("precision_e")
@@ -134,8 +133,7 @@ impl CodegenCommand {
     fn generate_function_bindings<P: AsRef<Path>>(header_file: P) -> Result<bindgen::Bindings> {
         bindgen::Builder::default()
             .header(header_file.as_ref().to_string_lossy())
-            .clang_arg("-I/home/rahul/repos/openvino-binding/openvino-rs/crates/openvino-sys/upstream/src/bindings/c/include")
-            //.allowlist_function("ie_.*")
+            .clang_arg("-I./crates/openvino-sys/upstream/src/bindings/c/include")
             .allowlist_function("ov_.*")
             .blocklist_type("__uint8_t")
             .blocklist_type("__int64_t")
