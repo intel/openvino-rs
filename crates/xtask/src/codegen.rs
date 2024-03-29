@@ -43,6 +43,7 @@ impl CodegenCommand {
             let mut function_bindings_file = Box::new(File::create(&function_bindings_path)?);
             function_bindings_file.write_all(b"use super::types::*;\n")?;
             function_bindings_file.write_all(b"use crate::link;\n")?;
+            function_bindings_file.write_all(b"type wchar_t = ::std::os::raw::c_char;\n")?;
             function_bindings_file.write_all(b"link! {\n")?;
             function_bindings_file.write_all(b"\n")?;
             function_bindings
