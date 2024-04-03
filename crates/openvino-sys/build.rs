@@ -139,7 +139,7 @@ fn add_dynamically_linked_library(library: &str) {
 fn find_libraries_in_existing_installation() -> Vec<PathBuf> {
     let mut dirs = vec![];
     for library in LIBRARIES {
-        if let Some(path) = openvino_finder::find(library) {
+        if let Some(path) = openvino_finder::find_link(library) {
             println!(
                 "cargo:warning=Found library to link against: {}",
                 path.display()
