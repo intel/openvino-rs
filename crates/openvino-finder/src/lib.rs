@@ -226,6 +226,7 @@ const KNOWN_INSTALLATION_SUBDIRECTORIES: &[&str] = &[
 
 const KNOWN_BUILD_SUBDIRECTORIES: &[&str] = &[
     "bin/intel64/Debug/lib",
+    "bin/intel64/Debug",
     "bin/intel64/Release/lib",
     "temp/tbb/lib",
 ];
