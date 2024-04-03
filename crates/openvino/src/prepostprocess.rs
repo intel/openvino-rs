@@ -19,10 +19,9 @@ use openvino_sys::{
     ov_preprocess_preprocess_steps_resize, ov_preprocess_preprocess_steps_t,
 };
 /// See [`Pre Post Process`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__prepostprocess__c__api.html).
-use std::ffi::CString;
 
 use crate::{
-    drop_using_function, layout::Layout, try_unsafe, util::Result, ElementType, Model, Tensor,
+    cstr, drop_using_function, layout::Layout, try_unsafe, util::Result, ElementType, Model, Tensor,
 };
 
 /// The `PrePostprocess` struct represents pre and post-processing capabilities
@@ -149,7 +148,7 @@ impl PrePostprocess {
     /// Retrieves the input information by name.
     pub fn get_input_info_by_name(&self, name: &str) -> Result<PreprocessInputInfo> {
         let mut input_info = std::ptr::null_mut();
-        let c_layout_desc = CString::new(name).unwrap();
+        let c_layout_desc = cstr!(name);
         try_unsafe!(ov_preprocess_prepostprocessor_get_input_info_by_name(
             self.instance,
             c_layout_desc.as_ptr(),
@@ -164,7 +163,7 @@ impl PrePostprocess {
     /// Retrieves the output information by name.
     pub fn get_output_info_by_name(&self, name: &str) -> Result<PreprocessOutputInfo> {
         let mut output_info = std::ptr::null_mut();
-        let c_layout_desc = CString::new(name).unwrap();
+        let c_layout_desc = cstr!(name);
         try_unsafe!(ov_preprocess_prepostprocessor_get_output_info_by_name(
             self.instance,
             c_layout_desc.as_ptr(),

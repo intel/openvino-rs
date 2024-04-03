@@ -4,13 +4,11 @@ use crate::InferenceError;
 /// This alias makes the implementation slightly less verbose.
 pub(crate) type Result<T> = std::result::Result<T, InferenceError>;
 
-/// Convert a Rust string into a string to pass across the C boundary.
+/// Convert a Rust string into a C string to pass across the C boundary.
 #[macro_export]
 macro_rules! cstr {
     ($str: expr) => {
-        std::ffi::CString::new($str)
-            .expect("a valid C string")
-            .into_raw()
+        std::ffi::CString::new($str).expect("a valid C string")
     };
 }
 

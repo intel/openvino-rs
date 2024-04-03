@@ -1,6 +1,5 @@
-use crate::{drop_using_function, try_unsafe, util::Result};
+use crate::{cstr, drop_using_function, try_unsafe, util::Result};
 use openvino_sys::{ov_layout_create, ov_layout_free, ov_layout_t};
-use std::ffi::CString;
 
 /// Represents a layout.
 pub struct Layout {
@@ -20,7 +19,7 @@ impl Layout {
     /// A new `Layout` instance.
     pub fn new(layout_desc: &str) -> Result<Self> {
         let mut layout = std::ptr::null_mut();
-        let c_layout_desc = CString::new(layout_desc).unwrap();
+        let c_layout_desc = cstr!(layout_desc);
         try_unsafe!(ov_layout_create(
             c_layout_desc.as_ptr(),
             std::ptr::addr_of_mut!(layout)
