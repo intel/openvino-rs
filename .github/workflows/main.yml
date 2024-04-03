@@ -56,9 +56,6 @@ jobs:
     # path and Cargo links the binary to it in the `build.rs` script.
     - name: Check dynamic linking
       run: cargo test
-      # TODO: the finder does not yet know how to distinguish between `*.lib` (required here) and
-      # `*.dll` (required by runtime-linking).
-      if: ${{ !startsWith(runner.os, 'windows') }}
     # Finally, run the runtime-linking tests: the binddings do not link at build time, instead
     # as the tests are run.
     - name: Check runtime linking

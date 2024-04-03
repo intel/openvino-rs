@@ -88,20 +88,44 @@ macro_rules! check_and_return {
 ///
 /// Panics if it cannot list the contents of a search directory.
 pub fn find(library_name: &str) -> Option<PathBuf> {
-    let file = format!(
+    let library = format!(
         "{}{}{}",
         env::consts::DLL_PREFIX,
         library_name,
         env::consts::DLL_SUFFIX
     );
-    log::info!("Attempting to find library: {}", file);
+    log::info!("Attempting to find library: {}", library);
+    find_library(&library)
+}
 
+/// Find the path to an OpenVINO link library.
+///
+/// Follows the same procedure as [find], but searches for "import" libraries.
+/// This differentiation is important on Windows, which requires ".lib" when linking:
+/// https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-creation#creating-an-import-library
+pub fn find_link(library_name: &str) -> Option<PathBuf> {
+    if cfg!(windows) {
+        find_import_library(library_name)
+    } else {
+        find(library_name)
+    }
+}
+
+#[cfg(target_os = "windows")]
+#[inline(always)]
+fn find_import_library(library_name: &str) -> Option<PathBuf> {
+    let library = format!("{}.lib", library_name);
+    log::info!("Attempting to find link library: {}", library);
+    find_library(&library)
+}
+
+fn find_library(library: &str) -> Option<PathBuf> {
     // Search using the `OPENVINO_BUILD_DIR` environment variable; this may be set by users of the
     // `openvino-rs` library.
     if let Some(build_dir) = env::var_os(ENV_OPENVINO_BUILD_DIR) {
         let install_dir = PathBuf::from(build_dir);
         for lib_dir in KNOWN_BUILD_SUBDIRECTORIES {
-            let search_path = install_dir.join(lib_dir).join(&file);
+            let search_path = install_dir.join(lib_dir).join(&library);
             check_and_return!(search_path);
         }
     }
@@ -111,7 +135,7 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
     if let Some(install_dir) = env::var_os(ENV_OPENVINO_INSTALL_DIR) {
         let install_dir = PathBuf::from(install_dir);
         for lib_dir in KNOWN_INSTALLATION_SUBDIRECTORIES {
-            let search_path = install_dir.join(lib_dir).join(&file);
+            let search_path = install_dir.join(lib_dir).join(&library);
             check_and_return!(search_path);
         }
     }
@@ -121,7 +145,7 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
     if let Some(install_dir) = env::var_os(ENV_INTEL_OPENVINO_DIR) {
         let install_dir = PathBuf::from(install_dir);
         for lib_dir in KNOWN_INSTALLATION_SUBDIRECTORIES {
-            let search_path = install_dir.join(lib_dir).join(&file);
+            let search_path = install_dir.join(lib_dir).join(&library);
             check_and_return!(search_path);
         }
     }
@@ -130,7 +154,7 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
     // `DYLD_LIBRARY_PATH` on MacOS).
     if let Some(path) = env::var_os(ENV_LIBRARY_PATH) {
         for lib_dir in env::split_paths(&path) {
-            let search_path = lib_dir.join(&file);
+            let search_path = lib_dir.join(&library);
             check_and_return!(search_path);
         }
     }
@@ -143,13 +167,13 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
         .filter(|d| d.is_dir())
     {
         // Check if the file is located in the installation directory.
-        let search_path = install_dir.join(&file);
+        let search_path = install_dir.join(&library);
         check_and_return!(search_path);
 
         // Otherwise, check for version terminators: e.g., `libfoo.so.3.1.2`.
         let filenames = list_directory(&install_dir).expect("cannot list installation directory");
-        let versions = get_suffixes(filenames, &file);
-        if let Some(path) = build_latest_version(&install_dir, &file, versions) {
+        let versions = get_suffixes(filenames, &library);
+        if let Some(path) = build_latest_version(&install_dir, &library, versions) {
             check_and_return!(path);
         }
     }
@@ -161,7 +185,7 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
         .filter(|d| d.is_dir())
     {
         for lib_dir in KNOWN_INSTALLATION_SUBDIRECTORIES {
-            let search_path = default_dir.join(lib_dir).join(&file);
+            let search_path = default_dir.join(lib_dir).join(&library);
             check_and_return!(search_path);
         }
     }
