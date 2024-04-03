@@ -1,4 +1,4 @@
 [submodule "crates/upstream"]
 	path = crates/openvino-sys/upstream
 	url = https://github.com/openvinotoolkit/openvino
-	depth = 1
+	shallow = true
