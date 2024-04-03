@@ -220,6 +220,7 @@ const KNOWN_INSTALLATION_SUBDIRECTORIES: &[&str] = &[
     "runtime/lib/intel64/Release",
     "runtime/lib/intel64",
     "runtime/3rdparty/tbb/lib",
+    "runtime/bin/intel64/Release",
     "runtime/bin/intel64",
     "runtime/3rdparty/tbb/bin",
 ];
