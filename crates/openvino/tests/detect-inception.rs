@@ -68,7 +68,7 @@ fn detect_inception() -> anyhow::Result<()> {
     results.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
 
     assert_eq!(
-        &results,
+        &results[..5],
         &[
             Result(15, 59.0),
             Result(1, 1.0),
