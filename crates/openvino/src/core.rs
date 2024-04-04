@@ -1,7 +1,7 @@
 //! Define the core interface between Rust and OpenVINO's C
 //! [API](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__core__c__api.html).
 
-use crate::error::LoadingError;
+use crate::error::{IOError, LoadingError, PathError};
 use crate::{cstr, drop_using_function, try_unsafe, util::Result};
 use crate::{model::CompiledModel, Model};
 use crate::{SetupError, Tensor};
@@ -30,14 +30,20 @@ impl Core {
     }
 
     /// Construct a new OpenVINO [`Core`] with an XML config file.
-    pub fn new_with_config(
-        xml_config_file: Option<&Path>,
-    ) -> std::result::Result<Core, SetupError> {
+    pub fn new_with_config<P>(xml_config_file: Option<P>) -> std::result::Result<Core, SetupError>
+    where
+        P: AsRef<Path>,
+    {
         openvino_sys::library::load().map_err(LoadingError::SystemFailure)?;
         let file = if let Some(file) = xml_config_file {
-            cstr!(file.to_str().ok_or(LoadingError::CannotStringifyPath)?)
+            cstr!(file
+                .as_ref()
+                .to_str()
+                .ok_or(LoadingError::InvalidPath(PathError::CannotStringify))?)
         } else if let Some(file) = openvino_finder::find_plugins_xml() {
-            cstr!(file.to_str().ok_or(LoadingError::CannotStringifyPath)?)
+            cstr!(file
+                .to_str()
+                .ok_or(LoadingError::InvalidPath(PathError::CannotStringify))?)
         } else {
             cstr!("")
         };
@@ -51,11 +57,22 @@ impl Core {
         Ok(Core { instance })
     }
 
-    /// Read a Model from a pair of files: `model_path` points to an XML file containing the
-    /// OpenVINO model IR and `weights_path` points to the binary weights file.
-    pub fn read_model_from_file(&mut self, model_path: &str, weights_path: &str) -> Result<Model> {
-        let model_path = cstr!(model_path);
-        let weights_path = cstr!(weights_path);
+    /// Read a Model from a pair of files: `model` points to an XML file containing the
+    /// OpenVINO model IR and `weights` points to the binary weights file.
+    pub fn read_model_from_file<MP, WP>(
+        &mut self,
+        model: MP,
+        weights: WP,
+    ) -> std::result::Result<Model, IOError>
+    where
+        MP: AsRef<Path>,
+        WP: AsRef<Path>,
+    {
+        let model_path = cstr!(model.as_ref().to_str().ok_or(PathError::CannotStringify)?);
+        let weights_path = cstr!(weights
+            .as_ref()
+            .to_str()
+            .ok_or(PathError::CannotStringify)?);
 
         let mut instance = std::ptr::null_mut();
         try_unsafe!(ov_core_read_model(
@@ -68,19 +85,13 @@ impl Core {
     }
 
     /// Read model with model and weights loaded in memory.
-    pub fn read_model_from_buffer(
-        &mut self,
-        model_str: &str,
-        weights_buffer: &Tensor,
-    ) -> Result<Model> {
-        let model_name = cstr!(model_str);
-
+    pub fn read_model_from_buffer(&mut self, model_data: &[u8], weights: &Tensor) -> Result<Model> {
         let mut instance = std::ptr::null_mut();
         try_unsafe!(ov_core_read_model_from_memory_buffer(
             self.instance,
-            model_name.as_ptr(),
-            model_str.len(),
-            weights_buffer.instance,
+            model_data.as_ptr().cast(),
+            model_data.len(),
+            weights.instance,
             std::ptr::addr_of_mut!(instance)
         ))?;
         Ok(Model { instance })
@@ -88,19 +99,18 @@ impl Core {
 
     /// Compile a model.
     pub fn compile_model(&mut self, model: &Model, device: &str) -> Result<CompiledModel> {
+        // TODO create a Device enum?
         let device = cstr!(device);
-        let mut compiled_model = CompiledModel {
-            instance: std::ptr::null_mut(),
-        };
         let num_property_args = 0;
+        let mut instance = std::ptr::null_mut();
         try_unsafe!(ov_core_compile_model(
             self.instance,
             model.instance,
             device.as_ptr(),
             num_property_args,
-            std::ptr::addr_of_mut!(compiled_model.instance)
+            std::ptr::addr_of_mut!(instance)
         ))?;
-        Ok(compiled_model)
+        Ok(CompiledModel { instance })
     }
 }
 

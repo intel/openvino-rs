@@ -4,33 +4,27 @@ mod fixtures;
 mod util;
 
 use fixtures::alexnet::Fixture;
-use openvino::{Core, ElementType, Layout, Model, PrePostprocess, Shape, Tensor};
+use openvino::{Core, ElementType, Layout, PrePostProcess, Shape, Tensor};
 use std::fs;
 use util::{Prediction, Predictions};
 
 #[test]
 fn classify_alexnet() {
-    //create an emtpy model for preprocess build
-    let mut new_model = Model::new().unwrap();
-
     //initialize openvino runtime core
     let mut core = Core::new().unwrap();
 
     //Read the model
     let mut model = core
-        .read_model_from_file(
-            &Fixture::graph().to_string_lossy(),
-            &Fixture::weights().to_string_lossy(),
-        )
+        .read_model_from_file(Fixture::graph(), Fixture::weights())
         .unwrap();
 
     //Set up output port of model
-    let output_port = model.get_output_by_index(0).unwrap();
-    assert_eq!(output_port.get_name().unwrap(), "prob");
+    let output_port = model.output_by_index(0).unwrap();
+    assert_eq!(output_port.name().unwrap(), "prob");
 
     //Set up input port of model
-    let input_port = model.get_input_by_index(0).unwrap();
-    assert_eq!(input_port.get_name().unwrap(), "data");
+    let input_port = model.input_by_index(0).unwrap();
+    assert_eq!(input_port.name().unwrap(), "data");
 
     //Set up input
     let data = fs::read(Fixture::tensor()).unwrap();
@@ -39,37 +33,33 @@ fn classify_alexnet() {
     let tensor = Tensor::new_from_host_ptr(element_type, &input_shape, &data).unwrap();
 
     //configure preprocessing
-    let pre_post_process = PrePostprocess::new(&mut model).unwrap();
-    let input_info = pre_post_process.get_input_info_by_name("data").unwrap();
-    let mut input_tensor_info = input_info.preprocess_input_info_get_tensor_info().unwrap();
-    input_tensor_info
-        .preprocess_input_tensor_set_from(&tensor)
-        .unwrap();
+    let pre_post_process = PrePostProcess::new(&mut model).unwrap();
+    let input_info = pre_post_process.input_info_by_name("data").unwrap();
+    let mut input_tensor_info = input_info.tensor_info().unwrap();
+    input_tensor_info.set_from(&tensor).unwrap();
 
     //set layout of input tensor
     let layout_tensor_string = "NHWC";
     let input_layout = Layout::new(&layout_tensor_string).unwrap();
-    input_tensor_info
-        .preprocess_input_tensor_set_layout(&input_layout)
-        .unwrap();
+    input_tensor_info.set_layout(&input_layout).unwrap();
 
     //set any preprocessing steps
-    let mut preprocess_steps = input_info.get_preprocess_steps().unwrap();
-    preprocess_steps.preprocess_steps_resize(0).unwrap();
-    let model_info = input_info.get_model_info().unwrap();
+    let mut preprocess_steps = input_info.preprocess_steps().unwrap();
+    preprocess_steps.resize(0).unwrap();
+    let model_info = input_info.model_info().unwrap();
 
     //set model input layout
     let layout_string = "NCHW";
     let model_layout = Layout::new(&layout_string).unwrap();
-    model_info.model_info_set_layout(&model_layout).unwrap();
+    model_info.set_layout(&model_layout).unwrap();
 
-    let output_info = pre_post_process.get_output_info_by_index(0).unwrap();
-    let output_tensor_info = output_info.get_output_info_get_tensor_info().unwrap();
+    let output_info = pre_post_process.output_info_by_index(0).unwrap();
+    let output_tensor_info = output_info.tensor_info().unwrap();
     output_tensor_info
-        .preprocess_set_element_type(ElementType::F32)
+        .set_element_type(ElementType::F32)
         .unwrap();
 
-    pre_post_process.build(&mut new_model).unwrap();
+    let new_model = pre_post_process.build().unwrap();
 
     // Load the model.
     let mut executable_model = core.compile_model(&new_model, "CPU").unwrap();
@@ -82,11 +72,9 @@ fn classify_alexnet() {
 
     // Execute inference.
     infer_request.infer().unwrap();
-    let mut results = infer_request
-        .get_tensor(&output_port.get_name().unwrap())
-        .unwrap();
+    let mut results = infer_request.tensor(&output_port.name().unwrap()).unwrap();
 
-    let buffer = results.get_data::<f32>().unwrap().to_vec();
+    let buffer = results.data::<f32>().unwrap().to_vec();
     // Sort results.
     let mut results: Predictions = buffer
         .iter()

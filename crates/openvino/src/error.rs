@@ -30,8 +30,6 @@ pub enum InferenceError {
     InferNotStarted,
     #[error("network not ready")]
     NetworkNotReady,
-    #[error("invalid c parameter")]
-    InvalidCParam,
     #[error("undefined error code: {0}")]
     Undefined(i32),
 }
@@ -57,7 +55,6 @@ impl InferenceError {
             openvino_sys::ov_status_e_NOT_ALLOCATED => Err(NotAllocated),
             openvino_sys::ov_status_e_INFER_NOT_STARTED => Err(InferNotStarted),
             openvino_sys::ov_status_e_NETWORK_NOT_READ => Err(NetworkNotReady),
-            openvino_sys::ov_status_e_INVALID_C_PARAM => Err(InvalidCParam),
             _ => Err(Undefined(error_code)),
         }
     }
@@ -69,9 +66,9 @@ impl InferenceError {
 #[allow(missing_docs)]
 #[derive(Debug, Error)]
 pub enum SetupError {
-    #[error("inference error")]
+    #[error("inference error: {0}")]
     Inference(#[from] InferenceError),
-    #[error("library loading error")]
+    #[error("library loading error: {0}")]
     Loading(#[from] LoadingError),
 }
 
@@ -81,10 +78,28 @@ pub enum SetupError {
 pub enum LoadingError {
     #[error("system failed to load shared libraries (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder): {0}")]
     SystemFailure(String),
+    #[error("invalid path: {0}")]
+    InvalidPath(#[from] PathError),
     #[error("cannot find path to shared libraries (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder)")]
     CannotFindLibraryPath,
     #[error("cannot find path to XML plugin configuration (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder)")]
     CannotFindPluginPath,
+}
+
+/// Enumerate IO failures.
+#[allow(missing_docs)]
+#[derive(Debug, Error)]
+pub enum IOError {
+    #[error("inference error: {0}")]
+    Inference(#[from] InferenceError),
+    #[error("invalid path: {0}")]
+    Path(#[from] PathError),
+}
+
+/// Enumerate the ways that file paths can fail.
+#[allow(missing_docs)]
+#[derive(Debug, Error)]
+pub enum PathError {
     #[error("unable to convert path to a UTF-8 string (see https://doc.rust-lang.org/std/path/struct.Path.html#method.to_str)")]
-    CannotStringifyPath,
+    CannotStringify,
 }

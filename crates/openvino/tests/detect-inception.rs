@@ -4,72 +4,60 @@ mod fixtures;
 //mod util;
 
 use fixtures::inception_ssd::Fixture;
-use openvino::{Core, ElementType, Layout, Model, PrePostprocess, Shape, Tensor};
+use openvino::{Core, ElementType, Layout, PrePostProcess, Shape, Tensor};
 use std::fs;
 
 #[test]
 fn detect_inception() {
-    //create an emtpy model for preprocess build
-    let mut new_model = Model::new().unwrap();
-
     //initialize openvino runtime core
     let mut core = Core::new().unwrap();
 
     //Read the model
     let model = core
-        .read_model_from_file(
-            &Fixture::graph().to_string_lossy(),
-            &Fixture::weights().to_string_lossy(),
-        )
+        .read_model_from_file(Fixture::graph(), Fixture::weights())
         .unwrap();
 
     //Set up output
-    let output_port = model.get_output_by_index(0).unwrap();
-    assert_eq!(output_port.get_name().unwrap(), "DetectionOutput");
+    let output_port = model.output_by_index(0).unwrap();
+    assert_eq!(output_port.name().unwrap(), "DetectionOutput");
 
-    let input_port = model.get_input_by_index(0).unwrap();
-    assert_eq!(input_port.get_name().unwrap(), "image_tensor");
+    let input_port = model.input_by_index(0).unwrap();
+    assert_eq!(input_port.name().unwrap(), "image_tensor");
 
     //Set up input
     let data = fs::read(Fixture::tensor()).unwrap();
     let input_shape = Shape::new(&vec![1, 481, 640, 3]).unwrap();
     let element_type = ElementType::U8;
     let tensor = Tensor::new_from_host_ptr(element_type, &input_shape, &data).unwrap();
-    let pre_post_process = PrePostprocess::new(&model).unwrap();
-    let input_info = pre_post_process
-        .get_input_info_by_name("image_tensor")
-        .unwrap();
-    let mut input_tensor_info = input_info.preprocess_input_info_get_tensor_info().unwrap();
-    input_tensor_info
-        .preprocess_input_tensor_set_from(&tensor)
-        .unwrap();
+    let pre_post_process = PrePostProcess::new(&model).unwrap();
+    let input_info = pre_post_process.input_info_by_name("image_tensor").unwrap();
+    let mut input_tensor_info = input_info.tensor_info().unwrap();
+    input_tensor_info.set_from(&tensor).unwrap();
 
     let layout_tensor_string = "NHWC";
     let input_layout = Layout::new(&layout_tensor_string).unwrap();
-    input_tensor_info
-        .preprocess_input_tensor_set_layout(&input_layout)
-        .unwrap();
-    let mut preprocess_steps = input_info.get_preprocess_steps().unwrap();
-    preprocess_steps.preprocess_steps_resize(0).unwrap();
+    input_tensor_info.set_layout(&input_layout).unwrap();
+    let mut preprocess_steps = input_info.preprocess_steps().unwrap();
+    preprocess_steps.resize(0).unwrap();
     preprocess_steps
-        .preprocess_convert_element_type(ElementType::F32)
+        .convert_element_type(ElementType::F32)
         .unwrap();
     //Layout conversion is supposed to be implicit, but can be done explicitly like shown below in comments
     // let input_layout_convert = Layout::new("NCHW");
     // preprocess_steps.preprocess_convert_layout(input_layout_convert);
 
-    let model_info = input_info.get_model_info().unwrap();
+    let model_info = input_info.model_info().unwrap();
     let layout_string = "NCHW";
     let model_layout = Layout::new(&layout_string).unwrap();
-    model_info.model_info_set_layout(&model_layout).unwrap();
+    model_info.set_layout(&model_layout).unwrap();
 
-    let output_info = pre_post_process.get_output_info_by_index(0).unwrap();
-    let output_tensor_info = output_info.get_output_info_get_tensor_info().unwrap();
+    let output_info = pre_post_process.output_info_by_index(0).unwrap();
+    let output_tensor_info = output_info.tensor_info().unwrap();
     output_tensor_info
-        .preprocess_set_element_type(ElementType::F32)
+        .set_element_type(ElementType::F32)
         .unwrap();
 
-    pre_post_process.build(&mut new_model).unwrap();
+    let new_model = pre_post_process.build().unwrap();
 
     // Load the model.
     let mut executable_model = core.compile_model(&new_model, "CPU").unwrap();
@@ -78,11 +66,9 @@ fn detect_inception() {
     // Execute inference.
     infer_request.set_tensor("image_tensor", &tensor).unwrap();
     infer_request.infer().unwrap();
-    let mut results = infer_request
-        .get_tensor(&output_port.get_name().unwrap())
-        .unwrap();
+    let mut results = infer_request.tensor(&output_port.name().unwrap()).unwrap();
 
-    let buffer = results.get_data::<f32>().unwrap().to_vec();
+    let buffer = results.data::<f32>().unwrap().to_vec();
 
     // Sort results (TODO extract bounding boxes instead).
     let mut results: Results = buffer

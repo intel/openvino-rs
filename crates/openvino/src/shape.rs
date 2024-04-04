@@ -42,8 +42,8 @@ impl Shape {
     /// # Returns
     ///
     /// The rank of the shape
-    pub fn get_rank(&self) -> Result<i64> {
-        Ok(self.instance.rank)
+    pub fn rank(&self) -> i64 {
+        self.instance.rank
     }
 }
 
@@ -60,6 +60,6 @@ mod tests {
             .unwrap();
         let dimensions = vec![1, 2, 3, 4];
         let shape = Shape::new(&dimensions).unwrap();
-        assert_eq!(shape.get_rank().unwrap(), 4);
+        assert_eq!(shape.rank(), 4);
     }
 }
