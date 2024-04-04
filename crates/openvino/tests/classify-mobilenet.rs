@@ -10,75 +10,68 @@ use std::fs;
 use util::{Prediction, Predictions};
 
 #[test]
-fn classify_mobilenet() {
+fn classify_mobilenet() -> anyhow::Result<()> {
     //initialize openvino runtime core
-    let mut core = Core::new().unwrap();
+    let mut core = Core::new()?;
 
     //Read the model
-    let mut model = core
-        .read_model_from_file(Fixture::graph(), Fixture::weights())
-        .unwrap();
+    let mut model = core.read_model_from_file(Fixture::graph(), Fixture::weights())?;
 
     //Set up output port of model
-    let output_port = model.output_by_index(0).unwrap();
-    assert_eq!(
-        output_port.name().unwrap(),
-        "MobilenetV2/Predictions/Reshape_1"
-    );
+    let output_port = model.output_by_index(0)?;
+    assert_eq!(output_port.name()?, "MobilenetV2/Predictions/Reshape_1");
 
     //Set up input port of model
-    let input_port = model.input_by_index(0).unwrap();
-    assert_eq!(input_port.name().unwrap(), "input");
+    let input_port = model.input_by_index(0)?;
+    assert_eq!(input_port.name()?, "input");
 
     //Set up input
-    let data = fs::read(Fixture::tensor()).unwrap();
-    let input_shape = Shape::new(&vec![1, 224, 224, 3]).unwrap();
+    let data = fs::read(Fixture::tensor())?;
+    let input_shape = Shape::new(&vec![1, 224, 224, 3])?;
     let element_type = ElementType::F32;
-    let tensor = Tensor::new_from_host_ptr(element_type, &input_shape, &data).unwrap();
+    let tensor = Tensor::new_from_host_ptr(element_type, &input_shape, &data)?;
 
     //configure preprocessing
-    let pre_post_process = PrePostProcess::new(&mut model).unwrap();
-    let input_info = pre_post_process.input_info_by_name("input").unwrap();
-    let mut input_tensor_info = input_info.tensor_info().unwrap();
-    input_tensor_info.set_from(&tensor).unwrap();
+    let pre_post_process = PrePostProcess::new(&mut model)?;
+    let input_info = pre_post_process.input_info_by_name("input")?;
+    let mut input_tensor_info = input_info.tensor_info()?;
+    input_tensor_info.set_from(&tensor)?;
 
     //set layout of input tensor
     let layout_tensor_string = "NHWC";
-    let input_layout = Layout::new(&layout_tensor_string).unwrap();
-    input_tensor_info.set_layout(&input_layout).unwrap();
+    let input_layout = Layout::new(&layout_tensor_string)?;
+    input_tensor_info.set_layout(&input_layout)?;
 
     //set any preprocessing steps
-    let mut preprocess_steps = input_info.preprocess_steps().unwrap();
-    preprocess_steps.resize(0).unwrap();
-    let model_info = input_info.model_info().unwrap();
+    let mut preprocess_steps = input_info.preprocess_steps()?;
+    preprocess_steps.resize(0)?;
+    let model_info = input_info.model_info()?;
 
     //set model input layout
     let layout_string = "NCHW";
-    let model_layout = Layout::new(&layout_string).unwrap();
-    model_info.set_layout(&model_layout).unwrap();
+    let model_layout = Layout::new(&layout_string)?;
+    model_info.set_layout(&model_layout)?;
 
-    let output_info = pre_post_process.output_info_by_index(0).unwrap();
-    let output_tensor_info = output_info.tensor_info().unwrap();
-    output_tensor_info
-        .set_element_type(ElementType::F32)
-        .unwrap();
+    let output_info = pre_post_process.output_info_by_index(0)?;
+    let output_tensor_info = output_info.tensor_info()?;
+    output_tensor_info.set_element_type(ElementType::F32)?;
 
-    let new_model = pre_post_process.build().unwrap();
+    let new_model = pre_post_process.build()?;
 
     // Load the model.
-    let mut executable_model = core.compile_model(&new_model, "CPU").unwrap();
+    let mut executable_model = core.compile_model(&new_model, "CPU")?;
 
     //create an inference request
-    let mut infer_request = executable_model.create_infer_request().unwrap();
+    let mut infer_request = executable_model.create_infer_request()?;
 
     //Prepare input
-    infer_request.set_tensor("input", &tensor).unwrap();
+    infer_request.set_tensor("input", &tensor)?;
 
     // Execute inference.
-    infer_request.infer().unwrap();
-    let mut results = infer_request.tensor(&output_port.name().unwrap()).unwrap();
+    infer_request.infer()?;
+    let mut results = infer_request.tensor(&output_port.name()?)?;
 
-    let buffer = results.data::<f32>().unwrap().to_vec();
+    let buffer = results.data::<f32>()?.to_vec();
     // Sort results. It is unclear why the MobileNet output indices are "off by one" but the
     // `.skip(1)` below seems necessary to get results that make sense (e.g. 763 = "revolver" vs 762
     // = "restaurant").
@@ -114,4 +107,6 @@ fn classify_mobilenet() {
     // 468     0.0073142
     // 965     0.0058377
     // 545     0.0043731
+
+    Ok(())
 }

@@ -203,6 +203,7 @@ impl PrePostProcess {
 impl PreprocessSteps {
     /// Resizes data in tensor
     pub fn resize(&mut self, resize_algo: u32) -> Result<()> {
+        // TODO resize algorithm should be an enum
         try_unsafe!(ov_preprocess_preprocess_steps_resize(
             self.instance,
             resize_algo,

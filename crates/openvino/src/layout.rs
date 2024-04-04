@@ -39,8 +39,7 @@ mod tests {
         openvino_sys::library::load()
             .map_err(LoadingError::SystemFailure)
             .unwrap();
-        let layout_desc = "NCHW";
-        let layout = Layout::new(layout_desc).unwrap();
+        let layout = Layout::new("NCHW").unwrap();
         assert_eq!(layout.instance.is_null(), false);
     }
 }

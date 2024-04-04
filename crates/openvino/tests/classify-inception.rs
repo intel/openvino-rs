@@ -9,60 +9,55 @@ use std::fs;
 use util::{Prediction, Predictions};
 
 #[test]
-fn classify_inception() {
+fn classify_inception() -> anyhow::Result<()> {
     //initialize openvino runtime core
-    let mut core = Core::new().unwrap();
+    let mut core = Core::new()?;
 
     //Read the model
-    let mut model = core
-        .read_model_from_file(Fixture::graph(), Fixture::weights())
-        .unwrap();
+    let mut model = core.read_model_from_file(Fixture::graph(), Fixture::weights())?;
 
     //Set up input
-    let data = fs::read(Fixture::tensor()).unwrap();
-    let input_shape = Shape::new(&vec![1, 299, 299, 3]).unwrap();
+    let data = fs::read(Fixture::tensor())?;
+    let input_shape = Shape::new(&vec![1, 299, 299, 3])?;
     //let input_shape = Shape::new(&vec![1, 3, 299, 299]);
     let element_type = ElementType::F32;
-    let tensor = Tensor::new_from_host_ptr(element_type, &input_shape, &data).unwrap();
+    let tensor = Tensor::new_from_host_ptr(element_type, &input_shape, &data)?;
 
-    let pre_post_process = PrePostProcess::new(&mut model).unwrap();
-    let input_info = pre_post_process.input_info_by_name("input").unwrap();
-    let mut input_tensor_info = input_info.tensor_info().unwrap();
-    input_tensor_info.set_from(&tensor).unwrap();
+    let pre_post_process = PrePostProcess::new(&mut model)?;
+    let input_info = pre_post_process.input_info_by_name("input")?;
+    let mut input_tensor_info = input_info.tensor_info()?;
+    input_tensor_info.set_from(&tensor)?;
 
     let layout_tensor_string = "NHWC";
-    let input_layout = Layout::new(&layout_tensor_string).unwrap();
-    input_tensor_info.set_layout(&input_layout).unwrap();
-    let mut preprocess_steps = input_info.preprocess_steps().unwrap();
-    preprocess_steps.resize(0).unwrap();
+    let input_layout = Layout::new(&layout_tensor_string)?;
+    input_tensor_info.set_layout(&input_layout)?;
+    let mut preprocess_steps = input_info.preprocess_steps()?;
+    preprocess_steps.resize(0)?;
 
-    let model_info = input_info.model_info().unwrap();
+    let model_info = input_info.model_info()?;
     let layout_string = "NCHW";
-    let model_layout = Layout::new(&layout_string).unwrap();
-    model_info.set_layout(&model_layout).unwrap();
+    let model_layout = Layout::new(&layout_string)?;
+    model_info.set_layout(&model_layout)?;
 
-    let new_model = pre_post_process.build().unwrap();
+    let new_model = pre_post_process.build()?;
 
-    let input_port = model.input_by_index(0).unwrap();
-    assert_eq!(input_port.name().unwrap(), "input");
+    let input_port = model.input_by_index(0)?;
+    assert_eq!(input_port.name()?, "input");
 
     //Set up output
-    let output_port = model.output_by_index(0).unwrap();
-    assert_eq!(
-        output_port.name().unwrap(),
-        "InceptionV3/Predictions/Softmax"
-    );
+    let output_port = model.output_by_index(0)?;
+    assert_eq!(output_port.name()?, "InceptionV3/Predictions/Softmax");
 
     // Load the model.
-    let mut executable_model = core.compile_model(&new_model, "CPU").unwrap();
-    let mut infer_request = executable_model.create_infer_request().unwrap();
+    let mut executable_model = core.compile_model(&new_model, "CPU")?;
+    let mut infer_request = executable_model.create_infer_request()?;
 
     // Execute inference.
-    infer_request.set_tensor("input", &tensor).unwrap();
-    infer_request.infer().unwrap();
-    let mut results = infer_request.tensor(&output_port.name().unwrap()).unwrap();
+    infer_request.set_tensor("input", &tensor)?;
+    infer_request.infer()?;
+    let mut results = infer_request.tensor(&output_port.name()?)?;
 
-    let buffer = results.data::<f32>().unwrap().to_vec();
+    let buffer = results.data::<f32>()?.to_vec();
 
     // Sort results.
     let mut results: Predictions = buffer
@@ -96,4 +91,6 @@ fn classify_inception() {
     // 522     0.0003951
     // 927     0.0003644
     // 923     0.0002908
+
+    Ok(())
 }
