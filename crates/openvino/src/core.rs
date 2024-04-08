@@ -29,22 +29,10 @@ impl Core {
     }
 
     ///Construct a new OpenVINO [`Core`] with config specified in an xml file
-    pub fn new_with_config(xml_config_file: Option<&str>) -> std::result::Result<Core, SetupError> {
-        openvino_sys::library::load().map_err(LoadingError::SystemFailure)?;
-        let file = if let Some(file) = xml_config_file {
-            cstr!(file.to_string())
-        } else if let Some(file) = openvino_finder::find_plugins_xml() {
-            cstr!(file
-                .to_str()
-                .ok_or(LoadingError::CannotStringifyPath)?
-                .to_string())
-        } else {
-            cstr!(String::new())
-        };
-
+    pub fn new_with_config(xml_config_file: &str) -> std::result::Result<Core, SetupError> {
         let mut instance = std::ptr::null_mut();
         try_unsafe!(ov_core_create_with_config(
-            file,
+            cstr!(xml_config_file.to_string()),
             std::ptr::addr_of_mut!(instance)
         ))?;
         Ok(Core { instance })
