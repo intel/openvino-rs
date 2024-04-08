@@ -4,15 +4,12 @@ mod fixtures;
 mod util;
 
 use fixtures::inception::Fixture;
-use openvino::{Core, ElementType, Layout, Model, PrePostprocess, Shape, Tensor};
+use openvino::{Core, ElementType, Layout, PrePostprocess, Shape, Tensor};
 use std::fs;
 use util::{Prediction, Predictions};
 
 #[test]
 fn classify_inception() {
-    //create an emtpy model for preprocess build
-    let mut new_model = Model::new().unwrap();
-
     //initialize openvino runtime core
     let mut core = Core::new().unwrap();
 
@@ -51,7 +48,7 @@ fn classify_inception() {
     let model_layout = Layout::new(&layout_string).unwrap();
     model_info.model_info_set_layout(&model_layout).unwrap();
 
-    pre_post_process.build(&mut new_model).unwrap();
+    let new_model = pre_post_process.build_new_model().unwrap();
 
     let input_port = model.get_input_by_index(0).unwrap();
     assert_eq!(input_port.get_name().unwrap(), "input");

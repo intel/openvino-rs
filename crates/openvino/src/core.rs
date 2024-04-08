@@ -13,7 +13,7 @@ use openvino_sys::{
 
 /// See [Core](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__core__c__api.html).
 pub struct Core {
-    pub(crate) instance: *mut ov_core_t,
+    instance: *mut ov_core_t,
 }
 drop_using_function!(Core, ov_core_free);
 
@@ -60,7 +60,7 @@ impl Core {
             cstr!(weights_path),
             std::ptr::addr_of_mut!(instance)
         ))?;
-        Ok(Model { instance })
+        Ok(Model::new_from_instance(instance).unwrap())
     }
 
     ///Read model with model and weights loaded in memory
@@ -74,26 +74,24 @@ impl Core {
             self.instance,
             cstr!(model_str),
             model_str.len(),
-            weights_buffer.instance,
+            weights_buffer.instance().unwrap(),
             std::ptr::addr_of_mut!(instance)
         ))?;
-        Ok(Model { instance })
+        Ok(Model::new_from_instance(instance).unwrap())
     }
 
     /// Compile a model to `CompiledModel`
     pub fn compile_model(&mut self, model: &Model, device: &str) -> Result<CompiledModel> {
-        let mut compiled_model = CompiledModel {
-            instance: std::ptr::null_mut(),
-        };
+        let mut compiled_model = std::ptr::null_mut();
         let num_property_args = 0;
         try_unsafe!(ov_core_compile_model(
             self.instance,
-            model.instance,
+            model.instance().unwrap(),
             cstr!(device),
             num_property_args,
-            std::ptr::addr_of_mut!(compiled_model.instance)
+            std::ptr::addr_of_mut!(compiled_model)
         ))?;
-        Ok(compiled_model)
+        Ok(CompiledModel::new(compiled_model).unwrap())
     }
 }
 

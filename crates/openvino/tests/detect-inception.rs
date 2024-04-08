@@ -4,14 +4,11 @@ mod fixtures;
 //mod util;
 
 use fixtures::inception_ssd::Fixture;
-use openvino::{Core, ElementType, Layout, Model, PrePostprocess, Shape, Tensor};
+use openvino::{Core, ElementType, Layout, PrePostprocess, Shape, Tensor};
 use std::fs;
 
 #[test]
 fn detect_inception() {
-    //create an emtpy model for preprocess build
-    let mut new_model = Model::new().unwrap();
-
     //initialize openvino runtime core
     let mut core = Core::new().unwrap();
 
@@ -69,7 +66,7 @@ fn detect_inception() {
         .preprocess_set_element_type(ElementType::F32)
         .unwrap();
 
-    pre_post_process.build(&mut new_model).unwrap();
+    let new_model = pre_post_process.build_new_model().unwrap();
 
     // Load the model.
     let mut executable_model = core.compile_model(&new_model, "CPU").unwrap();

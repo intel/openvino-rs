@@ -4,10 +4,19 @@ use std::ffi::CStr;
 
 ///Struct for Port of a model
 pub struct Port {
-    pub(crate) instance: *mut ov_output_const_port_t,
+    instance: *mut ov_output_const_port_t,
 }
 
 impl Port {
+    ///Get [`ov_output_const_port_t`] instance
+    pub fn instance(&self) -> Result<*mut ov_output_const_port_t> {
+        Ok(self.instance)
+    }
+
+    ///Create a new [`Port`] from [`ov_output_const_port_t`]
+    pub(crate) fn new(instance: *mut ov_output_const_port_t) -> Result<Self> {
+        Ok(Self { instance })
+    }
     ///Get name of a port
     pub fn get_name(&self) -> Result<String> {
         let mut c_name = std::ptr::null_mut();

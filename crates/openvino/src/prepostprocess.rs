@@ -28,31 +28,31 @@ use crate::{
 /// The `PrePostprocess` struct represents pre and post-processing capabilities
 #[derive(Debug)]
 pub struct PrePostprocess {
-    pub(crate) instance: *mut ov_preprocess_prepostprocessor_t,
+    instance: *mut ov_preprocess_prepostprocessor_t,
 }
 drop_using_function!(PrePostprocess, ov_preprocess_prepostprocessor_free);
 
 /// The `PreprocessInputInfo` struct represents input information for pre/postprocessing.
 pub struct PreprocessInputInfo {
-    pub(crate) instance: *mut ov_preprocess_input_info_t,
+    instance: *mut ov_preprocess_input_info_t,
 }
 drop_using_function!(PreprocessInputInfo, ov_preprocess_input_info_free);
 
 /// The `PreprocessOutputInfo` struct represents output information for pre/postprocessing.
 pub struct PreprocessOutputInfo {
-    pub(crate) instance: *mut ov_preprocess_output_info_t,
+    instance: *mut ov_preprocess_output_info_t,
 }
 drop_using_function!(PreprocessOutputInfo, ov_preprocess_output_info_free);
 
 /// The `PreprocessSteps` struct represents preprocessing steps.
 pub struct PreprocessSteps {
-    pub(crate) instance: *mut ov_preprocess_preprocess_steps_t,
+    instance: *mut ov_preprocess_preprocess_steps_t,
 }
 drop_using_function!(PreprocessSteps, ov_preprocess_preprocess_steps_free);
 
 /// The `PreprocessInputModelInfo` struct represents input model information for pre/postprocessing.
 pub struct PreprocessInputModelInfo {
-    pub(crate) instance: *mut ov_preprocess_input_model_info_t,
+    instance: *mut ov_preprocess_input_model_info_t,
 }
 drop_using_function!(
     PreprocessInputModelInfo,
@@ -61,7 +61,7 @@ drop_using_function!(
 
 /// The `PreprocessInputTensorInfo` struct represents input tensor information for pre/postprocessing.
 pub struct PreprocessInputTensorInfo {
-    pub(crate) instance: *mut ov_preprocess_input_tensor_info_t,
+    instance: *mut ov_preprocess_input_tensor_info_t,
 }
 drop_using_function!(
     PreprocessInputTensorInfo,
@@ -70,7 +70,7 @@ drop_using_function!(
 
 /// The `PreprocessOutputTensorInfo` struct represents output tensor information for pre/postprocessing.
 pub struct PreprocessOutputTensorInfo {
-    pub(crate) instance: *mut ov_preprocess_output_tensor_info_t,
+    instance: *mut ov_preprocess_output_tensor_info_t,
 }
 drop_using_function!(
     PreprocessOutputTensorInfo,
@@ -82,7 +82,7 @@ impl PreprocessInputModelInfo {
     pub fn model_info_set_layout(&self, layout: &Layout) -> Result<()> {
         try_unsafe!(ov_preprocess_input_model_info_set_layout(
             self.instance,
-            layout.instance
+            layout.instance().unwrap()
         ))?;
 
         Ok(())
@@ -101,7 +101,7 @@ impl PreprocessInputTensorInfo {
     pub fn preprocess_input_tensor_set_layout(&self, layout: &Layout) -> Result<()> {
         try_unsafe!(ov_preprocess_input_tensor_info_set_layout(
             self.instance,
-            layout.instance
+            layout.instance().unwrap()
         ))?;
 
         Ok(())
@@ -111,7 +111,7 @@ impl PreprocessInputTensorInfo {
     pub fn preprocess_input_tensor_set_from(&mut self, tensor: &Tensor) -> Result<()> {
         try_unsafe!(ov_preprocess_input_tensor_info_set_from(
             self.instance,
-            tensor.instance
+            tensor.instance().unwrap()
         ))?;
 
         Ok(())
@@ -123,7 +123,7 @@ impl PrePostprocess {
     pub fn new(model: &Model) -> Result<Self> {
         let mut preprocess = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_create(
-            model.instance,
+            model.instance().unwrap(),
             std::ptr::addr_of_mut!(preprocess)
         ))?;
 
@@ -204,14 +204,14 @@ impl PrePostprocess {
         })
     }
 
-    /// Builds model with all steps from pre/postprocessing.
-    pub fn build(&self, new_model: &mut Model) -> Result<()> {
+    /// Builds a new model with all steps from pre/postprocessing.
+    pub fn build_new_model(&self) -> Result<Model> {
+        let mut instance = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_build(
             self.instance,
-            std::ptr::addr_of_mut!(new_model.instance)
+            std::ptr::addr_of_mut!(instance)
         ))?;
-
-        Ok(())
+        Ok(Model::new_from_instance(instance).unwrap())
     }
 }
 
@@ -230,7 +230,7 @@ impl PreprocessSteps {
     pub fn preprocess_convert_layout(&self, layout: &Layout) -> Result<()> {
         try_unsafe!(ov_preprocess_preprocess_steps_convert_layout(
             self.instance,
-            layout.instance,
+            layout.instance().unwrap(),
         ))?;
 
         Ok(())

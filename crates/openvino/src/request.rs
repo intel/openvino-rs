@@ -9,7 +9,7 @@ use openvino_sys::{
 /// See
 /// [`InferRequest`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__tensor__c__api.html).
 pub struct InferRequest {
-    pub(crate) instance: *mut ov_infer_request_t,
+    instance: *mut ov_infer_request_t,
 }
 drop_using_function!(InferRequest, ov_infer_request_free);
 
@@ -17,12 +17,16 @@ unsafe impl Send for InferRequest {}
 unsafe impl Sync for InferRequest {}
 
 impl InferRequest {
-    /// Assign a [tensor] to the input on the model.
+    /// Create a new [`InferRequest`] from [`ov_infer_request_t`].
+    pub(crate) fn new(instance: *mut ov_infer_request_t) -> Result<Self> {
+        Ok(Self { instance })
+    }
+    /// Assign a [`Tensor`] to the input on the model.
     pub fn set_tensor(&mut self, name: &str, tensor: &Tensor) -> Result<()> {
         try_unsafe!(ov_infer_request_set_tensor(
             self.instance,
             cstr!(name),
-            tensor.instance
+            tensor.instance().unwrap()
         ))?;
         Ok(())
     }
@@ -35,7 +39,7 @@ impl InferRequest {
             cstr!(name),
             std::ptr::addr_of_mut!(tensor)
         ))?;
-        Ok(Tensor { instance: tensor })
+        Ok(Tensor::new_from_instance(tensor).unwrap())
     }
 
     /// Execute the inference request.

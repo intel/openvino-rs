@@ -4,7 +4,7 @@ use std::convert::TryInto;
 
 /// Represents a shape in OpenVINO.
 pub struct Shape {
-    pub(crate) instance: ov_shape_t,
+    instance: ov_shape_t,
 }
 
 impl Drop for Shape {
@@ -19,6 +19,10 @@ impl Drop for Shape {
 }
 
 impl Shape {
+    /// Get the pointer to the underlying OpenVINO shape.
+    pub fn instance(&self) -> ov_shape_t {
+        self.instance
+    }
     /// Creates a new Shape instance with the given dimensions.
     ///
     /// # Arguments
@@ -37,6 +41,9 @@ impl Shape {
         Ok(Self { instance: shape })
     }
 
+    pub(crate) fn new_from_instance(instance: ov_shape_t) -> Result<Self> {
+        Ok(Self { instance })
+    }
     /// Returns the rank of the shape.
     ///
     /// # Returns

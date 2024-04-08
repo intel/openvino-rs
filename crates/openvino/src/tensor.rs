@@ -11,11 +11,16 @@ use openvino_sys::{
 /// See [`Tensor`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__tensor__c__api.html).
 pub struct Tensor {
     /// Pointer to the underlying OpenVINO tensor.
-    pub instance: *mut ov_tensor_t,
+    instance: *mut ov_tensor_t,
 }
 drop_using_function!(Tensor, ov_tensor_free);
 
 impl Tensor {
+    /// Get the pointer to the underlying OpenVINO tensor.
+    pub fn instance(&self) -> Result<*mut ov_tensor_t> {
+        Ok(self.instance)
+    }
+
     /// Create a new [`Tensor`].
     ///
     /// # Arguments
@@ -31,7 +36,7 @@ impl Tensor {
         let element_type = data_type as u32;
         let code = try_unsafe!(ov_tensor_create(
             element_type,
-            shape.instance,
+            shape.instance(),
             std::ptr::addr_of_mut!(tensor),
         ));
         assert_eq!(code, Ok(()));
@@ -55,11 +60,16 @@ impl Tensor {
         let buffer = data.as_ptr() as *mut std::os::raw::c_void;
         try_unsafe!(ov_tensor_create_from_host_ptr(
             element_type,
-            shape.instance,
+            shape.instance(),
             buffer,
             std::ptr::addr_of_mut!(tensor)
         ))?;
         Ok(Self { instance: tensor })
+    }
+
+    ///Create a new [`Tensor`] from a instance pointer
+    pub(crate) fn new_from_instance(instance: *mut ov_tensor_t) -> Result<Self> {
+        Ok(Self { instance })
     }
 
     /// (Re)Set the shape of the tensor to a new shape
@@ -72,7 +82,7 @@ impl Tensor {
     ///
     /// A new `Tensor` object with the updated shape.
     pub fn set_shape(&self, shape: &Shape) -> Result<Self> {
-        try_unsafe!(ov_tensor_set_shape(self.instance, shape.instance))?;
+        try_unsafe!(ov_tensor_set_shape(self.instance, shape.instance()))?;
         Ok(Self {
             instance: self.instance,
         })
@@ -92,7 +102,7 @@ impl Tensor {
             self.instance,
             std::ptr::addr_of_mut!(instance),
         ))?;
-        Ok(Shape { instance })
+        Ok(Shape::new_from_instance(instance).unwrap())
     }
 
     /// Get the data type of elements of the tensor.

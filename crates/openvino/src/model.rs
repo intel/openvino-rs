@@ -16,7 +16,7 @@ use openvino_sys::{
 /// [`CNNmodel`](https://docs.openvinotoolkit.org/latest/classInferenceEngine_1_1CNNmodel.html).
 
 pub struct Model {
-    pub(crate) instance: *mut ov_model_t,
+    instance: *mut ov_model_t,
 }
 drop_using_function!(Model, ov_model_free);
 
@@ -24,6 +24,16 @@ unsafe impl Send for Model {}
 unsafe impl Sync for Model {}
 
 impl Model {
+    /// Create a new instance of the Model struct.
+    pub(crate) fn new_from_instance(instance: *mut ov_model_t) -> Result<Self> {
+        Ok(Self { instance })
+    }
+
+    /// Get the pointer to the underlying [`ov_model_t`].
+    pub fn instance(&self) -> Result<*mut ov_model_t> {
+        Ok(self.instance)
+    }
+
     /// Create a new instance of the Model struct.
     pub fn new() -> Result<Self> {
         let instance = std::ptr::null_mut();
@@ -52,7 +62,7 @@ impl Model {
             index,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Port { instance: port })
+        Ok(Port::new(port).unwrap())
     }
 
     /// Retrieve the output port by index.
@@ -63,7 +73,7 @@ impl Model {
             index,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Port { instance: port })
+        Ok(Port::new(port).unwrap())
     }
 
     /// Retrieve the constant output port by index.
@@ -74,20 +84,25 @@ impl Model {
             index,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Port { instance: port })
+        Ok(Port::new(port).unwrap())
     }
 }
 
 /// See
 /// [`CompiledModel`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__compiled__model__c__api.html).
 pub struct CompiledModel {
-    pub(crate) instance: *mut ov_compiled_model_t,
+    instance: *mut ov_compiled_model_t,
 }
 drop_using_function!(CompiledModel, ov_compiled_model_free);
 
 unsafe impl Send for CompiledModel {}
 
 impl CompiledModel {
+    /// Create a new instance of the CompiledModel struct from ov_compiled_model_t.
+    pub(crate) fn new(instance: *mut ov_compiled_model_t) -> Result<Self> {
+        Ok(Self { instance })
+    }
+
     /// Create an [`InferRequest`].
     pub fn create_infer_request(&mut self) -> Result<InferRequest> {
         let mut instance = std::ptr::null_mut();
@@ -95,6 +110,6 @@ impl CompiledModel {
             self.instance,
             std::ptr::addr_of_mut!(instance)
         ))?;
-        Ok(InferRequest { instance })
+        Ok(InferRequest::new(instance).unwrap())
     }
 }

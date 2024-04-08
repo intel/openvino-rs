@@ -4,11 +4,16 @@ use std::ffi::CString;
 
 /// Represents a layout.
 pub struct Layout {
-    pub(crate) instance: *mut ov_layout_t,
+    instance: *mut ov_layout_t,
 }
 drop_using_function!(Layout, ov_layout_free);
 
 impl Layout {
+    /// Get [`ov_layout_t`] instance.
+    pub fn instance(&self) -> Result<*mut ov_layout_t> {
+        Ok(self.instance)
+    }
+
     /// Creates a new layout with the given description.
     ///
     /// # Arguments

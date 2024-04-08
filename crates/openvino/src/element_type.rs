@@ -7,7 +7,7 @@ pub enum ElementType {
     /// A dynamic element type.
     Dynamic = 1,
     /// A boolean element type.
-    OvBoolean = 2,
+    Boolean = 2,
     /// A Bf16 element type.
     Bf16 = 3,
     /// A F16 element type.
@@ -45,11 +45,27 @@ pub enum ElementType {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use openvino_sys::{ov_element_type_e_U8, ov_element_type_e_UNDEFINED};
+    use openvino_sys::*;
 
     #[test]
     fn check_discriminant_values() {
         assert_eq!(ov_element_type_e_UNDEFINED, ElementType::Undefined as u32);
+        assert_eq!(ov_element_type_e_U1, ElementType::U1 as u32);
+        assert_eq!(ov_element_type_e_U4, ElementType::U4 as u32);
         assert_eq!(ov_element_type_e_U8, ElementType::U8 as u32);
+        assert_eq!(ov_element_type_e_U16, ElementType::U16 as u32);
+        assert_eq!(ov_element_type_e_U32, ElementType::U32 as u32);
+        assert_eq!(ov_element_type_e_U64, ElementType::U64 as u32);
+        assert_eq!(ov_element_type_e_I4, ElementType::I4 as u32);
+        assert_eq!(ov_element_type_e_I8, ElementType::I8 as u32);
+        assert_eq!(ov_element_type_e_I16, ElementType::I16 as u32);
+        assert_eq!(ov_element_type_e_I32, ElementType::I32 as u32);
+        assert_eq!(ov_element_type_e_I64, ElementType::I64 as u32);
+        assert_eq!(ov_element_type_e_F16, ElementType::F16 as u32);
+        assert_eq!(ov_element_type_e_F32, ElementType::F32 as u32);
+        assert_eq!(ov_element_type_e_F64, ElementType::F64 as u32);
+        assert_eq!(ov_element_type_e_OV_BOOLEAN, ElementType::Boolean as u32);
+        assert_eq!(ov_element_type_e_DYNAMIC, ElementType::Dynamic as u32);
+        assert_eq!(ov_element_type_e_NF4, ElementType::NF4 as u32);
     }
 }
