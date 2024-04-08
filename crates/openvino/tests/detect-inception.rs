@@ -4,7 +4,7 @@ mod fixtures;
 //mod util;
 
 use fixtures::inception_ssd::Fixture;
-use openvino::{Core, ElementType, Layout, PrePostprocess, Shape, Tensor};
+use openvino::{Core, ElementType, Layout, PrePostProcess, Shape, Tensor};
 use std::fs;
 
 #[test]
@@ -32,7 +32,7 @@ fn detect_inception() {
     let input_shape = Shape::new(&vec![1, 481, 640, 3]).unwrap();
     let element_type = ElementType::U8;
     let tensor = Tensor::new_from_host_ptr(element_type, &input_shape, &data).unwrap();
-    let pre_post_process = PrePostprocess::new(&model).unwrap();
+    let pre_post_process = PrePostProcess::new(&model).unwrap();
     let input_info = pre_post_process
         .get_input_info_by_name("image_tensor")
         .unwrap();

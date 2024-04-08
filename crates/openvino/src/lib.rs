@@ -44,8 +44,8 @@ pub use layout::Layout;
 pub use model::{CompiledModel, Model};
 pub use port::Port;
 pub use prepostprocess::{
-    PrePostprocess, PreprocessInputInfo, PreprocessInputModelInfo, PreprocessInputTensorInfo,
-    PreprocessOutputInfo, PreprocessOutputTensorInfo, PreprocessSteps,
+    PrePostProcess, PreProcessInputInfo, PreProcessInputModelInfo, PreProcessInputTensorInfo,
+    PreProcessOutputInfo, PreProcessOutputTensorInfo, PreProcessSteps,
 };
 pub use request::InferRequest;
 pub use shape::Shape;

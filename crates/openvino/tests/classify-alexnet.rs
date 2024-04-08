@@ -4,7 +4,7 @@ mod fixtures;
 mod util;
 
 use fixtures::alexnet::Fixture;
-use openvino::{Core, ElementType, Layout, PrePostprocess, Shape, Tensor};
+use openvino::{Core, ElementType, Layout, PrePostProcess, Shape, Tensor};
 use std::fs;
 use util::{Prediction, Predictions};
 
@@ -36,7 +36,7 @@ fn classify_alexnet() {
     let tensor = Tensor::new_from_host_ptr(element_type, &input_shape, &data).unwrap();
 
     //configure preprocessing
-    let pre_post_process = PrePostprocess::new(&mut model).unwrap();
+    let pre_post_process = PrePostProcess::new(&mut model).unwrap();
     let input_info = pre_post_process.get_input_info_by_name("data").unwrap();
     let mut input_tensor_info = input_info.preprocess_input_info_get_tensor_info().unwrap();
     input_tensor_info
