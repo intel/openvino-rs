@@ -3,6 +3,16 @@
 //!
 //! [openvino]: https://crates.io/crates/openvino
 //! [README]: https://github.com/intel/openvino-rs
+//!
+//! Check the loaded version of OpenVINO:
+//! ```
+//! assert!(openvino::version().starts_with("2"))
+//! ```
+//!
+//! Most interaction with OpenVINO begins with instantiating a [Core]:
+//! ```
+//! let _ = openvino::Core::new().expect("to instantiate the OpenVINO library");
+//! ```
 
 #![deny(missing_docs)]
 #![deny(clippy::all)]
@@ -62,19 +72,4 @@ pub fn version() -> String {
     let string_version = c_str_version.to_string_lossy().into_owned();
     unsafe { openvino_sys::ov_version_free(std::ptr::addr_of_mut!(ov_version)) };
     string_version
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_init_core() {
-        let _ = Core::new().expect("to instantiate the OpenVINO library");
-    }
-
-    #[test]
-    fn test_version() {
-        assert!(version().starts_with("2"));
-    }
 }
