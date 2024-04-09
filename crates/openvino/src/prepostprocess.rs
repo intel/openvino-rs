@@ -90,13 +90,6 @@ impl PreProcessInputModelInfo {
 }
 
 impl PreProcessInputTensorInfo {
-    /// Creates a new `PreprocessInputTensorInfo` instance.
-    pub fn new() -> Result<Self> {
-        Ok(Self {
-            instance: std::ptr::null_mut(),
-        })
-    }
-
     /// Sets the layout for the input tensor.
     pub fn preprocess_input_tensor_set_layout(&self, layout: &Layout) -> Result<()> {
         try_unsafe!(ov_preprocess_input_tensor_info_set_layout(
