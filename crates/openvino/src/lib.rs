@@ -62,12 +62,7 @@ pub fn version() -> Version {
     };
     let code = unsafe { openvino_sys::ov_get_openvino_version(&mut ov_version) };
     assert_eq!(code, 0);
-    let c_str_version = unsafe { std::ffi::CStr::from_ptr(ov_version.buildNumber) };
-    let c_str_description = unsafe { std::ffi::CStr::from_ptr(ov_version.description) };
-    let version = Version {
-        build_number: c_str_version.to_string_lossy().into_owned(),
-        description: c_str_description.to_string_lossy().into_owned(),
-    };
+    let version = Version::from(&ov_version);
     unsafe { openvino_sys::ov_version_free(std::ptr::addr_of_mut!(ov_version)) };
     version
 }

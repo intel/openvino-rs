@@ -6,7 +6,7 @@ use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
 /// `DeviceType` represents accelerator devices.
-#[derive(Debug)]
+#[derive(Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
 pub enum DeviceType<'a> {
     /// [CPU Device](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/cpu-device.html)
     CPU,

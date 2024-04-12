@@ -8,11 +8,14 @@ use crate::{model::CompiledModel, Model};
 use crate::{SetupError, Tensor};
 use openvino_sys::{
     self, ov_core_compile_model, ov_core_create, ov_core_create_with_config, ov_core_free,
-    ov_core_read_model, ov_core_read_model_from_memory_buffer, ov_core_t,
+    ov_core_get_versions_by_device_name, ov_core_read_model, ov_core_read_model_from_memory_buffer,
+    ov_core_t,
 };
 use std::collections::HashMap;
 use std::ffi::CString;
 use std::path::Path;
+use std::slice;
+use std::str::FromStr;
 
 /// See [Core](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__core__c__api.html).
 pub struct Core {
@@ -63,8 +66,36 @@ impl Core {
     ///
     /// Device name can be complex and identify multiple devices at once like `HETERO:CPU,GPU`;
     /// in this case, the returned map contains multiple entries, each per device.
-    pub fn versions(&self, device_name: &str) -> HashMap<DeviceType, Version> {
-        todo!()
+    pub fn versions<DN>(&self, device_name: DN) -> Result<HashMap<DeviceType, Version>>
+    where
+        DN: for<'a> Into<&'a str>,
+    {
+        let device_name: &str = device_name.into();
+        let device_name = cstr!(device_name);
+        let mut ov_version_list = openvino_sys::ov_core_version_list_t {
+            versions: std::ptr::null_mut(),
+            size: 0,
+        };
+        try_unsafe!(ov_core_get_versions_by_device_name(
+            self.instance,
+            device_name.as_ptr(),
+            std::ptr::addr_of_mut!(ov_version_list)
+        ))?;
+
+        let ov_versions =
+            unsafe { slice::from_raw_parts(ov_version_list.versions, ov_version_list.size) };
+
+        let mut versions: HashMap<DeviceType, Version> =
+            HashMap::with_capacity(ov_version_list.size);
+        for ov_version in ov_versions {
+            let c_str_device_name = unsafe { std::ffi::CStr::from_ptr(ov_version.device_name) };
+            let device_name = c_str_device_name.to_string_lossy();
+            let device_type = DeviceType::from_str(device_name.as_ref()).unwrap();
+            versions.insert(device_type, Version::from(&ov_version.version));
+        }
+
+        unsafe { openvino_sys::ov_core_versions_free(std::ptr::addr_of_mut!(ov_version_list)) };
+        Ok(versions)
     }
 
     /// Gets devices available for inference.
