@@ -7,9 +7,10 @@ use crate::{cstr, drop_using_function, try_unsafe, util::Result, DeviceType, Ver
 use crate::{model::CompiledModel, Model};
 use crate::{SetupError, Tensor};
 use openvino_sys::{
-    self, ov_core_compile_model, ov_core_create, ov_core_create_with_config, ov_core_free,
+    self, ov_available_devices_free, ov_core_compile_model, ov_core_create,
+    ov_core_create_with_config, ov_core_free, ov_core_get_available_devices,
     ov_core_get_versions_by_device_name, ov_core_read_model, ov_core_read_model_from_memory_buffer,
-    ov_core_t,
+    ov_core_t, ov_core_versions_free,
 };
 use std::collections::HashMap;
 use std::ffi::CString;
@@ -93,13 +94,35 @@ impl Core {
             versions.insert(device_type, Version::from(&ov_version.version));
         }
 
-        unsafe { openvino_sys::ov_core_versions_free(std::ptr::addr_of_mut!(ov_version_list)) };
+        unsafe { ov_core_versions_free(std::ptr::addr_of_mut!(ov_version_list)) };
         Ok(versions)
     }
 
     /// Gets devices available for inference.
-    pub fn available_devices(&self) -> Vec<DeviceType> {
-        todo!()
+    pub fn available_devices(&self) -> Result<Vec<DeviceType>> {
+        let mut ov_available_devices = openvino_sys::ov_available_devices_t {
+            devices: std::ptr::null_mut(),
+            size: 0,
+        };
+        try_unsafe!(ov_core_get_available_devices(
+            self.instance,
+            std::ptr::addr_of_mut!(ov_available_devices)
+        ))?;
+
+        let ov_devices = unsafe {
+            slice::from_raw_parts(ov_available_devices.devices, ov_available_devices.size)
+        };
+
+        let mut devices = Vec::with_capacity(ov_available_devices.size);
+        for ov_device in ov_devices {
+            let c_str_device_name = unsafe { std::ffi::CStr::from_ptr(*ov_device) };
+            let device_name = c_str_device_name.to_string_lossy();
+            let device_type = DeviceType::from_str(device_name.as_ref()).unwrap();
+            devices.push(device_type);
+        }
+
+        unsafe { ov_available_devices_free(std::ptr::addr_of_mut!(ov_available_devices)) };
+        Ok(devices)
     }
 
     /// Gets properties related to device behaviour.
