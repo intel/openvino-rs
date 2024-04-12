@@ -2,6 +2,7 @@ use crate::cstr;
 use std::borrow::Cow;
 use std::convert::Infallible;
 use std::ffi::CString;
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
 /// `DeviceType` represents accelerator devices.
@@ -72,5 +73,11 @@ impl FromStr for DeviceType<'static> {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(DeviceType::from(s).to_owned())
+    }
+}
+
+impl Display for DeviceType<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.into())
     }
 }
