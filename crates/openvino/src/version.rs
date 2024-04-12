@@ -1,7 +1,7 @@
-/// TODO
+/// Represents OpenVINO version information.
 pub struct Version {
-    /// TODO
+    /// A string representing OpenVINO version.
     pub build_number: String,
-    /// TODO
+    /// A string representing OpenVINO description.
     pub description: String,
 }

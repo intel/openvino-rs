@@ -54,21 +54,22 @@ pub use version::Version;
 /// # Panics
 ///
 /// Panics if no OpenVINO library can be found.
-pub fn version() -> String {
-    use std::ffi::CStr;
+pub fn version() -> Version {
     openvino_sys::load().expect("to have an OpenVINO shared library available");
     let mut ov_version = openvino_sys::ov_version_t {
-        // Initialize the fields to default values
-        description: std::ptr::null(),
         buildNumber: std::ptr::null(),
+        description: std::ptr::null(),
     };
     let code = unsafe { openvino_sys::ov_get_openvino_version(&mut ov_version) };
     assert_eq!(code, 0);
-    let version_ptr = { ov_version }.buildNumber;
-    let c_str_version = unsafe { CStr::from_ptr(version_ptr) };
-    let string_version = c_str_version.to_string_lossy().into_owned();
+    let c_str_version = unsafe { std::ffi::CStr::from_ptr(ov_version.buildNumber) };
+    let c_str_description = unsafe { std::ffi::CStr::from_ptr(ov_version.description) };
+    let version = Version {
+        build_number: c_str_version.to_string_lossy().into_owned(),
+        description: c_str_description.to_string_lossy().into_owned(),
+    };
     unsafe { openvino_sys::ov_version_free(std::ptr::addr_of_mut!(ov_version)) };
-    string_version
+    version
 }
 
 #[cfg(test)]
@@ -82,6 +83,6 @@ mod tests {
 
     #[test]
     fn test_version() {
-        assert!(version().starts_with("2"));
+        assert!(version().build_number.starts_with("2"));
     }
 }
