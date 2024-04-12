@@ -2,15 +2,17 @@
 //! [API](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__core__c__api.html).
 
 use crate::error::{IOError, LoadingError, PathError};
-use crate::{cstr, drop_using_function, try_unsafe, util::Result};
+use crate::property::PropertyKey;
+use crate::{cstr, drop_using_function, try_unsafe, util::Result, DeviceType, Version};
 use crate::{model::CompiledModel, Model};
 use crate::{SetupError, Tensor};
-use std::path::Path;
-
 use openvino_sys::{
     self, ov_core_compile_model, ov_core_create, ov_core_create_with_config, ov_core_free,
     ov_core_read_model, ov_core_read_model_from_memory_buffer, ov_core_t,
 };
+use std::collections::HashMap;
+use std::ffi::CString;
+use std::path::Path;
 
 /// See [Core](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__core__c__api.html).
 pub struct Core {
@@ -57,6 +59,31 @@ impl Core {
         Ok(Core { instance })
     }
 
+    /// Gets device plugins version information.
+    ///
+    /// Device name can be complex and identify multiple devices at once like `HETERO:CPU,GPU`;
+    /// in this case, the returned map contains multiple entries, each per device.
+    pub fn versions(&self, device_name: &str) -> HashMap<DeviceType, Version> {
+        todo!()
+    }
+
+    /// Gets devices available for inference.
+    pub fn available_devices(&self) -> Vec<DeviceType> {
+        todo!()
+    }
+
+    /// Gets properties related to device behaviour.
+    ///
+    /// The method extracts information that can be set via the [set_property] method.
+    pub fn property(&self, device_name: DeviceType, key: PropertyKey) -> &str {
+        todo!()
+    }
+
+    /// Sets properties for a device.
+    pub fn set_property(&mut self, device_name: DeviceType, key: PropertyKey, value: &str) {
+        todo!()
+    }
+
     /// Read a Model from a pair of files: `model` points to an XML file containing the
     /// OpenVINO model IR and `weights` points to the binary weights file.
     pub fn read_model_from_file<MP, WP>(
@@ -98,9 +125,8 @@ impl Core {
     }
 
     /// Compile a model.
-    pub fn compile_model(&mut self, model: &Model, device: &str) -> Result<CompiledModel> {
-        // TODO create a Device enum?
-        let device = cstr!(device);
+    pub fn compile_model(&mut self, model: &Model, device: DeviceType) -> Result<CompiledModel> {
+        let device: CString = device.into();
         let num_property_args = 0;
         let mut instance = std::ptr::null_mut();
         try_unsafe!(ov_core_compile_model(

@@ -16,18 +16,23 @@
 )]
 
 mod core;
+mod device_type;
 mod element_type;
 mod error;
 mod layout;
 mod model;
 mod port;
 mod prepostprocess;
+mod property;
 mod request;
+mod resize_algorithm;
 mod shape;
 mod tensor;
 mod util;
+mod version;
 
-pub use crate::core::Core;
+pub use core::Core;
+pub use device_type::DeviceType;
 pub use element_type::ElementType;
 pub use error::{InferenceError, LoadingError, SetupError};
 pub use layout::Layout;
@@ -37,9 +42,12 @@ pub use prepostprocess::{
     PrePostProcess, PreprocessInputInfo, PreprocessInputModelInfo, PreprocessInputTensorInfo,
     PreprocessOutputInfo, PreprocessOutputTensorInfo, PreprocessSteps,
 };
+pub use property::PropertyKey;
 pub use request::InferRequest;
+pub use resize_algorithm::ResizeAlgorithm;
 pub use shape::Shape;
 pub use tensor::Tensor;
+pub use version::Version;
 
 /// Emit the version string of the OpenVINO C API backing this implementation.
 ///
@@ -49,7 +57,6 @@ pub use tensor::Tensor;
 pub fn version() -> String {
     use std::ffi::CStr;
     openvino_sys::load().expect("to have an OpenVINO shared library available");
-    //let mut ov_version = std::ptr::null_mut();
     let mut ov_version = openvino_sys::ov_version_t {
         // Initialize the fields to default values
         description: std::ptr::null(),

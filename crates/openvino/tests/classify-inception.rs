@@ -4,7 +4,9 @@ mod fixtures;
 mod util;
 
 use fixtures::inception::Fixture;
-use openvino::{Core, ElementType, Layout, PrePostProcess, Shape, Tensor};
+use openvino::{
+    Core, DeviceType, ElementType, Layout, PrePostProcess, ResizeAlgorithm, Shape, Tensor,
+};
 use std::fs;
 use util::{Prediction, Predictions};
 
@@ -32,7 +34,7 @@ fn classify_inception() -> anyhow::Result<()> {
     let input_layout = Layout::new(&layout_tensor_string)?;
     input_tensor_info.set_layout(&input_layout)?;
     let mut preprocess_steps = input_info.preprocess_steps()?;
-    preprocess_steps.resize(0)?;
+    preprocess_steps.resize(ResizeAlgorithm::Linear)?;
 
     let model_info = input_info.model_info()?;
     let layout_string = "NCHW";
@@ -49,7 +51,7 @@ fn classify_inception() -> anyhow::Result<()> {
     assert_eq!(output_port.name()?, "InceptionV3/Predictions/Softmax");
 
     // Load the model.
-    let mut executable_model = core.compile_model(&new_model, "CPU")?;
+    let mut executable_model = core.compile_model(&new_model, DeviceType::CPU)?;
     let mut infer_request = executable_model.create_infer_request()?;
 
     // Execute inference.

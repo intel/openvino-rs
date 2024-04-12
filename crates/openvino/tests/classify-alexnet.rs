@@ -4,7 +4,9 @@ mod fixtures;
 mod util;
 
 use fixtures::alexnet::Fixture;
-use openvino::{Core, ElementType, Layout, PrePostProcess, Shape, Tensor};
+use openvino::{
+    Core, DeviceType, ElementType, Layout, PrePostProcess, ResizeAlgorithm, Shape, Tensor,
+};
 use std::fs;
 use util::{Prediction, Predictions};
 
@@ -43,7 +45,7 @@ fn classify_alexnet() -> anyhow::Result<()> {
 
     //set any preprocessing steps
     let mut preprocess_steps = input_info.preprocess_steps()?;
-    preprocess_steps.resize(0)?;
+    preprocess_steps.resize(ResizeAlgorithm::Linear)?;
     let model_info = input_info.model_info()?;
 
     //set model input layout
@@ -58,7 +60,7 @@ fn classify_alexnet() -> anyhow::Result<()> {
     let new_model = pre_post_process.build()?;
 
     // Load the model.
-    let mut executable_model = core.compile_model(&new_model, "CPU")?;
+    let mut executable_model = core.compile_model(&new_model, DeviceType::CPU)?;
 
     //create an inference request
     let mut infer_request = executable_model.create_infer_request()?;

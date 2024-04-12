@@ -4,7 +4,9 @@ mod fixtures;
 //mod util;
 
 use fixtures::inception_ssd::Fixture;
-use openvino::{Core, ElementType, Layout, PrePostProcess, Shape, Tensor};
+use openvino::{
+    Core, DeviceType, ElementType, Layout, PrePostProcess, ResizeAlgorithm, Shape, Tensor,
+};
 use std::fs;
 
 #[test]
@@ -32,7 +34,7 @@ fn detect_inception() -> anyhow::Result<()> {
     let input_layout = Layout::new("NHWC")?;
     input_tensor_info.set_layout(&input_layout)?;
     let mut preprocess_steps = input_info.preprocess_steps()?;
-    preprocess_steps.resize(0)?;
+    preprocess_steps.resize(ResizeAlgorithm::Linear)?;
     preprocess_steps.convert_element_type(ElementType::F32)?;
     // Note: Optional
     // let input_layout_convert = Layout::new("NCHW")?;
@@ -49,7 +51,7 @@ fn detect_inception() -> anyhow::Result<()> {
     let new_model = pre_post_process.build()?;
 
     // Load the model.
-    let mut executable_model = core.compile_model(&new_model, "CPU")?;
+    let mut executable_model = core.compile_model(&new_model, DeviceType::CPU)?;
     let mut infer_request = executable_model.create_infer_request()?;
 
     // Execute inference.

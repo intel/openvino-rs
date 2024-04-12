@@ -1,6 +1,7 @@
 /// See [`Pre Post Process`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__prepostprocess__c__api.html).
 use crate::{
-    cstr, drop_using_function, layout::Layout, try_unsafe, util::Result, ElementType, Model, Tensor,
+    cstr, drop_using_function, layout::Layout, try_unsafe, util::Result, ElementType, Model,
+    ResizeAlgorithm, Tensor,
 };
 use openvino_sys::{
     ov_preprocess_input_info_free, ov_preprocess_input_info_get_model_info,
@@ -202,11 +203,10 @@ impl PrePostProcess {
 
 impl PreprocessSteps {
     /// Resizes data in tensor
-    pub fn resize(&mut self, resize_algo: u32) -> Result<()> {
-        // TODO resize algorithm should be an enum
+    pub fn resize(&mut self, resize_algo: ResizeAlgorithm) -> Result<()> {
         try_unsafe!(ov_preprocess_preprocess_steps_resize(
             self.instance,
-            resize_algo,
+            resize_algo as u32,
         ))
     }
 
