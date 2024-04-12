@@ -68,10 +68,9 @@ impl Core {
     /// in this case, the returned map contains multiple entries, each per device.
     pub fn versions<DN>(&self, device_name: DN) -> Result<HashMap<DeviceType, Version>>
     where
-        DN: for<'a> Into<&'a str>,
+        DN: AsRef<str>,
     {
-        let device_name: &str = device_name.into();
-        let device_name = cstr!(device_name);
+        let device_name = cstr!(device_name.as_ref());
         let mut ov_version_list = openvino_sys::ov_core_version_list_t {
             versions: std::ptr::null_mut(),
             size: 0,

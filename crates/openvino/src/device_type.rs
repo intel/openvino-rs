@@ -35,9 +35,9 @@ impl DeviceType<'_> {
     }
 }
 
-impl<'a> From<&'a DeviceType<'a>> for &'a str {
-    fn from(value: &'a DeviceType) -> Self {
-        match value {
+impl AsRef<str> for DeviceType<'_> {
+    fn as_ref(&self) -> &str {
+        match self {
             DeviceType::CPU => "CPU",
             DeviceType::GPU => "GPU",
             DeviceType::NPU => "NPU",
@@ -48,10 +48,15 @@ impl<'a> From<&'a DeviceType<'a>> for &'a str {
     }
 }
 
+impl<'a> From<&'a DeviceType<'a>> for &'a str {
+    fn from(value: &'a DeviceType) -> Self {
+        value.as_ref()
+    }
+}
+
 impl<'a> From<DeviceType<'a>> for CString {
     fn from(value: DeviceType) -> Self {
-        let device: &str = (&value).into();
-        cstr!(device)
+        cstr!(value.as_ref())
     }
 }
 
