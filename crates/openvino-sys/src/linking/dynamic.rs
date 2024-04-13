@@ -4,9 +4,7 @@ macro_rules! link {
     (
         $(
             extern "C" {
-                $(#[doc=$doc:expr])*
-                $(#[cfg($cfg:meta)])*
-                pub fn $name:ident($($pname:ident: $pty:ty),* $(,)?$(,...)?) $(-> $ret:ty)*;
+                $($func:item)+
             }
         )+
     ) => (
@@ -22,11 +20,7 @@ macro_rules! link {
 
         // Re-export all of the shared functions as-is.
         extern "C" {
-            $(
-                $(#[doc=$doc])*
-                $(#[cfg($cfg)])*
-                pub fn $name($($pname: $pty), *) $(-> $ret)*;
-            )+
+            $($($func)+)+
         }
     )
 }

@@ -145,13 +145,12 @@ impl Core {
     pub fn set_property(&mut self, key: RwPropertyKey, value: &str) -> Result<()> {
         let ov_prop_key = cstr!(key.as_ref());
         let ov_prop_value = cstr!(value);
-        // TODO unable to call variadic C functions
-        // try_unsafe!(ov_core_set_property(
-        //     self.instance,
-        //     EMPTY_C_STR.as_ptr(),
-        //     ov_prop_key.as_ptr(),
-        //     ov_prop_value.as_ptr(),
-        // ))?;
+        try_unsafe!(ov_core_set_property(
+            self.instance,
+            EMPTY_C_STR.as_ptr(),
+            ov_prop_key.as_ptr(),
+            ov_prop_value.as_ptr(),
+        ))?;
         Ok(())
     }
 
@@ -194,7 +193,15 @@ impl Core {
         key: RwPropertyKey,
         value: &str,
     ) -> Result<()> {
-        // TODO
+        let ov_device_name = cstr!(device_name.as_ref());
+        let ov_prop_key = cstr!(key.as_ref());
+        let ov_prop_value = cstr!(value);
+        try_unsafe!(ov_core_set_property(
+            self.instance,
+            ov_device_name.as_ptr(),
+            ov_prop_key.as_ptr(),
+            ov_prop_value.as_ptr(),
+        ))?;
         Ok(())
     }
 
