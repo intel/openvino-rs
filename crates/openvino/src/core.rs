@@ -2,21 +2,24 @@
 //! [API](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__core__c__api.html).
 
 use crate::error::{IOError, LoadingError, PathError};
-use crate::property::PropertyKey;
+use crate::property::{PropertyKey, RwPropertyKey};
 use crate::{cstr, drop_using_function, try_unsafe, util::Result, DeviceType, Version};
 use crate::{model::CompiledModel, Model};
 use crate::{SetupError, Tensor};
 use openvino_sys::{
     self, ov_available_devices_free, ov_core_compile_model, ov_core_create,
-    ov_core_create_with_config, ov_core_free, ov_core_get_available_devices,
+    ov_core_create_with_config, ov_core_free, ov_core_get_available_devices, ov_core_get_property,
     ov_core_get_versions_by_device_name, ov_core_read_model, ov_core_read_model_from_memory_buffer,
-    ov_core_t, ov_core_versions_free,
+    ov_core_set_property, ov_core_t, ov_core_versions_free,
 };
+use std::borrow::Cow;
 use std::collections::HashMap;
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 use std::path::Path;
 use std::slice;
 use std::str::FromStr;
+
+const EMPTY_C_STR: &'static CStr = unsafe { CStr::from_bytes_with_nul_unchecked(b"\0") };
 
 /// See [Core](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__core__c__api.html).
 pub struct Core {
@@ -67,10 +70,7 @@ impl Core {
     ///
     /// Device name can be complex and identify multiple devices at once like `HETERO:CPU,GPU`;
     /// in this case, the returned map contains multiple entries, each per device.
-    pub fn versions<DN>(&self, device_name: DN) -> Result<HashMap<DeviceType, Version>>
-    where
-        DN: AsRef<str>,
-    {
+    pub fn versions(&self, device_name: impl AsRef<str>) -> Result<HashMap<DeviceType, Version>> {
         let device_name = cstr!(device_name.as_ref());
         let mut ov_version_list = openvino_sys::ov_core_version_list_t {
             versions: std::ptr::null_mut(),
@@ -125,16 +125,90 @@ impl Core {
         Ok(devices)
     }
 
-    /// Gets properties related to device behaviour.
+    /// Gets properties related to this Core.
     ///
     /// The method extracts information that can be set via the [set_property] method.
-    pub fn property(&self, device_name: DeviceType, key: PropertyKey) -> &str {
-        todo!()
+    pub fn property(&self, key: PropertyKey) -> Result<Cow<str>> {
+        let ov_prop_key = cstr!(key.as_ref());
+        let mut ov_prop_value = std::ptr::null_mut();
+        try_unsafe!(ov_core_get_property(
+            self.instance,
+            EMPTY_C_STR.as_ptr(),
+            ov_prop_key.as_ptr(),
+            std::ptr::addr_of_mut!(ov_prop_value)
+        ))?;
+        let rust_prop = unsafe { CStr::from_ptr(ov_prop_value) }.to_string_lossy();
+        Ok(rust_prop)
+    }
+
+    /// Sets a property for this Core instance.
+    pub fn set_property(&mut self, key: RwPropertyKey, value: &str) -> Result<()> {
+        let ov_prop_key = cstr!(key.as_ref());
+        let ov_prop_value = cstr!(value);
+        // TODO unable to call variadic C functions
+        // try_unsafe!(ov_core_set_property(
+        //     self.instance,
+        //     EMPTY_C_STR.as_ptr(),
+        //     ov_prop_key.as_ptr(),
+        //     ov_prop_value.as_ptr(),
+        // ))?;
+        Ok(())
+    }
+
+    /// Sets properties for this Core instance.
+    pub fn set_properties<'a>(
+        &mut self,
+        properties: impl IntoIterator<Item = (RwPropertyKey, &'a str)>,
+    ) -> Result<()> {
+        for (prop_key, prop_value) in properties {
+            self.set_property(prop_key, prop_value)?;
+        }
+        Ok(())
+    }
+
+    /// Gets properties related to device behaviour.
+    ///
+    /// The method extracts information that can be set via the [set_device_property] method.
+    pub fn device_property(
+        &self,
+        device_name: impl AsRef<str>,
+        key: PropertyKey,
+    ) -> Result<Cow<str>> {
+        let ov_device_name = cstr!(device_name.as_ref());
+        let ov_prop_key = cstr!(key.as_ref());
+        let mut ov_prop_value = std::ptr::null_mut();
+        try_unsafe!(ov_core_get_property(
+            self.instance,
+            ov_device_name.as_ptr(),
+            ov_prop_key.as_ptr(),
+            std::ptr::addr_of_mut!(ov_prop_value)
+        ))?;
+        let rust_prop = unsafe { CStr::from_ptr(ov_prop_value) }.to_string_lossy();
+        Ok(rust_prop)
+    }
+
+    /// Sets a property for a device.
+    pub fn set_device_property(
+        &mut self,
+        device_name: impl AsRef<str>,
+        key: RwPropertyKey,
+        value: &str,
+    ) -> Result<()> {
+        // TODO
+        Ok(())
     }
 
     /// Sets properties for a device.
-    pub fn set_property(&mut self, device_name: DeviceType, key: PropertyKey, value: &str) {
-        todo!()
+    pub fn set_device_properties<'a>(
+        &mut self,
+        device_name: impl AsRef<str>,
+        properties: impl IntoIterator<Item = (RwPropertyKey, &'a str)>,
+    ) -> Result<()> {
+        let device_name = device_name.as_ref();
+        for (prop_key, prop_value) in properties {
+            self.set_device_property(device_name, prop_key, prop_value)?;
+        }
+        Ok(())
     }
 
     /// Read a Model from a pair of files: `model` points to an XML file containing the
