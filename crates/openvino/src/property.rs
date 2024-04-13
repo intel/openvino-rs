@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 /// `PropertyKey` represents valid configuration properties for a [crate::Core] instance.
-#[derive(Debug)]
+#[derive(Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
 pub enum PropertyKey {
     /// A string list of supported read-only properties.
     SupportedProperties,
@@ -31,7 +31,7 @@ pub enum PropertyKey {
 }
 
 /// Read-write property keys.
-#[derive(Debug)]
+#[derive(Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
 pub enum RwPropertyKey {
     /// The directory which will be used to store any data cached by plugins.
     CacheDir,
