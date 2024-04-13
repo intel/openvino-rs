@@ -42,7 +42,7 @@ pub use prepostprocess::{
     PrePostProcess, PreprocessInputInfo, PreprocessInputModelInfo, PreprocessInputTensorInfo,
     PreprocessOutputInfo, PreprocessOutputTensorInfo, PreprocessSteps,
 };
-pub use property::PropertyKey;
+pub use property::{PropertyKey, RwPropertyKey};
 pub use request::InferRequest;
 pub use resize_algorithm::ResizeAlgorithm;
 pub use shape::Shape;
