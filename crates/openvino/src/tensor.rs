@@ -100,13 +100,13 @@ impl Tensor {
     /// # Returns
     ///
     /// The data type of elements of the tensor.
-    pub fn element_type(&self) -> Result<u32> {
-        let mut element_type = ElementType::Undefined as u32;
+    pub fn element_type(&self) -> Result<ElementType> {
+        let mut element_type: u32 = 0;
         try_unsafe!(ov_tensor_get_element_type(
             self.instance,
             std::ptr::addr_of_mut!(element_type),
         ))?;
-        Ok(element_type)
+        Ok(element_type.into())
     }
 
     /// Get the number of elements in the tensor. Product of all dimensions e.g. 1*3*227*227
@@ -207,7 +207,7 @@ mod tests {
         )
         .unwrap();
         let element_type = tensor.element_type().unwrap();
-        assert_eq!(element_type, ElementType::F32 as u32);
+        assert_eq!(element_type, ElementType::F32);
     }
 
     #[test]

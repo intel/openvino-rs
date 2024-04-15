@@ -1,6 +1,7 @@
 use crate::{try_unsafe, util::Result};
 use openvino_sys::{ov_shape_create, ov_shape_free, ov_shape_t};
 use std::convert::TryInto;
+use std::slice;
 
 /// Represents a shape in OpenVINO.
 pub struct Shape {
@@ -26,7 +27,7 @@ impl Shape {
     /// * `dimensions` - A vector of dimensions for the shape.
     pub fn new(dimensions: &[i64]) -> Result<Self> {
         let mut shape = ov_shape_t {
-            rank: 8,
+            rank: 0,
             dims: std::ptr::null_mut(),
         };
         try_unsafe!(ov_shape_create(
@@ -37,13 +38,14 @@ impl Shape {
         Ok(Self { instance: shape })
     }
 
-    /// Returns the rank of the shape.
-    ///
-    /// # Returns
-    ///
-    /// The rank of the shape
+    /// The rank of the shape (i.e. the number of dimensions).
     pub fn rank(&self) -> i64 {
         self.instance.rank
+    }
+
+    /// The dimensions of the shape.
+    pub fn dims(&self) -> &[i64] {
+        unsafe { slice::from_raw_parts(self.instance.dims, self.instance.rank as usize) }
     }
 }
 

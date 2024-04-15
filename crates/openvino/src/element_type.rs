@@ -1,8 +1,9 @@
 /// `ElementType` represents the type of elements that a tensor can hold.
-#[derive(Copy, Clone, Debug)]
+#[derive(Eq, PartialEq, Copy, Clone, Debug, Default)]
 #[repr(u32)]
 pub enum ElementType {
     /// An undefined element type.
+    #[default]
     Undefined = openvino_sys::ov_element_type_e_UNDEFINED,
     /// A dynamic element type.
     Dynamic = openvino_sys::ov_element_type_e_DYNAMIC,
@@ -40,4 +41,16 @@ pub enum ElementType {
     U64 = openvino_sys::ov_element_type_e_U64,
     /// NF4 element type.
     NF4 = openvino_sys::ov_element_type_e_NF4,
+}
+
+const LARGEST_VARIANT: u32 = openvino_sys::ov_element_type_e_NF4;
+
+impl From<u32> for ElementType {
+    fn from(value: u32) -> Self {
+        if value > LARGEST_VARIANT {
+            return ElementType::Undefined;
+        }
+        // SAFETY: ElementType has repr(u32) and the bounds have been checked
+        unsafe { std::mem::transmute(value) }
+    }
 }
