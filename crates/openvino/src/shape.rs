@@ -1,7 +1,6 @@
 use crate::{try_unsafe, util::Result};
 use openvino_sys::{ov_shape_create, ov_shape_free, ov_shape_t};
 use std::convert::TryInto;
-use std::fmt::{Debug, Formatter};
 use std::slice;
 
 /// Represents a shape in OpenVINO.
@@ -50,12 +49,6 @@ impl Shape {
     }
 }
 
-impl Debug for Shape {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.dims())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::LoadingError;
@@ -70,15 +63,5 @@ mod tests {
         let dimensions = vec![1, 2, 3, 4];
         let shape = Shape::new(&dimensions).unwrap();
         assert_eq!(shape.rank(), 4);
-    }
-
-    #[test]
-    fn test_shape_debug() {
-        openvino_sys::library::load()
-            .map_err(LoadingError::SystemFailure)
-            .unwrap();
-        let dimensions = vec![1, 2, 3, 4];
-        let shape = Shape::new(&dimensions).unwrap();
-        assert_eq!(format!("{:?}", shape), "[1, 2, 3, 4]");
     }
 }
