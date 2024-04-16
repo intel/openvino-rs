@@ -1,10 +1,14 @@
 use crate::tensor::Tensor;
 use crate::{cstr, drop_using_function, try_unsafe, util::Result};
 use openvino_sys::{
-    ov_callback_t, ov_infer_request_cancel, ov_infer_request_free, ov_infer_request_get_tensor,
-    ov_infer_request_infer, ov_infer_request_set_callback, ov_infer_request_set_tensor,
-    ov_infer_request_start_async, ov_infer_request_t, ov_infer_request_wait,
-    ov_infer_request_wait_for,
+    ov_callback_t, ov_infer_request_cancel, ov_infer_request_free,
+    ov_infer_request_get_input_tensor, ov_infer_request_get_input_tensor_by_index,
+    ov_infer_request_get_output_tensor, ov_infer_request_get_output_tensor_by_index,
+    ov_infer_request_get_tensor, ov_infer_request_infer, ov_infer_request_set_callback,
+    ov_infer_request_set_input_tensor, ov_infer_request_set_input_tensor_by_index,
+    ov_infer_request_set_output_tensor, ov_infer_request_set_output_tensor_by_index,
+    ov_infer_request_set_tensor, ov_infer_request_start_async, ov_infer_request_t,
+    ov_infer_request_wait, ov_infer_request_wait_for,
 };
 use std::ffi::c_void;
 use std::marker::PhantomData;
@@ -20,7 +24,9 @@ unsafe impl Send for InferRequest {}
 unsafe impl Sync for InferRequest {}
 
 impl InferRequest {
-    /// Retrieve a [Tensor] from the output on the model.
+    // Tensors
+
+    /// Retrieve a [Tensor] from the input or output of the model.
     pub fn tensor(&self, name: &str) -> Result<Tensor> {
         let name = cstr!(name);
         let mut tensor = std::ptr::null_mut();
@@ -41,6 +47,88 @@ impl InferRequest {
             tensor.instance
         ))
     }
+
+    // Input tensors
+
+    /// Get an input tensor from the model with only one input tensor.
+    pub fn input_tensor(&self) -> Result<Tensor> {
+        let mut tensor = std::ptr::null_mut();
+        try_unsafe!(ov_infer_request_get_input_tensor(
+            self.instance,
+            std::ptr::addr_of_mut!(tensor)
+        ))?;
+        Ok(Tensor { instance: tensor })
+    }
+
+    /// Set an input tensor for infer models with single input.
+    pub fn set_input_tensor(&mut self, tensor: &Tensor) -> Result<()> {
+        try_unsafe!(ov_infer_request_set_input_tensor(
+            self.instance,
+            tensor.instance
+        ))
+    }
+
+    /// Get an input tensor by its index.
+    pub fn input_tensor_by_index(&self, index: usize) -> Result<Tensor> {
+        let mut tensor = std::ptr::null_mut();
+        try_unsafe!(ov_infer_request_get_input_tensor_by_index(
+            self.instance,
+            index,
+            std::ptr::addr_of_mut!(tensor)
+        ))?;
+        Ok(Tensor { instance: tensor })
+    }
+
+    /// Set an input tensor to infer on by the index of tensor.
+    pub fn set_input_tensor_by_index(&mut self, index: usize, tensor: &Tensor) -> Result<()> {
+        try_unsafe!(ov_infer_request_set_input_tensor_by_index(
+            self.instance,
+            index,
+            tensor.instance
+        ))
+    }
+
+    // Output tensors
+
+    /// Get an output tensor from the model with only one output tensor.
+    pub fn output_tensor(&self) -> Result<Tensor> {
+        let mut tensor = std::ptr::null_mut();
+        try_unsafe!(ov_infer_request_get_output_tensor(
+            self.instance,
+            std::ptr::addr_of_mut!(tensor)
+        ))?;
+        Ok(Tensor { instance: tensor })
+    }
+
+    /// Set an output tensor to infer models with single output.
+    pub fn set_output_tensor(&mut self, tensor: &Tensor) -> Result<()> {
+        try_unsafe!(ov_infer_request_set_output_tensor(
+            self.instance,
+            tensor.instance
+        ))
+    }
+
+    /// Get an output tensor by its index.
+    pub fn output_tensor_by_index(&self, index: usize) -> Result<Tensor> {
+        let mut tensor = std::ptr::null_mut();
+        try_unsafe!(ov_infer_request_get_output_tensor_by_index(
+            self.instance,
+            index,
+            std::ptr::addr_of_mut!(tensor)
+        ))?;
+        Ok(Tensor { instance: tensor })
+    }
+
+    /// Set an output tensor to infer by the index of output tensor.
+    pub fn set_output_tensor_by_index(&mut self, index: usize, tensor: &Tensor) -> Result<()> {
+        try_unsafe!(ov_infer_request_set_output_tensor_by_index(
+            self.instance,
+            index,
+            tensor.instance
+        ))
+    }
+
+    // Inference
 
     /// Execute the inference request synchronously (blocking).
     pub fn infer(&mut self) -> Result<()> {
