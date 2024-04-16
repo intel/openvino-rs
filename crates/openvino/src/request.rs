@@ -195,6 +195,8 @@ where
     request: *mut ov_infer_request_t,
 }
 
+unsafe impl<F> Send for InferRequestCallbackHandle<'_, F> where F: FnMut() {}
+
 impl<F> Drop for InferRequestCallbackHandle<'_, F>
 where
     F: FnMut(),
