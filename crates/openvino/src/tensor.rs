@@ -15,6 +15,8 @@ pub struct Tensor {
 }
 drop_using_function!(Tensor, ov_tensor_free);
 
+unsafe impl Send for Tensor {}
+
 impl Tensor {
     /// Create a new [`Tensor`].
     ///
