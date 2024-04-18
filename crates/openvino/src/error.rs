@@ -42,19 +42,19 @@ impl InferenceError {
         #[allow(clippy::enum_glob_use)]
         use InferenceError::*;
         match error_code {
-            openvino_sys::IEStatusCode_OK => Ok(()),
-            openvino_sys::IEStatusCode_GENERAL_ERROR => Err(GeneralError),
-            openvino_sys::IEStatusCode_NOT_IMPLEMENTED => Err(NotImplemented),
-            openvino_sys::IEStatusCode_NETWORK_NOT_LOADED => Err(NetworkNotLoaded),
-            openvino_sys::IEStatusCode_PARAMETER_MISMATCH => Err(ParameterMismatch),
-            openvino_sys::IEStatusCode_NOT_FOUND => Err(NotFound),
-            openvino_sys::IEStatusCode_OUT_OF_BOUNDS => Err(OutOfBounds),
-            openvino_sys::IEStatusCode_UNEXPECTED => Err(Unexpected),
-            openvino_sys::IEStatusCode_REQUEST_BUSY => Err(RequestBusy),
-            openvino_sys::IEStatusCode_RESULT_NOT_READY => Err(ResultNotReady),
-            openvino_sys::IEStatusCode_NOT_ALLOCATED => Err(NotAllocated),
-            openvino_sys::IEStatusCode_INFER_NOT_STARTED => Err(InferNotStarted),
-            openvino_sys::IEStatusCode_NETWORK_NOT_READ => Err(NetworkNotReady),
+            openvino_sys::ov_status_e_OK => Ok(()),
+            openvino_sys::ov_status_e_GENERAL_ERROR => Err(GeneralError),
+            openvino_sys::ov_status_e_NOT_IMPLEMENTED => Err(NotImplemented),
+            openvino_sys::ov_status_e_NETWORK_NOT_LOADED => Err(NetworkNotLoaded),
+            openvino_sys::ov_status_e_PARAMETER_MISMATCH => Err(ParameterMismatch),
+            openvino_sys::ov_status_e_NOT_FOUND => Err(NotFound),
+            openvino_sys::ov_status_e_OUT_OF_BOUNDS => Err(OutOfBounds),
+            openvino_sys::ov_status_e_UNEXPECTED => Err(Unexpected),
+            openvino_sys::ov_status_e_REQUEST_BUSY => Err(RequestBusy),
+            openvino_sys::ov_status_e_RESULT_NOT_READY => Err(ResultNotReady),
+            openvino_sys::ov_status_e_NOT_ALLOCATED => Err(NotAllocated),
+            openvino_sys::ov_status_e_INFER_NOT_STARTED => Err(InferNotStarted),
+            openvino_sys::ov_status_e_NETWORK_NOT_READ => Err(NetworkNotReady),
             _ => Err(Undefined(error_code)),
         }
     }
@@ -66,9 +66,9 @@ impl InferenceError {
 #[allow(missing_docs)]
 #[derive(Debug, Error)]
 pub enum SetupError {
-    #[error("inference error")]
+    #[error("inference error: {0}")]
     Inference(#[from] InferenceError),
-    #[error("library loading error")]
+    #[error("library loading error: {0}")]
     Loading(#[from] LoadingError),
 }
 
@@ -78,10 +78,28 @@ pub enum SetupError {
 pub enum LoadingError {
     #[error("system failed to load shared libraries (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder): {0}")]
     SystemFailure(String),
+    #[error("invalid path: {0}")]
+    InvalidPath(#[from] PathError),
     #[error("cannot find path to shared libraries (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder)")]
     CannotFindLibraryPath,
     #[error("cannot find path to XML plugin configuration (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder)")]
     CannotFindPluginPath,
+}
+
+/// Enumerate IO failures.
+#[allow(missing_docs)]
+#[derive(Debug, Error)]
+pub enum IOError {
+    #[error("inference error: {0}")]
+    Inference(#[from] InferenceError),
+    #[error("invalid path: {0}")]
+    Path(#[from] PathError),
+}
+
+/// Enumerate the ways that file paths can fail.
+#[allow(missing_docs)]
+#[derive(Debug, Error)]
+pub enum PathError {
     #[error("unable to convert path to a UTF-8 string (see https://doc.rust-lang.org/std/path/struct.Path.html#method.to_str)")]
-    CannotStringifyPath,
+    CannotStringify,
 }

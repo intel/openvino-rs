@@ -18,6 +18,7 @@ openvino-finder = { path = "../openvino-finder", version = "0.6.0" }
 thiserror = "1.0"
 
 [dev-dependencies]
+anyhow = "1"
 float-cmp = "0.9"
 
 [features]

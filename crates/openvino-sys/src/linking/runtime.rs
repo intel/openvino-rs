@@ -6,7 +6,7 @@ macro_rules! link {
             extern "C" {
                 $(#[doc=$doc:expr])*
                 $(#[cfg($cfg:meta)])*
-                pub fn $name:ident($($pname:ident: $pty:ty),* $(,)?) $(-> $ret:ty)*;
+                pub fn $name:ident($($pname:ident: $pty:ty),* $(,)?$(,...)?) $(-> $ret:ty)*;
             }
         )+
     ) => (

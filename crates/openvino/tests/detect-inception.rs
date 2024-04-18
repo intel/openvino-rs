@@ -1,52 +1,65 @@
 //! Demonstrates using `openvino-rs` to classify an image using an Inception SSD model and a prepared input tensor. See
 //! [README](fixtures/inception/README.md) for details on how this test fixture was prepared.
 mod fixtures;
+//mod util;
 
 use fixtures::inception_ssd::Fixture;
-use openvino::{Blob, Core, Layout, Precision, ResizeAlgorithm, TensorDesc};
+use openvino::{
+    Core, DeviceType, ElementType, Layout, PrePostProcess, ResizeAlgorithm, Shape, Tensor,
+};
 use std::fs;
 
 #[test]
-fn detect_inception() {
-    let mut core = Core::new(None).unwrap();
-    let mut network = core
-        .read_network_from_file(
-            &Fixture::graph().to_string_lossy(),
-            &Fixture::weights().to_string_lossy(),
-        )
-        .unwrap();
+fn detect_inception() -> anyhow::Result<()> {
+    let mut core = Core::new()?;
 
-    let input_name = &network.get_input_name(0).unwrap();
-    assert_eq!(input_name, "image_tensor");
-    let output_name = &network.get_output_name(0).unwrap();
-    assert_eq!(output_name, "DetectionOutput");
+    let model = core.read_model_from_file(Fixture::graph(), Fixture::weights())?;
 
-    // Prepare inputs and outputs for resizing, since our input tensor is not the size the model expects.
-    network
-        .set_input_resize_algorithm(input_name, ResizeAlgorithm::RESIZE_BILINEAR)
-        .unwrap();
-    network.set_input_layout(input_name, Layout::NHWC).unwrap();
-    network
-        .set_input_precision(input_name, Precision::U8)
-        .unwrap();
-    network
-        .set_output_precision(output_name, Precision::FP32)
-        .unwrap();
+    let output_port = model.output_by_index(0)?;
+    assert_eq!(output_port.name()?, "DetectionOutput");
 
-    // Load the network.
-    let mut executable_network = core.load_network(&network, "CPU").unwrap();
-    let mut infer_request = executable_network.create_infer_request().unwrap();
+    let input_port = model.input_by_index(0)?;
+    assert_eq!(input_port.name()?, "image_tensor");
 
-    // Read the image.
-    let tensor_data = fs::read(Fixture::tensor()).unwrap();
-    let tensor_desc = TensorDesc::new(Layout::NHWC, &[1, 3, 481, 640], Precision::U8);
-    let blob = Blob::new(&tensor_desc, &tensor_data).unwrap();
+    //Set up input
+    let data = fs::read(Fixture::tensor())?;
+    let input_shape = Shape::new(&[1, 481, 640, 3])?;
+    let element_type = ElementType::U8;
+    let tensor = Tensor::new_from_host_ptr(element_type, &input_shape, &data)?;
+    let pre_post_process = PrePostProcess::new(&model)?;
+    let input_info = pre_post_process.input_info_by_name("image_tensor")?;
+    let mut input_tensor_info = input_info.tensor_info()?;
+    input_tensor_info.set_from(&tensor)?;
+
+    let input_layout = Layout::new("NHWC")?;
+    input_tensor_info.set_layout(&input_layout)?;
+    let mut preprocess_steps = input_info.preprocess_steps()?;
+    preprocess_steps.resize(ResizeAlgorithm::Linear)?;
+    preprocess_steps.convert_element_type(ElementType::F32)?;
+    // Note: Optional
+    // let input_layout_convert = Layout::new("NCHW")?;
+    // preprocess_steps.convert_layout(&input_layout_convert)?;
+
+    let model_info = input_info.model_info()?;
+    let model_layout = Layout::new("NCHW")?;
+    model_info.set_layout(&model_layout)?;
+
+    let output_info = pre_post_process.output_info_by_index(0)?;
+    let output_tensor_info = output_info.tensor_info()?;
+    output_tensor_info.set_element_type(ElementType::F32)?;
+
+    let new_model = pre_post_process.build()?;
+
+    // Load the model.
+    let mut executable_model = core.compile_model(&new_model, DeviceType::CPU)?;
+    let mut infer_request = executable_model.create_infer_request()?;
 
     // Execute inference.
-    infer_request.set_blob(input_name, &blob).unwrap();
-    infer_request.infer().unwrap();
-    let mut results = infer_request.get_blob(output_name).unwrap();
-    let buffer = unsafe { results.buffer_mut_as_type::<f32>().unwrap().to_vec() };
+    infer_request.set_tensor("image_tensor", &tensor)?;
+    infer_request.infer()?;
+    let mut results = infer_request.tensor("DetectionOutput")?;
+
+    let buffer = results.data::<f32>()?.to_vec();
 
     // Sort results (TODO extract bounding boxes instead).
     let mut results: Results = buffer
@@ -64,8 +77,8 @@ fn detect_inception() {
             Result(8, 1.0),
             Result(12, 1.0),
             Result(16, 0.9939936),
-        ][..]
-    )
+        ]
+    );
 
     // This above results should match the output of running OpenVINO's
     // `object_detection_sample_ssd` with the same inputs. This test incorrectly uses result
@@ -101,6 +114,8 @@ fn detect_inception() {
     // [3,67] element, prob = 0.301402    (5,369)-(582,480) batch id : 0
     // [ INFO ] Image out_0.bmp created!
     // [ INFO ] Execution successful
+
+    Ok(())
 }
 
 /// A structure for holding the `(category, probability)` pair extracted from the output tensor of
