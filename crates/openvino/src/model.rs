@@ -30,7 +30,7 @@ impl Model {
     }
 
     /// Get the pointer to the underlying [`ov_model_t`].
-    pub fn instance(&self) -> Result<*mut ov_model_t> {
+    pub(crate) fn instance(&self) -> Result<*mut ov_model_t> {
         Ok(self.instance)
     }
 
