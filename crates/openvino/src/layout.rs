@@ -10,7 +10,7 @@ drop_using_function!(Layout, ov_layout_free);
 
 impl Layout {
     /// Get [`ov_layout_t`] instance.
-    pub fn instance(&self) -> Result<*mut ov_layout_t> {
+    pub(crate) fn instance(&self) -> Result<*mut ov_layout_t> {
         Ok(self.instance)
     }
 
