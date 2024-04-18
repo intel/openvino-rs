@@ -2,7 +2,7 @@ use crate::{try_unsafe, util::Result};
 use openvino_sys::{ov_output_const_port_t, ov_port_get_any_name};
 use std::ffi::CStr;
 
-///Struct for Port of a model.
+/// Struct for Port of a model.
 pub struct Port {
     instance: *mut ov_output_const_port_t,
 }
