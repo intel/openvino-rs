@@ -136,7 +136,7 @@ impl InferRequest {
     }
 
     /// Starts executing the inference request asynchronously (non-blocking).
-    pub fn start_async(&mut self) -> Result<()> {
+    pub fn start_async(&self) -> Result<()> {
         try_unsafe!(ov_infer_request_start_async(self.instance))
     }
 
@@ -160,7 +160,7 @@ impl InferRequest {
     /// from the infer request. Therefore, the handle MUST be kept in memory as long as it's desired
     /// to receive callbacks.
     pub fn set_callback<'a, F>(
-        &'a mut self,
+        &'a self,
         callback: &'a mut F,
     ) -> Result<InferRequestCallbackHandle<'a, F>>
     where
