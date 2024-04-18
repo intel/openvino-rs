@@ -59,7 +59,6 @@ pub use tensor::Tensor;
 pub fn version() -> String {
     use std::ffi::CStr;
     openvino_sys::load().expect("to have an OpenVINO shared library available");
-    //let mut ov_version = std::ptr::null_mut();
     let mut ov_version = openvino_sys::ov_version_t {
         // Initialize the fields to default values
         description: std::ptr::null(),
