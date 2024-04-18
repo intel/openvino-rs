@@ -160,23 +160,25 @@ impl InferRequest {
     /// from the infer request. Therefore, the handle MUST be kept in memory as long as it's desired
     /// to receive callbacks.
     pub fn set_callback<'a, F>(
-        &mut self,
+        &'a mut self,
         callback: &'a mut F,
     ) -> Result<InferRequestCallbackHandle<'a, F>>
     where
-        F: FnMut(),
+        F: FnMut() + 'a,
     {
-        let ov_callback = ov_callback_t {
+        let ov_callback = Box::new(ov_callback_t {
             callback_func: Some(trampoline::<F>),
             args: callback as *mut F as *mut c_void,
-        };
+        });
+        let ov_callback_ptr: *const ov_callback_t = &*ov_callback;
         try_unsafe!(ov_infer_request_set_callback(
             self.instance,
-            std::ptr::addr_of!(ov_callback)
+            ov_callback_ptr
         ))?;
         Ok(InferRequestCallbackHandle {
             boo: PhantomData,
             request: self.instance,
+            _callback: ov_callback,
         })
     }
 
@@ -191,8 +193,9 @@ pub struct InferRequestCallbackHandle<'a, F>
 where
     F: FnMut() + 'a,
 {
-    boo: PhantomData<&'a F>,
+    boo: PhantomData<&'a mut F>,
     request: *mut ov_infer_request_t,
+    _callback: Box<ov_callback_t>,
 }
 
 unsafe impl<F> Send for InferRequestCallbackHandle<'_, F> where F: FnMut() {}
@@ -203,11 +206,7 @@ where
 {
     fn drop(&mut self) {
         // If callback handle is dropped, automatically clear it from infer request
-        let ov_callback = ov_callback_t {
-            callback_func: Some(noop),
-            args: std::ptr::null_mut(),
-        };
-        unsafe { ov_infer_request_set_callback(self.request, std::ptr::addr_of!(ov_callback)) };
+        unsafe { ov_infer_request_set_callback(self.request, std::ptr::addr_of!(NOOP.callback)) };
     }
 }
 
@@ -222,3 +221,17 @@ where
 
 /// An empty C/FFI function used to clear the callback for an infer request
 unsafe extern "C" fn noop(_: *mut c_void) {}
+
+struct Noop {
+    callback: ov_callback_t,
+}
+
+unsafe impl Send for Noop {}
+unsafe impl Sync for Noop {}
+
+static NOOP: Noop = Noop {
+    callback: ov_callback_t {
+        callback_func: Some(noop),
+        args: std::ptr::null_mut(),
+    },
+};
