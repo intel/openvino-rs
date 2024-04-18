@@ -104,11 +104,13 @@ pub fn find(library_name: &str) -> Option<PathBuf> {
 /// This differentiation is important on Windows, which requires ".lib" when linking:
 /// https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-creation#creating-an-import-library
 pub fn find_link(library_name: &str) -> Option<PathBuf> {
-    if cfg!(windows) {
-        find_import_library(library_name)
-    } else {
-        find(library_name)
-    }
+    find_import_library(library_name)
+}
+
+#[cfg(target_os = "linux")]
+#[inline(always)]
+fn find_import_library(library_name: &str) -> Option<PathBuf> {
+    find(library_name)
 }
 
 #[cfg(target_os = "windows")]
