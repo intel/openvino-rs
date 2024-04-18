@@ -11,7 +11,7 @@ use openvino_sys::{
 /// See [`Tensor`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__tensor__c__api.html).
 pub struct Tensor {
     /// Pointer to the underlying OpenVINO tensor.
-    pub instance: *mut ov_tensor_t,
+    pub(crate) instance: *mut ov_tensor_t,
 }
 drop_using_function!(Tensor, ov_tensor_free);
 
