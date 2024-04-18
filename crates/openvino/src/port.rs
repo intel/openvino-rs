@@ -17,7 +17,7 @@ impl Port {
     pub(crate) fn new(instance: *mut ov_output_const_port_t) -> Result<Self> {
         Ok(Self { instance })
     }
-    ///Get name of a port.
+    /// Get name of a port.
     pub fn get_name(&self) -> Result<String> {
         let mut c_name = std::ptr::null_mut();
         try_unsafe!(ov_port_get_any_name(
