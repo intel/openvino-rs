@@ -20,7 +20,7 @@ impl Drop for Shape {
 
 impl Shape {
     /// Get the pointer to the underlying OpenVINO shape.
-    pub fn instance(&self) -> ov_shape_t {
+    pub(crate) fn instance(&self) -> ov_shape_t {
         self.instance
     }
 
