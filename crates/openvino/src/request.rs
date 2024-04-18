@@ -12,7 +12,6 @@ use openvino_sys::{
 };
 use std::ffi::c_void;
 use std::marker::PhantomData;
-use std::pin::Pin;
 use std::time::Duration;
 
 /// See [`InferRequest`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__infer__request__c__api.html).
@@ -162,12 +161,11 @@ impl InferRequest {
     /// to receive callbacks.
     pub fn set_callback<'a, F>(
         &mut self,
-        callback: Pin<&'a mut F>,
+        callback: &'a mut F,
     ) -> Result<InferRequestCallbackHandle<'a, F>>
     where
         F: FnMut(),
     {
-        let callback = unsafe { callback.get_unchecked_mut() };
         let ov_callback = ov_callback_t {
             callback_func: Some(trampoline::<F>),
             args: callback as *mut F as *mut c_void,
