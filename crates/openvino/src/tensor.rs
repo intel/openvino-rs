@@ -10,7 +10,6 @@ use openvino_sys::{
 
 /// See [`Tensor`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__tensor__c__api.html).
 pub struct Tensor {
-    /// Pointer to the underlying OpenVINO tensor.
     instance: *mut ov_tensor_t,
 }
 drop_using_function!(Tensor, ov_tensor_free);
@@ -22,15 +21,6 @@ impl Tensor {
     }
 
     /// Create a new [`Tensor`].
-    ///
-    /// # Arguments
-    ///
-    /// * `data_type` - The data type of the tensor.
-    /// * `shape` - The shape of the tensor.
-    ///
-    /// # Returns
-    ///
-    /// A new `Tensor` object.
     pub fn new(data_type: ElementType, shape: &Shape) -> Result<Self> {
         let mut tensor = std::ptr::null_mut();
         let element_type = data_type as u32;
@@ -67,20 +57,12 @@ impl Tensor {
         Ok(Self { instance: tensor })
     }
 
-    ///Create a new [`Tensor`] from a instance pointer
+    ///Create a new [`Tensor`] from a instance pointer.
     pub(crate) fn new_from_instance(instance: *mut ov_tensor_t) -> Result<Self> {
         Ok(Self { instance })
     }
 
-    /// (Re)Set the shape of the tensor to a new shape
-    ///
-    /// # Arguments
-    ///
-    /// * `shape` - The new shape of the tensor.
-    ///
-    /// # Returns
-    ///
-    /// A new `Tensor` object with the updated shape.
+    /// (Re)Set the shape of the tensor to a new shape.
     pub fn set_shape(&self, shape: &Shape) -> Result<Self> {
         try_unsafe!(ov_tensor_set_shape(self.instance, shape.instance()))?;
         Ok(Self {
@@ -89,10 +71,6 @@ impl Tensor {
     }
 
     /// Get the shape of the tensor.
-    ///
-    /// # Returns
-    ///
-    /// The shape of the tensor.
     pub fn get_shape(&self) -> Result<Shape> {
         let mut instance = ov_shape_t {
             rank: 0,
@@ -106,10 +84,6 @@ impl Tensor {
     }
 
     /// Get the data type of elements of the tensor.
-    ///
-    /// # Returns
-    ///
-    /// The data type of elements of the tensor.
     pub fn get_element_type(&self) -> Result<u32> {
         let mut element_type = ElementType::Undefined as u32;
         try_unsafe!(ov_tensor_get_element_type(
@@ -119,11 +93,7 @@ impl Tensor {
         Ok(element_type)
     }
 
-    /// Get the number of elements in the tensor. Product of all dimensions e.g. 1*3*227*227
-    ///
-    /// # Returns
-    ///
-    /// The number of elements in the tensor.
+    /// Get the number of elements in the tensor. Product of all dimensions e.g. 1*3*227*227.
     pub fn get_size(&self) -> Result<usize> {
         let mut elements_size = 0;
         try_unsafe!(ov_tensor_get_size(
@@ -134,10 +104,6 @@ impl Tensor {
     }
 
     /// Get the size of the tensor in bytes.
-    ///
-    /// # Returns
-    ///
-    /// The size of the tensor in bytes.
     pub fn get_byte_size(&self) -> Result<usize> {
         let mut byte_size: usize = 0;
         try_unsafe!(ov_tensor_get_byte_size(
@@ -148,10 +114,6 @@ impl Tensor {
     }
 
     /// Get a mutable reference to the data of the tensor.
-    ///
-    /// # Returns
-    ///
-    /// A mutable reference to the data of the tensor.
     pub fn get_data<T>(&mut self) -> Result<&mut [T]> {
         let mut data = std::ptr::null_mut();
         try_unsafe!(ov_tensor_data(self.instance, std::ptr::addr_of_mut!(data),))?;

@@ -9,7 +9,7 @@ pub struct Shape {
 
 impl Drop for Shape {
     /// Drops the Shape instance and frees the associated memory.
-    //Not using drop! macro since ov_shape_free returns an error code unlike other free methods
+    //Not using drop! macro since ov_shape_free returns an error code unlike other free methods.
     fn drop(&mut self) {
         let code = unsafe { ov_shape_free(std::ptr::addr_of_mut!(self.instance)) };
         assert_eq!(code, 0);
@@ -23,11 +23,8 @@ impl Shape {
     pub fn instance(&self) -> ov_shape_t {
         self.instance
     }
+
     /// Creates a new Shape instance with the given dimensions.
-    ///
-    /// # Arguments
-    ///
-    /// * `dimensions` - A vector of dimensions for the shape.
     pub fn new(dimensions: &[i64]) -> Result<Self> {
         let mut shape = ov_shape_t {
             rank: 8,
@@ -41,14 +38,12 @@ impl Shape {
         Ok(Self { instance: shape })
     }
 
+    /// Create a new shape object from ov_shape_t.
     pub(crate) fn new_from_instance(instance: ov_shape_t) -> Result<Self> {
         Ok(Self { instance })
     }
+
     /// Returns the rank of the shape.
-    ///
-    /// # Returns
-    ///
-    /// The rank of the shape
     pub fn get_rank(&self) -> Result<i64> {
         Ok(self.instance.rank)
     }

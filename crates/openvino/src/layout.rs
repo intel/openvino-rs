@@ -15,14 +15,6 @@ impl Layout {
     }
 
     /// Creates a new layout with the given description.
-    ///
-    /// # Arguments
-    ///
-    /// * `layout_desc` - The description of the layout.
-    ///
-    /// # Returns
-    ///
-    /// A new `Layout` instance.
     pub fn new(layout_desc: &str) -> Result<Self> {
         let mut layout = std::ptr::null_mut();
         let c_layout_desc = CString::new(layout_desc).unwrap();

@@ -19,13 +19,14 @@ use openvino_sys::{
     ov_preprocess_preprocess_steps_resize, ov_preprocess_preprocess_steps_t,
 };
 /// See [`Pre Post Process`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__prepostprocess__c__api.html).
+/// See [`Good Example`](https://docs.openvino.ai/2022.3/openvino_docs_OV_UG_Preprocessing_Overview.html).
 use std::ffi::CString;
 
 use crate::{
     drop_using_function, layout::Layout, try_unsafe, util::Result, ElementType, Model, Tensor,
 };
 
-/// The `PrePostprocess` struct represents pre and post-processing capabilities
+/// The `PrePostprocess` struct represents pre and post-processing capabilities.
 #[derive(Debug)]
 pub struct PrePostProcess {
     instance: *mut ov_preprocess_prepostprocessor_t,
@@ -209,7 +210,7 @@ impl PrePostProcess {
 }
 
 impl PreProcessSteps {
-    /// Resizes data in tensor
+    /// Resizes data in tensor.
     pub fn preprocess_steps_resize(&mut self, resize_algo: u32) -> Result<()> {
         try_unsafe!(ov_preprocess_preprocess_steps_resize(
             self.instance,
@@ -219,7 +220,7 @@ impl PreProcessSteps {
         Ok(())
     }
 
-    /// Converts the layout of data in tensor
+    /// Converts the layout of data in tensor.
     pub fn preprocess_convert_layout(&self, layout: &Layout) -> Result<()> {
         try_unsafe!(ov_preprocess_preprocess_steps_convert_layout(
             self.instance,
@@ -229,7 +230,7 @@ impl PreProcessSteps {
         Ok(())
     }
 
-    /// Converts the element type of data in tensor
+    /// Converts the element type of data in tensor.
     pub fn preprocess_convert_element_type(&self, element_type: ElementType) -> Result<()> {
         try_unsafe!(ov_preprocess_preprocess_steps_convert_element_type(
             self.instance,
@@ -241,7 +242,7 @@ impl PreProcessSteps {
 }
 
 impl PreProcessOutputTensorInfo {
-    /// Sets the element type for output tensor info
+    /// Sets the element type for output tensor info.
     pub fn preprocess_set_element_type(&self, element_type: ElementType) -> Result<()> {
         try_unsafe!(ov_preprocess_output_set_element_type(
             self.instance,

@@ -13,7 +13,7 @@ use openvino_sys::{
 };
 
 /// See
-/// [`CNNmodel`](https://docs.openvinotoolkit.org/latest/classInferenceEngine_1_1CNNmodel.html).
+/// [`Model`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__model__c__api.html).
 
 pub struct Model {
     instance: *mut ov_model_t,

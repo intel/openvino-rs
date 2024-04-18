@@ -28,7 +28,7 @@ impl Core {
         Ok(Core { instance })
     }
 
-    ///Construct a new OpenVINO [`Core`] with config specified in an xml file
+    ///Construct a new OpenVINO [`Core`] with config specified in an xml file.
     pub fn new_with_config(xml_config_file: &str) -> std::result::Result<Core, SetupError> {
         let mut instance = std::ptr::null_mut();
         try_unsafe!(ov_core_create_with_config(
@@ -51,7 +51,7 @@ impl Core {
         Ok(Model::new_from_instance(instance).unwrap())
     }
 
-    ///Read model with model and weights loaded in memory
+    ///Read model with model and weights loaded in memory.
     pub fn read_model_from_buffer(
         &mut self,
         model_str: &str,
@@ -68,7 +68,7 @@ impl Core {
         Ok(Model::new_from_instance(instance).unwrap())
     }
 
-    /// Compile a model to `CompiledModel`
+    /// Compile a model to `CompiledModel`.
     pub fn compile_model(&mut self, model: &Model, device: &str) -> Result<CompiledModel> {
         let mut compiled_model = std::ptr::null_mut();
         let num_property_args = 0;
