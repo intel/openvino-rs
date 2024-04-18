@@ -13,7 +13,7 @@ impl Port {
         Ok(self.instance)
     }
 
-    ///Create a new [`Port`] from [`ov_output_const_port_t`].
+    /// Create a new [`Port`] from [`ov_output_const_port_t`].
     pub(crate) fn new(instance: *mut ov_output_const_port_t) -> Result<Self> {
         Ok(Self { instance })
     }
