@@ -8,7 +8,7 @@ pub struct Port {
 }
 
 impl Port {
-    ///Get [`ov_output_const_port_t`] instance.
+    /// Get [`ov_output_const_port_t`] instance.
     pub fn instance(&self) -> Result<*mut ov_output_const_port_t> {
         Ok(self.instance)
     }
