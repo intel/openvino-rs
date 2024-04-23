@@ -16,7 +16,7 @@
 //!     // Initialize the fields to default values
 //!     description: std::ptr::null(),
 //!     buildNumber: std::ptr::null(),
-//!     };
+//! };
 //! let code = unsafe { openvino_sys::ov_get_openvino_version(&mut ov_version) };
 //! assert_eq!(code, 0);
 //! let version_ptr = { ov_version }.buildNumber;

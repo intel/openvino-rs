@@ -11,69 +11,48 @@ use util::{Prediction, Predictions};
 
 #[test]
 fn classify_alexnet() -> anyhow::Result<()> {
-    //initialize openvino runtime core
     let mut core = Core::new()?;
-
-    //Read the model
     let mut model = core.read_model_from_file(
         &Fixture::graph().to_string_lossy(),
         &Fixture::weights().to_string_lossy(),
     )?;
 
-    //Set up output port of model
     let output_port = model.get_output_by_index(0)?;
     assert_eq!(output_port.get_name()?, "prob");
+    assert_eq!(model.get_input_by_index(0)?.get_name()?, "data");
 
-    //Set up input port of model
-    let input_port = model.get_input_by_index(0)?;
-    assert_eq!(input_port.get_name()?, "data");
-
-    //Set up input
+    // Retrieve the tensor from the test fixtures.
     let data = fs::read(Fixture::tensor())?;
     let input_shape = Shape::new(&vec![1, 227, 227, 3])?;
     let element_type = ElementType::F32;
     let tensor = Tensor::new_from_host_ptr(element_type, &input_shape, &data)?;
 
-    //configure preprocessing
+    // Pre-process the input by:
+    // - converting NHWC to NCHW
+    // - resizing the input image
     let pre_post_process = PrePostProcess::new(&mut model)?;
     let input_info = pre_post_process.get_input_info_by_name("data")?;
     let mut input_tensor_info = input_info.preprocess_input_info_get_tensor_info()?;
     input_tensor_info.preprocess_input_tensor_set_from(&tensor)?;
-
-    //set layout of input tensor
-    let input_layout = Layout::new("NHWC")?;
-    input_tensor_info.preprocess_input_tensor_set_layout(&input_layout)?;
-
-    //set any preprocessing steps
+    input_tensor_info.preprocess_input_tensor_set_layout(&Layout::new("NHWC")?)?;
     let mut preprocess_steps = input_info.get_preprocess_steps()?;
     preprocess_steps.preprocess_steps_resize(0)?;
     let model_info = input_info.get_model_info()?;
-
-    //set model input layout
-    let model_layout = Layout::new("NCHW")?;
-    model_info.model_info_set_layout(&model_layout)?;
-
+    model_info.model_info_set_layout(&Layout::new("NCHW")?)?;
     let output_info = pre_post_process.get_output_info_by_index(0)?;
     let output_tensor_info = output_info.get_output_info_get_tensor_info()?;
     output_tensor_info.preprocess_set_element_type(ElementType::F32)?;
-
     let new_model = pre_post_process.build_new_model()?;
 
-    // Load the model.
+    // Compile the model and infer the results.
     let mut executable_model = core.compile_model(&new_model, "CPU")?;
-
-    //create an inference request
     let mut infer_request = executable_model.create_infer_request()?;
-
-    //Prepare input
     infer_request.set_tensor("data", &tensor)?;
-
-    // Execute inference.
     infer_request.infer()?;
     let mut results = infer_request.get_tensor(&output_port.get_name()?)?;
 
-    let buffer = results.get_data::<f32>()?.to_vec();
     // Sort results.
+    let buffer = results.get_data::<f32>()?.to_vec();
     let mut results: Predictions = buffer
         .iter()
         .enumerate()

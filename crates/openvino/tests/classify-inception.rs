@@ -11,56 +11,45 @@ use util::{Prediction, Predictions};
 
 #[test]
 fn classify_inception() -> anyhow::Result<()> {
-    //initialize openvino runtime core
     let mut core = Core::new()?;
-
-    //Read the model
     let mut model = core.read_model_from_file(
         &Fixture::graph().to_string_lossy(),
         &Fixture::weights().to_string_lossy(),
     )?;
 
-    //Set up input
+    let output_port = model.get_output_by_index(0)?;
+    assert_eq!(output_port.get_name()?, "InceptionV3/Predictions/Softmax");
+    assert_eq!(model.get_input_by_index(0)?.get_name()?, "input");
+
+    // Retrieve the tensor from the test fixtures.
     let data = fs::read(Fixture::tensor())?;
     let input_shape = Shape::new(&vec![1, 299, 299, 3])?;
     let element_type = ElementType::F32;
     let tensor = Tensor::new_from_host_ptr(element_type, &input_shape, &data)?;
 
+    // Pre-process the input by:
+    // - converting NHWC to NCHW
+    // - resizing the input image
     let pre_post_process = PrePostProcess::new(&mut model)?;
     let input_info = pre_post_process.get_input_info_by_name("input")?;
     let mut input_tensor_info = input_info.preprocess_input_info_get_tensor_info()?;
     input_tensor_info.preprocess_input_tensor_set_from(&tensor)?;
-
-    let input_layout = Layout::new("NHWC")?;
-    input_tensor_info.preprocess_input_tensor_set_layout(&input_layout)?;
+    input_tensor_info.preprocess_input_tensor_set_layout(&Layout::new("NHWC")?)?;
     let mut preprocess_steps = input_info.get_preprocess_steps()?;
     preprocess_steps.preprocess_steps_resize(0)?;
-
     let model_info = input_info.get_model_info()?;
-    let model_layout = Layout::new("NCHW")?;
-    model_info.model_info_set_layout(&model_layout)?;
-
+    model_info.model_info_set_layout(&Layout::new("NCHW")?)?;
     let new_model = pre_post_process.build_new_model()?;
 
-    let input_port = model.get_input_by_index(0)?;
-    assert_eq!(input_port.get_name()?, "input");
-
-    //Set up output
-    let output_port = model.get_output_by_index(0)?;
-    assert_eq!(output_port.get_name()?, "InceptionV3/Predictions/Softmax");
-
-    // Load the model.
+    // Compile the model and infer the results.
     let mut executable_model = core.compile_model(&new_model, "CPU")?;
     let mut infer_request = executable_model.create_infer_request()?;
-
-    // Execute inference.
     infer_request.set_tensor("input", &tensor)?;
     infer_request.infer()?;
     let mut results = infer_request.get_tensor(&output_port.get_name()?)?;
 
-    let buffer = results.get_data::<f32>()?.to_vec();
-
     // Sort results.
+    let buffer = results.get_data::<f32>()?.to_vec();
     let mut results: Predictions = buffer
         .iter()
         .enumerate()
