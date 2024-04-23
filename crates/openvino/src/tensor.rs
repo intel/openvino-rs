@@ -16,8 +16,8 @@ drop_using_function!(Tensor, ov_tensor_free);
 
 impl Tensor {
     /// Get the pointer to the underlying OpenVINO tensor.
-    pub fn instance(&self) -> Result<*mut ov_tensor_t> {
-        Ok(self.instance)
+    pub fn instance(&self) -> *mut ov_tensor_t {
+        self.instance
     }
 
     /// Create a new [`Tensor`].
@@ -80,7 +80,7 @@ impl Tensor {
             self.instance,
             std::ptr::addr_of_mut!(instance),
         ))?;
-        Ok(Shape::new_from_instance(instance).unwrap())
+        Ok(Shape::new_from_instance(instance))
     }
 
     /// Get the data type of elements of the tensor.
@@ -165,7 +165,7 @@ mod tests {
         )
         .unwrap();
         let shape = tensor.get_shape().unwrap();
-        assert_eq!(shape.get_rank().unwrap(), 4);
+        assert_eq!(shape.get_rank(), 4);
     }
 
     #[test]

@@ -83,7 +83,7 @@ impl PreProcessInputModelInfo {
     pub fn model_info_set_layout(&self, layout: &Layout) -> Result<()> {
         try_unsafe!(ov_preprocess_input_model_info_set_layout(
             self.instance,
-            layout.instance().unwrap()
+            layout.instance()
         ))?;
 
         Ok(())
@@ -95,7 +95,7 @@ impl PreProcessInputTensorInfo {
     pub fn preprocess_input_tensor_set_layout(&self, layout: &Layout) -> Result<()> {
         try_unsafe!(ov_preprocess_input_tensor_info_set_layout(
             self.instance,
-            layout.instance().unwrap()
+            layout.instance()
         ))?;
 
         Ok(())
@@ -105,7 +105,7 @@ impl PreProcessInputTensorInfo {
     pub fn preprocess_input_tensor_set_from(&mut self, tensor: &Tensor) -> Result<()> {
         try_unsafe!(ov_preprocess_input_tensor_info_set_from(
             self.instance,
-            tensor.instance().unwrap()
+            tensor.instance()
         ))?;
 
         Ok(())
@@ -117,7 +117,7 @@ impl PrePostProcess {
     pub fn new(model: &Model) -> Result<Self> {
         let mut preprocess = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_create(
-            model.instance().unwrap(),
+            model.instance(),
             std::ptr::addr_of_mut!(preprocess)
         ))?;
 
@@ -205,7 +205,7 @@ impl PrePostProcess {
             self.instance,
             std::ptr::addr_of_mut!(instance)
         ))?;
-        Ok(Model::new_from_instance(instance).unwrap())
+        Ok(Model::new_from_instance(instance))
     }
 }
 
@@ -224,7 +224,7 @@ impl PreProcessSteps {
     pub fn preprocess_convert_layout(&self, layout: &Layout) -> Result<()> {
         try_unsafe!(ov_preprocess_preprocess_steps_convert_layout(
             self.instance,
-            layout.instance().unwrap(),
+            layout.instance(),
         ))?;
 
         Ok(())

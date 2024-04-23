@@ -39,13 +39,13 @@ impl Shape {
     }
 
     /// Create a new shape object from ov_shape_t.
-    pub(crate) fn new_from_instance(instance: ov_shape_t) -> Result<Self> {
-        Ok(Self { instance })
+    pub(crate) fn new_from_instance(instance: ov_shape_t) -> Self {
+        Self { instance }
     }
 
     /// Returns the rank of the shape.
-    pub fn get_rank(&self) -> Result<i64> {
-        Ok(self.instance.rank)
+    pub fn get_rank(&self) -> i64 {
+        self.instance.rank
     }
 }
 
@@ -62,6 +62,6 @@ mod tests {
             .unwrap();
         let dimensions = vec![1, 2, 3, 4];
         let shape = Shape::new(&dimensions).unwrap();
-        assert_eq!(shape.get_rank().unwrap(), 4);
+        assert_eq!(shape.get_rank(), 4);
     }
 }

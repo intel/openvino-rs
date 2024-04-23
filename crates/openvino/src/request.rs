@@ -18,15 +18,15 @@ unsafe impl Sync for InferRequest {}
 
 impl InferRequest {
     /// Create a new [`InferRequest`] from [`ov_infer_request_t`].
-    pub(crate) fn new(instance: *mut ov_infer_request_t) -> Result<Self> {
-        Ok(Self { instance })
+    pub(crate) fn new(instance: *mut ov_infer_request_t) -> Self {
+        Self { instance }
     }
     /// Assign a [`Tensor`] to the input on the model.
     pub fn set_tensor(&mut self, name: &str, tensor: &Tensor) -> Result<()> {
         try_unsafe!(ov_infer_request_set_tensor(
             self.instance,
             cstr!(name),
-            tensor.instance().unwrap()
+            tensor.instance()
         ))?;
         Ok(())
     }
@@ -44,8 +44,7 @@ impl InferRequest {
 
     /// Execute the inference request.
     pub fn infer(&mut self) -> Result<()> {
-        try_unsafe!(ov_infer_request_infer(self.instance))?;
-        Ok(())
+        try_unsafe!(ov_infer_request_infer(self.instance))
     }
 
     /// Execute the inference request asyncroneously.

@@ -1,6 +1,6 @@
 //! Contains the model representations in OpenVINO:
-//!  - [`CNNmodel`] is the OpenVINO representation of a neural model
-//!  - [`Executablemodel`] is the compiled representation of a [`CNNmodel`] for a device.
+//!  - [`Model`] is the OpenVINO representation of a neural model
+//!  - [`CompiledModel`] is the compiled representation of a [`CompiledModel`] for a device.
 
 use crate::port::Port;
 use crate::request::InferRequest;
@@ -25,19 +25,13 @@ unsafe impl Sync for Model {}
 
 impl Model {
     /// Create a new instance of the Model struct.
-    pub(crate) fn new_from_instance(instance: *mut ov_model_t) -> Result<Self> {
-        Ok(Self { instance })
+    pub(crate) fn new_from_instance(instance: *mut ov_model_t) -> Self {
+        Self { instance }
     }
 
     /// Get the pointer to the underlying [`ov_model_t`].
-    pub(crate) fn instance(&self) -> Result<*mut ov_model_t> {
-        Ok(self.instance)
-    }
-
-    /// Create a new instance of the Model struct.
-    pub fn new() -> Result<Self> {
-        let instance = std::ptr::null_mut();
-        Ok(Self { instance })
+    pub(crate) fn instance(&self) -> *mut ov_model_t {
+        self.instance
     }
 
     /// Retrieve the number of model inputs.
@@ -62,7 +56,7 @@ impl Model {
             index,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Port::new(port).unwrap())
+        Ok(Port::new(port))
     }
 
     /// Retrieve the output port by index.
@@ -73,7 +67,7 @@ impl Model {
             index,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Port::new(port).unwrap())
+        Ok(Port::new(port))
     }
 
     /// Retrieve the constant output port by index.
@@ -84,7 +78,7 @@ impl Model {
             index,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Port::new(port).unwrap())
+        Ok(Port::new(port))
     }
 }
 
@@ -99,8 +93,8 @@ unsafe impl Send for CompiledModel {}
 
 impl CompiledModel {
     /// Create a new instance of the CompiledModel struct from ov_compiled_model_t.
-    pub(crate) fn new(instance: *mut ov_compiled_model_t) -> Result<Self> {
-        Ok(Self { instance })
+    pub(crate) fn new(instance: *mut ov_compiled_model_t) -> Self {
+        Self { instance }
     }
 
     /// Create an [`InferRequest`].
@@ -110,6 +104,6 @@ impl CompiledModel {
             self.instance,
             std::ptr::addr_of_mut!(instance)
         ))?;
-        Ok(InferRequest::new(instance).unwrap())
+        Ok(InferRequest::new(instance))
     }
 }

@@ -10,8 +10,8 @@ drop_using_function!(Layout, ov_layout_free);
 
 impl Layout {
     /// Get [`ov_layout_t`] instance.
-    pub(crate) fn instance(&self) -> Result<*mut ov_layout_t> {
-        Ok(self.instance)
+    pub(crate) fn instance(&self) -> *mut ov_layout_t {
+        self.instance
     }
 
     /// Creates a new layout with the given description.

@@ -48,7 +48,7 @@ impl Core {
             cstr!(weights_path),
             std::ptr::addr_of_mut!(instance)
         ))?;
-        Ok(Model::new_from_instance(instance).unwrap())
+        Ok(Model::new_from_instance(instance))
     }
 
     ///Read model with model and weights loaded in memory.
@@ -62,10 +62,10 @@ impl Core {
             self.instance,
             cstr!(model_str),
             model_str.len(),
-            weights_buffer.instance().unwrap(),
+            weights_buffer.instance(),
             std::ptr::addr_of_mut!(instance)
         ))?;
-        Ok(Model::new_from_instance(instance).unwrap())
+        Ok(Model::new_from_instance(instance))
     }
 
     /// Compile a model to `CompiledModel`.
@@ -74,12 +74,12 @@ impl Core {
         let num_property_args = 0;
         try_unsafe!(ov_core_compile_model(
             self.instance,
-            model.instance().unwrap(),
+            model.instance(),
             cstr!(device),
             num_property_args,
             std::ptr::addr_of_mut!(compiled_model)
         ))?;
-        Ok(CompiledModel::new(compiled_model).unwrap())
+        Ok(CompiledModel::new(compiled_model))
     }
 }
 
