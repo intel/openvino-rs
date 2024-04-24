@@ -3,43 +3,56 @@
 mod fixtures;
 mod util;
 
+use anyhow::Ok;
 use fixtures::alexnet::Fixture;
-use openvino::{Blob, Core, Layout, Precision, TensorDesc};
+use openvino::{Core, ElementType, Layout, PrePostProcess, Shape, Tensor};
 use std::fs;
 use util::{Prediction, Predictions};
 
 #[test]
-fn classify_alexnet() {
-    let mut core = Core::new(None).unwrap();
-    let mut network = core
-        .read_network_from_file(
-            &Fixture::graph().to_string_lossy(),
-            &Fixture::weights().to_string_lossy(),
-        )
-        .unwrap();
+fn classify_alexnet() -> anyhow::Result<()> {
+    let mut core = Core::new()?;
+    let mut model = core.read_model_from_file(
+        &Fixture::graph().to_string_lossy(),
+        &Fixture::weights().to_string_lossy(),
+    )?;
 
-    let input_name = &network.get_input_name(0).unwrap();
-    assert_eq!(input_name, "data");
-    network.set_input_layout(input_name, Layout::NHWC).unwrap();
-    let output_name = &network.get_output_name(0).unwrap();
-    assert_eq!(output_name, "prob");
+    let output_port = model.get_output_by_index(0)?;
+    assert_eq!(output_port.get_name()?, "prob");
+    assert_eq!(model.get_input_by_index(0)?.get_name()?, "data");
 
-    // Load the network.
-    let mut executable_network = core.load_network(&network, "CPU").unwrap();
-    let mut infer_request = executable_network.create_infer_request().unwrap();
+    // Retrieve the tensor from the test fixtures.
+    let data = fs::read(Fixture::tensor())?;
+    let input_shape = Shape::new(&vec![1, 227, 227, 3])?;
+    let element_type = ElementType::F32;
+    let tensor = Tensor::new_from_host_ptr(element_type, &input_shape, &data)?;
 
-    // Read the image.
-    let tensor_data = fs::read(Fixture::tensor()).unwrap();
-    let tensor_desc = TensorDesc::new(Layout::NHWC, &[1, 3, 227, 227], Precision::FP32);
-    let blob = Blob::new(&tensor_desc, &tensor_data).unwrap();
+    // Pre-process the input by:
+    // - converting NHWC to NCHW
+    // - resizing the input image
+    let pre_post_process = PrePostProcess::new(&mut model)?;
+    let input_info = pre_post_process.get_input_info_by_name("data")?;
+    let mut input_tensor_info = input_info.preprocess_input_info_get_tensor_info()?;
+    input_tensor_info.preprocess_input_tensor_set_from(&tensor)?;
+    input_tensor_info.preprocess_input_tensor_set_layout(&Layout::new("NHWC")?)?;
+    let mut preprocess_steps = input_info.get_preprocess_steps()?;
+    preprocess_steps.preprocess_steps_resize(0)?;
+    let model_info = input_info.get_model_info()?;
+    model_info.model_info_set_layout(&Layout::new("NCHW")?)?;
+    let output_info = pre_post_process.get_output_info_by_index(0)?;
+    let output_tensor_info = output_info.get_output_info_get_tensor_info()?;
+    output_tensor_info.preprocess_set_element_type(ElementType::F32)?;
+    let new_model = pre_post_process.build_new_model()?;
 
-    // Execute inference.
-    infer_request.set_blob(input_name, &blob).unwrap();
-    infer_request.infer().unwrap();
-    let mut results = infer_request.get_blob(output_name).unwrap();
-    let buffer = unsafe { results.buffer_mut_as_type::<f32>().unwrap().to_vec() };
+    // Compile the model and infer the results.
+    let mut executable_model = core.compile_model(&new_model, "CPU")?;
+    let mut infer_request = executable_model.create_infer_request()?;
+    infer_request.set_tensor("data", &tensor)?;
+    infer_request.infer()?;
+    let mut results = infer_request.get_tensor(&output_port.get_name()?)?;
 
     // Sort results.
+    let buffer = results.get_data::<f32>()?.to_vec();
     let mut results: Predictions = buffer
         .iter()
         .enumerate()
@@ -71,4 +84,6 @@ fn classify_alexnet() {
     // 118     0.0143028
     // 935     0.0130160
     // 965     0.0094148
+
+    Ok(())
 }

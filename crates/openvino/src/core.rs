@@ -1,109 +1,94 @@
 //! Define the core interface between Rust and OpenVINO's C
-//! [API](https://docs.openvinotoolkit.org/latest/ie_c_api/modules.html).
+//! [API](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__core__c__api.html).
 
-use crate::blob::Blob;
-use crate::tensor_desc::TensorDesc;
+use crate::error::LoadingError;
 use crate::{cstr, drop_using_function, try_unsafe, util::Result};
-use crate::{
-    error::{LoadingError, SetupError},
-    network::{CNNNetwork, ExecutableNetwork},
-};
-use crate::{Layout, Precision};
+use crate::{model::CompiledModel, Model};
+use crate::{SetupError, Tensor};
+
 use openvino_sys::{
-    self, ie_config_t, ie_core_create, ie_core_free, ie_core_load_network, ie_core_read_network,
-    ie_core_read_network_from_memory, ie_core_t,
+    self, ov_core_compile_model, ov_core_create, ov_core_create_with_config, ov_core_free,
+    ov_core_read_model, ov_core_read_model_from_memory_buffer, ov_core_t,
 };
 
-/// See [Core](https://docs.openvinotoolkit.org/latest/classInferenceEngine_1_1Core.html).
+/// See [Core](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__core__c__api.html).
 pub struct Core {
-    instance: *mut ie_core_t,
+    instance: *mut ov_core_t,
 }
-drop_using_function!(Core, ie_core_free);
+drop_using_function!(Core, ov_core_free);
 
 unsafe impl Send for Core {}
 
 impl Core {
-    /// Construct a new OpenVINO [`Core`]--this is the primary entrypoint for constructing and using
-    /// inference networks. Because this function may load OpenVINO's shared libraries at runtime,
-    /// there are more ways than usual that this function can fail (e.g., [`LoadingError`]s).
-    pub fn new(xml_config_file: Option<&str>) -> std::result::Result<Core, SetupError> {
+    /// Construct a new OpenVINO [`Core`].
+    pub fn new() -> std::result::Result<Core, SetupError> {
         openvino_sys::library::load().map_err(LoadingError::SystemFailure)?;
-
-        let file = if let Some(file) = xml_config_file {
-            cstr!(file.to_string())
-        } else if let Some(file) = openvino_finder::find_plugins_xml() {
-            cstr!(file
-                .to_str()
-                .ok_or(LoadingError::CannotStringifyPath)?
-                .to_string())
-        } else {
-            cstr!(String::new())
-        };
-
         let mut instance = std::ptr::null_mut();
-        try_unsafe!(ie_core_create(file, std::ptr::addr_of_mut!(instance)))?;
+        try_unsafe!(ov_core_create(std::ptr::addr_of_mut!(instance)))?;
         Ok(Core { instance })
     }
 
-    /// Read a [`CNNNetwork`] from a pair of files: `model_path` points to an XML file containing the
-    /// OpenVINO network IR and `weights_path` points to the binary weights file.
-    pub fn read_network_from_file(
-        &mut self,
-        model_path: &str,
-        weights_path: &str,
-    ) -> Result<CNNNetwork> {
+    ///Construct a new OpenVINO [`Core`] with config specified in an xml file.
+    pub fn new_with_config(xml_config_file: &str) -> std::result::Result<Core, SetupError> {
         let mut instance = std::ptr::null_mut();
-        try_unsafe!(ie_core_read_network(
+        try_unsafe!(ov_core_create_with_config(
+            cstr!(xml_config_file.to_string()),
+            std::ptr::addr_of_mut!(instance)
+        ))?;
+        Ok(Core { instance })
+    }
+
+    /// Read a Model from a pair of files: `model_path` points to an XML file containing the
+    /// OpenVINO model IR and `weights_path` points to the binary weights file.
+    pub fn read_model_from_file(&mut self, model_path: &str, weights_path: &str) -> Result<Model> {
+        let mut instance = std::ptr::null_mut();
+        try_unsafe!(ov_core_read_model(
             self.instance,
             cstr!(model_path),
             cstr!(weights_path),
             std::ptr::addr_of_mut!(instance)
         ))?;
-        Ok(CNNNetwork { instance })
+        Ok(Model::new_from_instance(instance))
     }
 
-    /// Read a [`CNNNetwork`] from a pair of byte slices: `model_content` contains the XML data
-    /// describing the OpenVINO network IR and `weights_content` contains the binary weights.
-    pub fn read_network_from_buffer(
+    ///Read model with model and weights loaded in memory.
+    pub fn read_model_from_buffer(
         &mut self,
-        model_content: &[u8],
-        weights_content: &[u8],
-    ) -> Result<CNNNetwork> {
+        model_str: &str,
+        weights_buffer: &Tensor,
+    ) -> Result<Model> {
         let mut instance = std::ptr::null_mut();
-        let weights_desc = TensorDesc::new(Layout::ANY, &[weights_content.len()], Precision::U8);
-        let weights_blob = Blob::new(&weights_desc, weights_content)?;
-        try_unsafe!(ie_core_read_network_from_memory(
+        try_unsafe!(ov_core_read_model_from_memory_buffer(
             self.instance,
-            model_content.as_ptr().cast::<u8>(),
-            model_content.len(),
-            weights_blob.instance,
+            cstr!(model_str),
+            model_str.len(),
+            weights_buffer.instance(),
             std::ptr::addr_of_mut!(instance)
         ))?;
-        Ok(CNNNetwork { instance })
+        Ok(Model::new_from_instance(instance))
     }
 
-    /// Instantiate a [`CNNNetwork`] as an [`ExecutableNetwork`] on the specified `device`.
-    pub fn load_network(
-        &mut self,
-        network: &CNNNetwork,
-        device: &str,
-    ) -> Result<ExecutableNetwork> {
-        let mut instance = std::ptr::null_mut();
-        // Because `ie_core_load_network` does not allow a null pointer for the configuration, we
-        // construct an empty configuration struct to pass. At some point, it could be good to allow
-        // users to pass a map to this function that gets converted to an `ie_config_t` (TODO).
-        let empty_config = ie_config_t {
-            name: std::ptr::null(),
-            value: std::ptr::null(),
-            next: std::ptr::null_mut(),
-        };
-        try_unsafe!(ie_core_load_network(
+    /// Compile a model to `CompiledModel`.
+    pub fn compile_model(&mut self, model: &Model, device: &str) -> Result<CompiledModel> {
+        let mut compiled_model = std::ptr::null_mut();
+        let num_property_args = 0;
+        try_unsafe!(ov_core_compile_model(
             self.instance,
-            network.instance,
+            model.instance(),
             cstr!(device),
-            std::ptr::addr_of!(empty_config),
-            std::ptr::addr_of_mut!(instance)
+            num_property_args,
+            std::ptr::addr_of_mut!(compiled_model)
         ))?;
-        Ok(ExecutableNetwork { instance })
+        Ok(CompiledModel::new(compiled_model))
+    }
+}
+
+#[cfg(test)]
+mod core_tests {
+    use super::*;
+    #[test]
+    fn test_new() {
+        let core = Core::new();
+        assert!(core.is_ok());
     }
 }

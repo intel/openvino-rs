@@ -12,8 +12,17 @@
 //! ```
 //! # use std::ffi::CStr;
 //! openvino_sys::library::load().expect("to have an OpenVINO library available");
-//! let version = unsafe { CStr::from_ptr(openvino_sys::ie_c_api_version().api_version) };
-//! assert!(version.to_string_lossy().starts_with("2"));
+//! let mut ov_version = openvino_sys::ov_version_t {
+//!     // Initialize the fields to default values
+//!     description: std::ptr::null(),
+//!     buildNumber: std::ptr::null(),
+//! };
+//! let code = unsafe { openvino_sys::ov_get_openvino_version(&mut ov_version) };
+//! assert_eq!(code, 0);
+//! let version_ptr = { ov_version }.buildNumber;
+//! let string_version = unsafe { CStr::from_ptr(version_ptr) }.to_string_lossy().into_owned();
+//! unsafe { openvino_sys::ov_version_free(std::ptr::addr_of_mut!(ov_version)) };
+//! assert!(string_version.starts_with("2"));
 //! ```
 
 #![allow(non_snake_case, non_camel_case_types, non_upper_case_globals)]
