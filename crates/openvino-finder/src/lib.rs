@@ -107,7 +107,7 @@ pub fn find_link(library_name: &str) -> Option<PathBuf> {
     find_import_library(library_name)
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(not(target_os = "windows"))]
 #[inline(always)]
 fn find_import_library(library_name: &str) -> Option<PathBuf> {
     find(library_name)
