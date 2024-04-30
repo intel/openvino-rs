@@ -1,3 +1,6 @@
+//! See [`PrePostProcess`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__prepostprocess__c__api.html#).
+//!
+//! See [`PrePostProcess Example`](https://docs.openvino.ai/2022.3/openvino_docs_OV_UG_Preprocessing_Overview.html).
 use openvino_sys::{
     ov_preprocess_input_info_free, ov_preprocess_input_info_get_model_info,
     ov_preprocess_input_info_get_preprocess_steps, ov_preprocess_input_info_get_tensor_info,
@@ -18,40 +21,38 @@ use openvino_sys::{
     ov_preprocess_preprocess_steps_convert_layout, ov_preprocess_preprocess_steps_free,
     ov_preprocess_preprocess_steps_resize, ov_preprocess_preprocess_steps_t,
 };
-/// See [`Pre Post Process`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__prepostprocess__c__api.html).
-/// See [`Good Example`](https://docs.openvino.ai/2022.3/openvino_docs_OV_UG_Preprocessing_Overview.html).
 use std::ffi::CString;
 
 use crate::{
     drop_using_function, layout::Layout, try_unsafe, util::Result, ElementType, Model, Tensor,
 };
 
-/// The `PrePostprocess` struct represents pre and post-processing capabilities.
+/// See [`PrePostProcess`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__prepostprocessor__t.html).
 #[derive(Debug)]
 pub struct PrePostProcess {
     instance: *mut ov_preprocess_prepostprocessor_t,
 }
 drop_using_function!(PrePostProcess, ov_preprocess_prepostprocessor_free);
 
-/// The `PreprocessInputInfo` struct represents input information for pre/postprocessing.
+/// See [`PreProcessInputInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__input__info__t.html).
 pub struct PreProcessInputInfo {
     instance: *mut ov_preprocess_input_info_t,
 }
 drop_using_function!(PreProcessInputInfo, ov_preprocess_input_info_free);
 
-/// The `PreprocessOutputInfo` struct represents output information for pre/postprocessing.
+/// See [`PreprocessOutputInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__output__info__t.html).
 pub struct PreProcessOutputInfo {
     instance: *mut ov_preprocess_output_info_t,
 }
 drop_using_function!(PreProcessOutputInfo, ov_preprocess_output_info_free);
 
-/// The `PreprocessSteps` struct represents preprocessing steps.
+/// See [`PreprocessSteps`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__preprocess__steps__t.html).
 pub struct PreProcessSteps {
     instance: *mut ov_preprocess_preprocess_steps_t,
 }
 drop_using_function!(PreProcessSteps, ov_preprocess_preprocess_steps_free);
 
-/// The `PreprocessInputModelInfo` struct represents input model information for pre/postprocessing.
+/// See [`PreprocessInputModelInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__input__model__info__t.html).
 pub struct PreProcessInputModelInfo {
     instance: *mut ov_preprocess_input_model_info_t,
 }
@@ -60,7 +61,7 @@ drop_using_function!(
     ov_preprocess_input_model_info_free
 );
 
-/// The `PreprocessInputTensorInfo` struct represents input tensor information for pre/postprocessing.
+/// See [`PreprocessInputTensorInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__input__tensor__info__t.html).
 pub struct PreProcessInputTensorInfo {
     instance: *mut ov_preprocess_input_tensor_info_t,
 }
@@ -69,7 +70,7 @@ drop_using_function!(
     ov_preprocess_input_tensor_info_free
 );
 
-/// The `PreprocessOutputTensorInfo` struct represents output tensor information for pre/postprocessing.
+/// See [`PreprocessOutputTensorInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__output__tensor__info__t.html).
 pub struct PreProcessOutputTensorInfo {
     instance: *mut ov_preprocess_output_tensor_info_t,
 }

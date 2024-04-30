@@ -5,7 +5,7 @@ mod fixtures;
 mod util;
 
 use fixtures::mobilenet::Fixture;
-use openvino::{Core, ElementType, Layout, PrePostProcess, Shape, Tensor};
+use openvino::{prepostprocess, Core, ElementType, Layout, Shape, Tensor};
 use std::fs;
 use util::{Prediction, Predictions};
 
@@ -30,7 +30,7 @@ fn classify_mobilenet() -> anyhow::Result<()> {
     // Pre-process the input by:
     // - converting NHWC to NCHW
     // - resizing the input image
-    let pre_post_process = PrePostProcess::new(&mut model)?;
+    let pre_post_process = prepostprocess::PrePostProcess::new(&mut model)?;
     let input_info = pre_post_process.get_input_info_by_name("input")?;
     let mut input_tensor_info = input_info.preprocess_input_info_get_tensor_info()?;
     input_tensor_info.preprocess_input_tensor_set_from(&tensor)?;

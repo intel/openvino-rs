@@ -6,8 +6,7 @@ use openvino_sys::{
     ov_infer_request_wait_for,
 };
 
-/// See
-/// [`InferRequest`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__tensor__c__api.html).
+/// See [`InferRequest`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__infer__request__c__api.html).
 pub struct InferRequest {
     instance: *mut ov_infer_request_t,
 }
@@ -31,7 +30,7 @@ impl InferRequest {
         Ok(())
     }
 
-    /// Retrieve a [tensor] from the output on the model.
+    /// Retrieve a [`Tensor`] from the output on the model.
     pub fn get_tensor(&self, name: &str) -> Result<Tensor> {
         let mut tensor = std::ptr::null_mut();
         try_unsafe!(ov_infer_request_get_tensor(

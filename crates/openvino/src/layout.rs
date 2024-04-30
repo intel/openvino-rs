@@ -2,7 +2,7 @@ use crate::{drop_using_function, try_unsafe, util::Result};
 use openvino_sys::{ov_layout_create, ov_layout_free, ov_layout_t};
 use std::ffi::CString;
 
-/// Represents a layout.
+/// See [`Layout`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__layout__c__api.html).
 pub struct Layout {
     instance: *mut ov_layout_t,
 }

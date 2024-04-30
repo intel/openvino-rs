@@ -11,7 +11,7 @@ use openvino_sys::{
     ov_core_read_model, ov_core_read_model_from_memory_buffer, ov_core_t,
 };
 
-/// See [Core](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__core__c__api.html).
+/// See [`Core`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__core__c__api.html).
 pub struct Core {
     instance: *mut ov_core_t,
 }
