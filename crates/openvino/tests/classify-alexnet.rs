@@ -5,7 +5,7 @@ mod util;
 
 use anyhow::Ok;
 use fixtures::alexnet::Fixture;
-use openvino::{Core, ElementType, Layout, PrePostProcess, Shape, Tensor};
+use openvino::{prepostprocess, Core, ElementType, Layout, Shape, Tensor};
 use std::fs;
 use util::{Prediction, Predictions};
 
@@ -30,7 +30,7 @@ fn classify_alexnet() -> anyhow::Result<()> {
     // Pre-process the input by:
     // - converting NHWC to NCHW
     // - resizing the input image
-    let pre_post_process = PrePostProcess::new(&mut model)?;
+    let pre_post_process = prepostprocess::PrePostProcess::new(&mut model)?;
     let input_info = pre_post_process.get_input_info_by_name("data")?;
     let mut input_tensor_info = input_info.preprocess_input_info_get_tensor_info()?;
     input_tensor_info.preprocess_input_tensor_set_from(&tensor)?;

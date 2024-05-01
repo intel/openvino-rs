@@ -2,7 +2,7 @@
 //!  - [`Model`] is the OpenVINO representation of a neural model
 //!  - [`CompiledModel`] is the compiled representation of a [`CompiledModel`] for a device.
 
-use crate::port::Port;
+use crate::node::Node;
 use crate::request::InferRequest;
 use crate::{drop_using_function, try_unsafe, util::Result};
 
@@ -12,9 +12,7 @@ use openvino_sys::{
     ov_model_inputs_size, ov_model_outputs_size, ov_model_t,
 };
 
-/// See
-/// [`Model`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__model__c__api.html).
-
+/// See [`Model`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__model__c__api.html).
 pub struct Model {
     instance: *mut ov_model_t,
 }
@@ -48,42 +46,41 @@ impl Model {
         Ok(num)
     }
 
-    /// Retrieve the input port by index.
-    pub fn get_input_by_index(&self, index: usize) -> Result<Port> {
-        let mut port = std::ptr::null_mut();
+    /// Retrieve the input node by index.
+    pub fn get_input_by_index(&self, index: usize) -> Result<Node> {
+        let mut node = std::ptr::null_mut();
         try_unsafe!(ov_model_const_input_by_index(
             self.instance,
             index,
-            std::ptr::addr_of_mut!(port)
+            std::ptr::addr_of_mut!(node)
         ))?;
-        Ok(Port::new(port))
+        Ok(Node::new(node))
     }
 
-    /// Retrieve the output port by index.
-    pub fn get_output_by_index(&self, index: usize) -> Result<Port> {
-        let mut port = std::ptr::null_mut();
+    /// Retrieve the output node by index.
+    pub fn get_output_by_index(&self, index: usize) -> Result<Node> {
+        let mut node = std::ptr::null_mut();
         try_unsafe!(ov_model_const_output_by_index(
             self.instance,
             index,
-            std::ptr::addr_of_mut!(port)
+            std::ptr::addr_of_mut!(node)
         ))?;
-        Ok(Port::new(port))
+        Ok(Node::new(node))
     }
 
-    /// Retrieve the constant output port by index.
-    pub fn get_const_output_by_index(&self, index: usize) -> Result<Port> {
-        let mut port = std::ptr::null_mut();
+    /// Retrieve the constant output node by index.
+    pub fn get_const_output_by_index(&self, index: usize) -> Result<Node> {
+        let mut node = std::ptr::null_mut();
         try_unsafe!(ov_model_const_output_by_index(
             self.instance,
             index,
-            std::ptr::addr_of_mut!(port)
+            std::ptr::addr_of_mut!(node)
         ))?;
-        Ok(Port::new(port))
+        Ok(Node::new(node))
     }
 }
 
-/// See
-/// [`CompiledModel`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__compiled__model__c__api.html).
+/// See [`CompiledModel`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__compiled__model__c__api.html).
 pub struct CompiledModel {
     instance: *mut ov_compiled_model_t,
 }

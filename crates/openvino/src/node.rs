@@ -2,12 +2,12 @@ use crate::{try_unsafe, util::Result};
 use openvino_sys::{ov_output_const_port_t, ov_port_get_any_name};
 use std::ffi::CStr;
 
-/// Struct for Port of a model.
-pub struct Port {
+/// See [`Node`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__node__c__api.html).
+pub struct Node {
     instance: *mut ov_output_const_port_t,
 }
 
-impl Port {
+impl Node {
     /// Create a new [`Port`] from [`ov_output_const_port_t`].
     pub(crate) fn new(instance: *mut ov_output_const_port_t) -> Self {
         Self { instance }

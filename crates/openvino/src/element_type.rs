@@ -1,4 +1,4 @@
-/// `ElementType` represents the type of elements that a tensor can hold.
+/// `ElementType` represents the type of elements that a tensor can hold. See [`ElementType`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__base__c__api.html#_CPPv417ov_element_type_e).
 #[derive(Debug)]
 #[repr(u32)]
 pub enum ElementType {

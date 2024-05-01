@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 /// Enumerate errors returned by the OpenVINO implementation. See
-/// [`IEStatusCode`](https://docs.openvinotoolkit.org/latest/ie_c_api/ie__c__api_8h.html#a391683b1e8e26df8b58d7033edd9ee83).
+/// [`OvStatusCode`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__base__c__api.html#_CPPv411ov_status_e).
 // TODO This could be auto-generated (https://github.com/intel/openvino-rs/issues/20).
 #[allow(missing_docs)]
 #[derive(Debug, Error, PartialEq, Eq)]
@@ -28,10 +28,18 @@ pub enum InferenceError {
     NotAllocated,
     #[error("infer not started")]
     InferNotStarted,
-    #[error("network not ready")]
-    NetworkNotReady,
+    #[error("network not read")]
+    NetworkNotRead,
+    #[error("infer cancelled")]
+    InferCancelled,
     #[error("invalid c parameter")]
     InvalidCParam,
+    #[error("unknown C error")]
+    UnknownCError,
+    #[error("not implemented C method")]
+    NotImplementCMethod,
+    #[error("unknown exception")]
+    UnknownException,
     #[error("undefined error code: {0}")]
     Undefined(i32),
 }
@@ -56,8 +64,12 @@ impl InferenceError {
             openvino_sys::ov_status_e_RESULT_NOT_READY => Err(ResultNotReady),
             openvino_sys::ov_status_e_NOT_ALLOCATED => Err(NotAllocated),
             openvino_sys::ov_status_e_INFER_NOT_STARTED => Err(InferNotStarted),
-            openvino_sys::ov_status_e_NETWORK_NOT_READ => Err(NetworkNotReady),
+            openvino_sys::ov_status_e_NETWORK_NOT_READ => Err(NetworkNotRead),
+            openvino_sys::ov_status_e_INFER_CANCELLED => Err(InferCancelled),
             openvino_sys::ov_status_e_INVALID_C_PARAM => Err(InvalidCParam),
+            openvino_sys::ov_status_e_UNKNOWN_C_ERROR => Err(UnknownCError),
+            openvino_sys::ov_status_e_NOT_IMPLEMENT_C_METHOD => Err(NotImplementCMethod),
+            openvino_sys::ov_status_e_UNKNOW_EXCEPTION => Err(UnknownException),
             _ => Err(Undefined(error_code)),
         }
     }

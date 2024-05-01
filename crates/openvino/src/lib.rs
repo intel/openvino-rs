@@ -30,8 +30,8 @@ mod element_type;
 mod error;
 mod layout;
 mod model;
-mod port;
-mod prepostprocess;
+mod node;
+pub mod prepostprocess;
 mod request;
 mod shape;
 mod tensor;
@@ -42,11 +42,7 @@ pub use element_type::ElementType;
 pub use error::{InferenceError, LoadingError, SetupError};
 pub use layout::Layout;
 pub use model::{CompiledModel, Model};
-pub use port::Port;
-pub use prepostprocess::{
-    PrePostProcess, PreProcessInputInfo, PreProcessInputModelInfo, PreProcessInputTensorInfo,
-    PreProcessOutputInfo, PreProcessOutputTensorInfo, PreProcessSteps,
-};
+pub use node::Node;
 pub use request::InferRequest;
 pub use shape::Shape;
 pub use tensor::Tensor;

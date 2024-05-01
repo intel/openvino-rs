@@ -2,7 +2,7 @@ use crate::{try_unsafe, util::Result};
 use openvino_sys::{ov_shape_create, ov_shape_free, ov_shape_t};
 use std::convert::TryInto;
 
-/// Represents a shape in OpenVINO.
+/// See [`Shape`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__shape__c__api.html).
 pub struct Shape {
     instance: ov_shape_t,
 }
