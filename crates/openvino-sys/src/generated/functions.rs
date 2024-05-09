@@ -144,7 +144,7 @@ extern "C" {
     pub fn ov_output_const_port_free(port: *mut ov_output_const_port_t);
 }
 extern "C" {
-    #[doc = " @brief Constructs Tensor using element type and shape. Allocate internal host storage using default allocator\n @ingroup ov_tensor_c_api\n @param type Tensor element type\n @param shape Tensor shape\n @param host_ptr Pointer to pre-allocated host memory\n @param tensor A point to ov_tensor_t\n @return Status code of the operation: OK(0) for success."]
+    #[doc = " @brief Constructs Tensor using element type, shape and external host ptr.\n @ingroup ov_tensor_c_api\n @param type Tensor element type\n @param shape Tensor shape\n @param host_ptr Pointer to pre-allocated host memory\n @param tensor A point to ov_tensor_t\n @return Status code of the operation: OK(0) for success."]
     pub fn ov_tensor_create_from_host_ptr(
         type_: ov_element_type_e,
         shape: ov_shape_t,
@@ -402,7 +402,7 @@ extern "C" {
     ) -> ov_status_e;
 }
 extern "C" {
-    #[doc = " @brief Get a single const output port of ov_model_t, which only support single output model..\n @ingroup ov_model_c_api\n @param model A pointer to the ov_model_t.\n @param output_port A pointer to the ov_output_const_port_t.\n @return Status code of the operation: OK(0) for success."]
+    #[doc = " @brief Get a single const output port of ov_model_t, which only support single output model.\n @ingroup ov_model_c_api\n @param model A pointer to the ov_model_t.\n @param output_port A pointer to the ov_output_const_port_t.\n @return Status code of the operation: OK(0) for success."]
     pub fn ov_model_const_output(
         model: *const ov_model_t,
         output_port: *mut *mut ov_output_const_port_t,
@@ -425,7 +425,7 @@ extern "C" {
     ) -> ov_status_e;
 }
 extern "C" {
-    #[doc = " @brief Get an single output port of ov_model_t, which only support single output model.\n @ingroup ov_model_c_api\n @param model A pointer to the ov_model_t.\n @param output_port A pointer to the ov_output_const_port_t.\n @return Status code of the operation: OK(0) for success."]
+    #[doc = " @brief Get a single output port of ov_model_t, which only support single output model.\n @ingroup ov_model_c_api\n @param model A pointer to the ov_model_t.\n @param output_port A pointer to the ov_output_const_port_t.\n @return Status code of the operation: OK(0) for success."]
     pub fn ov_model_output(
         model: *const ov_model_t,
         output_port: *mut *mut ov_output_port_t,
@@ -456,7 +456,7 @@ extern "C" {
     pub fn ov_model_outputs_size(model: *const ov_model_t, output_size: *mut usize) -> ov_status_e;
 }
 extern "C" {
-    #[doc = " @brief Returns true if any of the ops defined in the model is dynamic shape..\n @param model A pointer to the ov_model_t.\n @return true if model contains dynamic shapes"]
+    #[doc = " @brief Returns true if any of the ops defined in the model is dynamic shape.\n @param model A pointer to the ov_model_t.\n @return true if model contains dynamic shapes"]
     pub fn ov_model_is_dynamic(model: *const ov_model_t) -> bool;
 }
 extern "C" {
@@ -700,7 +700,7 @@ extern "C" {
     pub fn ov_core_free(core: *mut ov_core_t);
 }
 extern "C" {
-    #[doc = " @brief Reads models from IR / ONNX / PDPD / TF / TFLite formats.\n @ingroup ov_core_c_api\n @param core A pointer to the ie_core_t instance.\n @param model_path Path to a model.\n @param bin_path Path to a data file.\n For IR format (*.bin):\n  * if `bin_path` is empty, will try to read a bin file with the same name as xml and\n  * if the bin file with the same name is not found, will load IR without weights.\n For the following file formats the `bin_path` parameter is not used:\n  * ONNX format (*.onnx)\n  * PDPD (*.pdmodel)\n  * TF (*.pb)\n  * TFLite (*.tflite)\n @param model A pointer to the newly created model.\n @return Status code of the operation: OK(0) for success."]
+    #[doc = " @brief Reads models from IR / ONNX / PDPD / TF / TFLite formats.\n @ingroup ov_core_c_api\n @param core A pointer to the ov_core_t instance.\n @param model_path Path to a model.\n @param bin_path Path to a data file.\n For IR format (*.bin):\n  * if `bin_path` is empty, will try to read a bin file with the same name as xml and\n  * if the bin file with the same name is not found, will load IR without weights.\n For the following file formats the `bin_path` parameter is not used:\n  * ONNX format (*.onnx)\n  * PDPD (*.pdmodel)\n  * TF (*.pb)\n  * TFLite (*.tflite)\n @param model A pointer to the newly created model.\n @return Status code of the operation: OK(0) for success."]
     pub fn ov_core_read_model(
         core: *const ov_core_t,
         model_path: *const ::std::os::raw::c_char,
@@ -709,7 +709,7 @@ extern "C" {
     ) -> ov_status_e;
 }
 extern "C" {
-    #[doc = " @brief Reads models from IR / ONNX / PDPD / TF / TFLite formats, path is unicode.\n @ingroup ov_core_c_api\n @param core A pointer to the ie_core_t instance.\n @param model_path Path to a model.\n @param bin_path Path to a data file.\n For IR format (*.bin):\n  * if `bin_path` is empty, will try to read a bin file with the same name as xml and\n  * if the bin file with the same name is not found, will load IR without weights.\n For the following file formats the `bin_path` parameter is not used:\n  * ONNX format (*.onnx)\n  * PDPD (*.pdmodel)\n  * TF (*.pb)\n  * TFLite (*.tflite)\n @param model A pointer to the newly created model.\n @return Status code of the operation: OK(0) for success."]
+    #[doc = " @brief Reads models from IR / ONNX / PDPD / TF / TFLite formats, path is unicode.\n @ingroup ov_core_c_api\n @param core A pointer to the ov_core_t instance.\n @param model_path Path to a model.\n @param bin_path Path to a data file.\n For IR format (*.bin):\n  * if `bin_path` is empty, will try to read a bin file with the same name as xml and\n  * if the bin file with the same name is not found, will load IR without weights.\n For the following file formats the `bin_path` parameter is not used:\n  * ONNX format (*.onnx)\n  * PDPD (*.pdmodel)\n  * TF (*.pb)\n  * TFLite (*.tflite)\n @param model A pointer to the newly created model.\n @return Status code of the operation: OK(0) for success."]
     pub fn ov_core_read_model_unicode(
         core: *const ov_core_t,
         model_path: *const wchar_t,
@@ -718,16 +718,7 @@ extern "C" {
     ) -> ov_status_e;
 }
 extern "C" {
-    #[doc = " @brief Reads models from IR / ONNX / PDPD / TF / TFLite formats.\n @ingroup ov_core_c_api\n @deprecated Use ov_core_read_model_from_memory_buffer instead.\n @param core A pointer to the ie_core_t instance.\n @param model_str String with a model in IR / ONNX / PDPD / TF / TFLite format, string is null-terminated.\n @param weights Shared pointer to a constant tensor with weights.\n @param model A pointer to the newly created model.\n Reading ONNX / PDPD / TF / TFLite models does not support loading weights from the @p weights tensors.\n @note Created model object shares the weights with the @p weights object.\n Thus, do not create @p weights on temporary data that can be freed later, since the model\n constant data will point to an invalid memory.\n @return Status code of the operation: OK(0) for success."]
-    pub fn ov_core_read_model_from_memory(
-        core: *const ov_core_t,
-        model_str: *const ::std::os::raw::c_char,
-        weights: *const ov_tensor_t,
-        model: *mut *mut ov_model_t,
-    ) -> ov_status_e;
-}
-extern "C" {
-    #[doc = " @brief Reads models from IR / ONNX / PDPD / TF / TFLite formats with models string size.\n @ingroup ov_core_c_api\n @param core A pointer to the ie_core_t instance.\n @param model_str String with a model in IR / ONNX / PDPD / TF / TFLite format, support model string containing\n several null chars.\n @param str_len The length of model string.\n @param weights Shared pointer to a constant tensor with weights.\n @param model A pointer to the newly created model.\n Reading ONNX / PDPD / TF / TFLite models does not support loading weights from the @p weights tensors.\n @note Created model object shares the weights with the @p weights object.\n Thus, do not create @p weights on temporary data that can be freed later, since the model\n constant data will point to an invalid memory.\n @return Status code of the operation: OK(0) for success."]
+    #[doc = " @brief Reads models from IR / ONNX / PDPD / TF / TFLite formats with models string size.\n @ingroup ov_core_c_api\n @param core A pointer to the ov_core_t instance.\n @param model_str String with a model in IR / ONNX / PDPD / TF / TFLite format, support model string containing\n several null chars.\n @param str_len The length of model string.\n @param weights Shared pointer to a constant tensor with weights.\n @param model A pointer to the newly created model.\n Reading ONNX / PDPD / TF / TFLite models does not support loading weights from the @p weights tensors.\n @note Created model object shares the weights with the @p weights object.\n Thus, do not create @p weights on temporary data that can be freed later, since the model\n constant data will point to an invalid memory.\n @return Status code of the operation: OK(0) for success."]
     pub fn ov_core_read_model_from_memory_buffer(
         core: *const ov_core_t,
         model_str: *const ::std::os::raw::c_char,
@@ -737,7 +728,7 @@ extern "C" {
     ) -> ov_status_e;
 }
 extern "C" {
-    #[doc = " @brief Creates a compiled model from a source model object.\n Users can create as many compiled models as they need and use\n them simultaneously (up to the limitation of the hardware resources).\n @ingroup ov_core_c_api\n @param core A pointer to the ie_core_t instance.\n @param model Model object acquired from Core::read_model.\n @param device_name Name of a device to load a model to.\n @param property_args_size How many properties args will be passed, each property contains 2 args: key and value.\n @param compiled_model A pointer to the newly created compiled_model.\n @param ... property paramater: Optional pack of pairs: <char* property_key, char* property_value> relevant only\n for this load operation operation. Supported property key please see ov_property.h.\n @return Status code of the operation: OK(0) for success."]
+    #[doc = " @brief Creates a compiled model from a source model object.\n Users can create as many compiled models as they need and use\n them simultaneously (up to the limitation of the hardware resources).\n @ingroup ov_core_c_api\n @param core A pointer to the ov_core_t instance.\n @param model Model object acquired from Core::read_model.\n @param device_name Name of a device to load a model to.\n @param property_args_size How many properties args will be passed, each property contains 2 args: key and value.\n @param compiled_model A pointer to the newly created compiled_model.\n @param ... property paramater: Optional pack of pairs: <char* property_key, char* property_value> relevant only\n for this load operation operation. Supported property key please see ov_property.h.\n @return Status code of the operation: OK(0) for success."]
     pub fn ov_core_compile_model(
         core: *const ov_core_t,
         model: *const ov_model_t,
@@ -748,7 +739,7 @@ extern "C" {
     ) -> ov_status_e;
 }
 extern "C" {
-    #[doc = " @brief Reads a model and creates a compiled model from the IR/ONNX/PDPD file.\n This can be more efficient than using the ov_core_read_model_from_XXX + ov_core_compile_model flow,\n especially for cases when caching is enabled and a cached model is available.\n @ingroup ov_core_c_api\n @param core A pointer to the ie_core_t instance.\n @param model_path Path to a model.\n @param device_name Name of a device to load a model to.\n @param property_args_size How many properties args will be passed, each property contains 2 args: key and value.\n @param compiled_model A pointer to the newly created compiled_model.\n @param ... Optional pack of pairs: <char* property_key, char* property_value> relevant only\n for this load operation operation. Supported property key please see ov_property.h.\n @return Status code of the operation: OK(0) for success."]
+    #[doc = " @brief Reads a model and creates a compiled model from the IR/ONNX/PDPD file.\n This can be more efficient than using the ov_core_read_model_from_XXX + ov_core_compile_model flow,\n especially for cases when caching is enabled and a cached model is available.\n @ingroup ov_core_c_api\n @param core A pointer to the ov_core_t instance.\n @param model_path Path to a model.\n @param device_name Name of a device to load a model to.\n @param property_args_size How many properties args will be passed, each property contains 2 args: key and value.\n @param compiled_model A pointer to the newly created compiled_model.\n @param ... Optional pack of pairs: <char* property_key, char* property_value> relevant only\n for this load operation operation. Supported property key please see ov_property.h.\n @return Status code of the operation: OK(0) for success."]
     pub fn ov_core_compile_model_from_file(
         core: *const ov_core_t,
         model_path: *const ::std::os::raw::c_char,
@@ -759,7 +750,7 @@ extern "C" {
     ) -> ov_status_e;
 }
 extern "C" {
-    #[doc = " @brief Reads a model and creates a compiled model from the IR/ONNX/PDPD file.\n This can be more efficient than using the ov_core_read_model_from_XXX + ov_core_compile_model flow,\n especially for cases when caching is enabled and a cached model is available.\n @ingroup ov_core_c_api\n @param core A pointer to the ie_core_t instance.\n @param model_path Path to a model.\n @param device_name Name of a device to load a model to.\n @param property_args_size How many properties args will be passed, each property contains 2 args: key and value.\n @param compiled_model A pointer to the newly created compiled_model.\n @param ... Optional pack of pairs: <char* property_key, char* property_value> relevant only\n for this load operation operation. Supported property key please see ov_property.h.\n @return Status code of the operation: OK(0) for success."]
+    #[doc = " @brief Reads a model and creates a compiled model from the IR/ONNX/PDPD file.\n This can be more efficient than using the ov_core_read_model_from_XXX + ov_core_compile_model flow,\n especially for cases when caching is enabled and a cached model is available.\n @ingroup ov_core_c_api\n @param core A pointer to the ov_core_t instance.\n @param model_path Path to a model.\n @param device_name Name of a device to load a model to.\n @param property_args_size How many properties args will be passed, each property contains 2 args: key and value.\n @param compiled_model A pointer to the newly created compiled_model.\n @param ... Optional pack of pairs: <char* property_key, char* property_value> relevant only\n for this load operation operation. Supported property key please see ov_property.h.\n @return Status code of the operation: OK(0) for success."]
     pub fn ov_core_compile_model_from_file_unicode(
         core: *const ov_core_t,
         model_path: *const wchar_t,
@@ -770,7 +761,7 @@ extern "C" {
     ) -> ov_status_e;
 }
 extern "C" {
-    #[doc = " @brief Sets properties for a device, acceptable keys can be found in ov_property_key_xxx.\n @ingroup ov_core_c_api\n @param core A pointer to the ie_core_t instance.\n @param device_name Name of a device.\n @param ... variadic paramaters The format is <char* property_key, char* property_value>.\n Supported property key please see ov_property.h.\n @return Status code of the operation: OK(0) for success."]
+    #[doc = " @brief Sets properties for a device, acceptable keys can be found in ov_property_key_xxx.\n @ingroup ov_core_c_api\n @param core A pointer to the ov_core_t instance.\n @param device_name Name of a device.\n @param ... variadic paramaters The format is <char* property_key, char* property_value>.\n Supported property key please see ov_property.h.\n @return Status code of the operation: OK(0) for success."]
     pub fn ov_core_set_property(
         core: *const ov_core_t,
         device_name: *const ::std::os::raw::c_char,
@@ -778,7 +769,7 @@ extern "C" {
     ) -> ov_status_e;
 }
 extern "C" {
-    #[doc = " @brief Gets properties related to device behaviour.\n The method extracts information that can be set via the set_property method.\n @ingroup ov_core_c_api\n @param core A pointer to the ie_core_t instance.\n @param device_name  Name of a device to get a property value.\n @param property_key  Property key.\n @param property_value A pointer to property value with string format.\n @return Status code of the operation: OK(0) for success."]
+    #[doc = " @brief Gets properties related to device behaviour.\n The method extracts information that can be set via the set_property method.\n @ingroup ov_core_c_api\n @param core A pointer to the ov_core_t instance.\n @param device_name  Name of a device to get a property value.\n @param property_key  Property key.\n @param property_value A pointer to property value with string format.\n @return Status code of the operation: OK(0) for success."]
     pub fn ov_core_get_property(
         core: *const ov_core_t,
         device_name: *const ::std::os::raw::c_char,
@@ -787,7 +778,7 @@ extern "C" {
     ) -> ov_status_e;
 }
 extern "C" {
-    #[doc = " @brief Returns devices available for inference.\n @ingroup ov_core_c_api\n @param core A pointer to the ie_core_t instance.\n @param devices A pointer to the ov_available_devices_t instance.\n Core objects go over all registered plugins and ask about available devices.\n @return Status code of the operation: OK(0) for success."]
+    #[doc = " @brief Returns devices available for inference.\n @ingroup ov_core_c_api\n @param core A pointer to the ov_core_t instance.\n @param devices A pointer to the ov_available_devices_t instance.\n Core objects go over all registered plugins and ask about available devices.\n @return Status code of the operation: OK(0) for success."]
     pub fn ov_core_get_available_devices(
         core: *const ov_core_t,
         devices: *mut ov_available_devices_t,
@@ -816,7 +807,7 @@ extern "C" {
     ) -> ov_status_e;
 }
 extern "C" {
-    #[doc = " @brief Releases memory occupied by ov_core_version_list_t.\n @ingroup ov_core_c_api\n @param versions A pointer to the ie_core_versions to free memory."]
+    #[doc = " @brief Releases memory occupied by ov_core_version_list_t.\n @ingroup ov_core_c_api\n @param versions A pointer to the ov_core_version_list_t to free memory."]
     pub fn ov_core_versions_free(versions: *mut ov_core_version_list_t);
 }
 extern "C" {

@@ -40,6 +40,10 @@ pub enum ElementType {
     U64 = 17,
     /// NF4 element type.
     NF4 = 18,
+    /// F8E4M3 element type.
+    F8E4M3 = 19,
+    /// F8E5M3 element type.
+    F8E5M3 = 20,
 }
 
 #[cfg(test)]
@@ -67,5 +71,7 @@ mod tests {
         assert_eq!(ov_element_type_e_OV_BOOLEAN, ElementType::Boolean as u32);
         assert_eq!(ov_element_type_e_DYNAMIC, ElementType::Dynamic as u32);
         assert_eq!(ov_element_type_e_NF4, ElementType::NF4 as u32);
+        assert_eq!(ov_element_type_e_F8E4M3, ElementType::F8E4M3 as u32);
+        assert_eq!(ov_element_type_e_F8E5M3, ElementType::F8E5M3 as u32);
     }
 }
