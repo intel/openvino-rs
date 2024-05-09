@@ -37,6 +37,8 @@ jobs:
       with:
         submodules: true
         lfs: true
+    - name: Enable long paths
+      run: git config core.longpaths true
     - name: Checkout LFS objects
       run: git lfs checkout
     - uses: abrown/install-openvino-action@v8
