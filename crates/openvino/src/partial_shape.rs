@@ -1,7 +1,8 @@
 use crate::{dimension::Dimension, try_unsafe, util::Result, Rank};
 use openvino_sys::{
-    ov_partial_shape_create, ov_partial_shape_create_dynamic, ov_partial_shape_create_static,
-    ov_partial_shape_free, ov_partial_shape_is_dynamic, ov_partial_shape_t, ov_rank_t,
+    ov_dimension_t, ov_partial_shape_create, ov_partial_shape_create_dynamic,
+    ov_partial_shape_create_static, ov_partial_shape_free, ov_partial_shape_is_dynamic,
+    ov_partial_shape_t, ov_rank_t,
 };
 
 use std::convert::TryInto;
@@ -38,7 +39,7 @@ impl PartialShape {
         };
         try_unsafe!(ov_partial_shape_create(
             rank,
-            dimensions.as_ptr().cast::<openvino_sys::ov_dimension>(),
+            dimensions.as_ptr().cast::<ov_dimension_t>(),
             std::ptr::addr_of_mut!(partial_shape)
         ))?;
         Ok(Self {
@@ -54,7 +55,7 @@ impl PartialShape {
         };
         try_unsafe!(ov_partial_shape_create_dynamic(
             rank.instance(),
-            dimensions.as_ptr().cast::<openvino_sys::ov_dimension>(),
+            dimensions.as_ptr().cast::<ov_dimension_t>(),
             std::ptr::addr_of_mut!(partial_shape)
         ))?;
         Ok(Self {
@@ -91,7 +92,7 @@ impl PartialShape {
         } else {
             unsafe {
                 std::slice::from_raw_parts(
-                    self.instance.dims as *const Dimension,
+                    self.instance.dims.cast::<Dimension>(),
                     self.instance.rank.max.try_into().unwrap(),
                 )
             }
