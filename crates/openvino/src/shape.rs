@@ -47,6 +47,20 @@ impl Shape {
     pub fn get_rank(&self) -> i64 {
         self.instance.rank
     }
+
+    /// Returns the dimensions of the shape.
+    pub fn get_dimensions(&self) -> &[i64] {
+        if self.instance.dims.is_null() || self.instance.rank <= 0 {
+            &[]
+        } else {
+            unsafe {
+                std::slice::from_raw_parts(
+                    self.instance.dims,
+                    self.instance.rank.try_into().unwrap(),
+                )
+            }
+        }
+    }
 }
 
 #[cfg(test)]
