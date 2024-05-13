@@ -16,18 +16,6 @@ impl PartialEq for Dimension {
 impl Eq for Dimension {}
 
 impl Dimension {
-    /// Get the pointer to the underlying OpenVINO dimension.
-    #[allow(dead_code)]
-    pub(crate) fn as_c_struct(&self) -> ov_dimension_t {
-        self.c_struct
-    }
-
-    /// Create a new dimension object from `ov_dimension_t`.
-    #[allow(dead_code)]
-    pub(crate) fn from_c_struct(c_struct: ov_dimension_t) -> Self {
-        Self { c_struct }
-    }
-
     /// Creates a new Dimension with minimum and maximum values.
     pub fn new(min: i64, max: i64) -> Self {
         Self {
