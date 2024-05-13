@@ -45,15 +45,3 @@ pub enum ElementType {
     /// F8E5M3 element type.
     F8E5M3 = openvino_sys::ov_element_type_e_F8E5M3,
 }
-
-const LARGEST_VARIANT: u32 = openvino_sys::ov_element_type_e_F8E5M3;
-
-impl From<u32> for ElementType {
-    fn from(value: u32) -> Self {
-        if value > LARGEST_VARIANT {
-            return ElementType::Undefined;
-        }
-        // SAFETY: ElementType has repr(u32) and the bounds have been checked
-        unsafe { std::mem::transmute(value) }
-    }
-}
