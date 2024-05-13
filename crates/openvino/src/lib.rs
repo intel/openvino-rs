@@ -26,23 +26,29 @@
 )]
 
 mod core;
+mod dimension;
 mod element_type;
 mod error;
 mod layout;
 mod model;
 mod node;
+mod partial_shape;
 pub mod prepostprocess;
+mod rank;
 mod request;
 mod shape;
 mod tensor;
 mod util;
 
 pub use crate::core::Core;
+pub use dimension::Dimension;
 pub use element_type::ElementType;
 pub use error::{InferenceError, LoadingError, SetupError};
 pub use layout::Layout;
 pub use model::{CompiledModel, Model};
 pub use node::Node;
+pub use partial_shape::PartialShape;
+pub use rank::Rank;
 pub use request::InferRequest;
 pub use shape::Shape;
 pub use tensor::Tensor;

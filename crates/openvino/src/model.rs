@@ -9,7 +9,7 @@ use crate::{drop_using_function, try_unsafe, util::Result};
 use openvino_sys::{
     ov_compiled_model_create_infer_request, ov_compiled_model_free, ov_compiled_model_t,
     ov_model_const_input_by_index, ov_model_const_output_by_index, ov_model_free,
-    ov_model_inputs_size, ov_model_outputs_size, ov_model_t,
+    ov_model_inputs_size, ov_model_is_dynamic, ov_model_outputs_size, ov_model_t,
 };
 
 /// See [`Model`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__model__c__api.html).
@@ -77,6 +77,11 @@ impl Model {
             std::ptr::addr_of_mut!(node)
         ))?;
         Ok(Node::new(node))
+    }
+
+    /// Returns `true` if the model contains dynamic shapes.
+    pub fn is_dynamic(&self) -> bool {
+        unsafe { ov_model_is_dynamic(self.instance) }
     }
 }
 
