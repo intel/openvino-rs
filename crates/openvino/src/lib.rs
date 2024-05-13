@@ -36,6 +36,7 @@ mod partial_shape;
 pub mod prepostprocess;
 mod rank;
 mod request;
+mod resize_algorithm;
 mod shape;
 mod tensor;
 mod util;
@@ -50,6 +51,7 @@ pub use node::Node;
 pub use partial_shape::PartialShape;
 pub use rank::Rank;
 pub use request::InferRequest;
+pub use resize_algorithm::ResizeAlgorithm;
 pub use shape::Shape;
 pub use tensor::Tensor;
 
