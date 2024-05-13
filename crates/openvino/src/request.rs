@@ -38,7 +38,7 @@ impl InferRequest {
             cstr!(name),
             std::ptr::addr_of_mut!(tensor)
         ))?;
-        Ok(Tensor::new_from_instance(tensor).unwrap())
+        Ok(Tensor::new_from_instance(tensor))
     }
 
     /// Execute the inference request.

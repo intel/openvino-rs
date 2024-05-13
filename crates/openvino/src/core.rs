@@ -5,7 +5,6 @@ use crate::error::LoadingError;
 use crate::{cstr, drop_using_function, try_unsafe, util::Result};
 use crate::{model::CompiledModel, Model};
 use crate::{SetupError, Tensor};
-
 use openvino_sys::{
     self, ov_core_compile_model, ov_core_create, ov_core_create_with_config, ov_core_free,
     ov_core_read_model, ov_core_read_model_from_memory_buffer, ov_core_t,
@@ -28,7 +27,7 @@ impl Core {
         Ok(Core { instance })
     }
 
-    ///Construct a new OpenVINO [`Core`] with config specified in an xml file.
+    /// Construct a new OpenVINO [`Core`] with config specified in an xml file.
     pub fn new_with_config(xml_config_file: &str) -> std::result::Result<Core, SetupError> {
         let mut instance = std::ptr::null_mut();
         try_unsafe!(ov_core_create_with_config(
@@ -51,7 +50,7 @@ impl Core {
         Ok(Model::new_from_instance(instance))
     }
 
-    ///Read model with model and weights loaded in memory.
+    /// Read model with model and weights loaded in memory.
     pub fn read_model_from_buffer(
         &mut self,
         model_str: &str,
