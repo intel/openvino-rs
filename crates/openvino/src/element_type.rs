@@ -1,5 +1,5 @@
 /// `ElementType` represents the type of elements that a tensor can hold. See [`ElementType`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__base__c__api.html#_CPPv417ov_element_type_e).
-#[derive(Debug)]
+#[derive(Eq, PartialEq, Copy, Clone, Debug)]
 #[repr(u32)]
 pub enum ElementType {
     /// An undefined element type.
@@ -44,4 +44,16 @@ pub enum ElementType {
     F8E4M3 = openvino_sys::ov_element_type_e_F8E4M3,
     /// F8E5M3 element type.
     F8E5M3 = openvino_sys::ov_element_type_e_F8E5M3,
+}
+
+const LARGEST_VARIANT: u32 = openvino_sys::ov_element_type_e_F8E5M3;
+
+impl From<u32> for ElementType {
+    fn from(value: u32) -> Self {
+        if value > LARGEST_VARIANT {
+            return ElementType::Undefined;
+        }
+        // SAFETY: ElementType has repr(u32) and the bounds have been checked
+        unsafe { std::mem::transmute(value) }
+    }
 }
