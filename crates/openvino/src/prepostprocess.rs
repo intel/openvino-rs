@@ -29,6 +29,9 @@
 //! model_info.model_info_set_layout(&Layout::new("NCHW").expect("to create a new layout")).expect("to set layout");
 //! let new_model = pre_post_process.build_new_model().expect("to build new model with above prepostprocess steps");
 //! ```
+use crate::{
+    cstr, drop_using_function, layout::Layout, try_unsafe, util::Result, ElementType, Model, Tensor,
+};
 use openvino_sys::{
     ov_preprocess_input_info_free, ov_preprocess_input_info_get_model_info,
     ov_preprocess_input_info_get_preprocess_steps, ov_preprocess_input_info_get_tensor_info,
@@ -48,11 +51,6 @@ use openvino_sys::{
     ov_preprocess_preprocess_steps_convert_element_type,
     ov_preprocess_preprocess_steps_convert_layout, ov_preprocess_preprocess_steps_free,
     ov_preprocess_preprocess_steps_resize, ov_preprocess_preprocess_steps_t,
-};
-use std::ffi::CString;
-
-use crate::{
-    drop_using_function, layout::Layout, try_unsafe, util::Result, ElementType, Model, Tensor,
 };
 
 /// See [`PrePostProcess`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__prepostprocessor__t.html).
@@ -172,10 +170,9 @@ impl PrePostProcess {
     /// Retrieves the input information by name.
     pub fn get_input_info_by_name(&self, name: &str) -> Result<PreProcessInputInfo> {
         let mut input_info = std::ptr::null_mut();
-        let c_layout_desc = CString::new(name).unwrap();
         try_unsafe!(ov_preprocess_prepostprocessor_get_input_info_by_name(
             self.instance,
-            c_layout_desc.as_ptr(),
+            cstr!(name),
             std::ptr::addr_of_mut!(input_info)
         ))?;
 
@@ -186,17 +183,13 @@ impl PrePostProcess {
 
     /// Retrieves the output information by name.
     pub fn get_output_info_by_name(&self, name: &str) -> Result<PreProcessOutputInfo> {
-        let mut output_info = std::ptr::null_mut();
-        let c_layout_desc = CString::new(name).unwrap();
+        let mut instance = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_get_output_info_by_name(
             self.instance,
-            c_layout_desc.as_ptr(),
-            std::ptr::addr_of_mut!(output_info)
+            cstr!(name),
+            std::ptr::addr_of_mut!(instance)
         ))?;
-
-        Ok(PreProcessOutputInfo {
-            instance: output_info,
-        })
+        Ok(PreProcessOutputInfo { instance })
     }
 
     /// Retrieves the output information by index.
