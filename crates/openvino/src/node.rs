@@ -8,20 +8,20 @@ use std::ffi::CStr;
 
 /// See [`Node`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__node__c__api.html).
 pub struct Node {
-    instance: *mut ov_output_const_port_t,
+    ptr: *mut ov_output_const_port_t,
 }
 
 impl Node {
     /// Create a new [`Port`] from [`ov_output_const_port_t`].
-    pub(crate) fn new(instance: *mut ov_output_const_port_t) -> Self {
-        Self { instance }
+    pub(crate) fn new(ptr: *mut ov_output_const_port_t) -> Self {
+        Self { ptr }
     }
 
     /// Get name of a port.
     pub fn get_name(&self) -> Result<String> {
         let mut c_name = std::ptr::null_mut();
         try_unsafe!(ov_port_get_any_name(
-            self.instance,
+            self.ptr,
             std::ptr::addr_of_mut!(c_name)
         ))?;
         let rust_name = unsafe { CStr::from_ptr(c_name) }
@@ -34,7 +34,7 @@ impl Node {
     pub fn get_element_type(&self) -> Result<u32> {
         let mut element_type = ElementType::Undefined as u32;
         try_unsafe!(ov_port_get_element_type(
-            self.instance,
+            self.ptr,
             std::ptr::addr_of_mut!(element_type),
         ))?;
         Ok(element_type)
@@ -42,27 +42,27 @@ impl Node {
 
     /// Get the shape of the port.
     pub fn get_shape(&self) -> Result<Shape> {
-        let mut instance = ov_shape_t {
+        let mut shape = ov_shape_t {
             rank: 0,
             dims: std::ptr::null_mut(),
         };
         try_unsafe!(ov_const_port_get_shape(
-            self.instance,
-            std::ptr::addr_of_mut!(instance),
+            self.ptr,
+            std::ptr::addr_of_mut!(shape),
         ))?;
-        Ok(Shape::new_from_instance(instance))
+        Ok(Shape::from_c_struct(shape))
     }
 
     /// Get the partial shape of the port.
     pub fn get_partial_shape(&self) -> Result<PartialShape> {
-        let mut instance = ov_partial_shape_t {
+        let mut shape = ov_partial_shape_t {
             rank: ov_rank_t { min: 0, max: 0 },
             dims: std::ptr::null_mut(),
         };
         try_unsafe!(ov_port_get_partial_shape(
-            self.instance,
-            std::ptr::addr_of_mut!(instance),
+            self.ptr,
+            std::ptr::addr_of_mut!(shape),
         ))?;
-        Ok(PartialShape::new_from_instance(instance))
+        Ok(PartialShape::from_c_struct(shape))
     }
 }

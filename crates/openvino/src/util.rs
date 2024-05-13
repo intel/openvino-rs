@@ -23,13 +23,13 @@ macro_rules! try_unsafe {
 }
 
 /// Drop one of the Rust wrapper structures using the provided free function. This relies on all
-/// Rust wrapper functions having an `instance` field pointing to their OpenVINO C structure.
+/// Rust wrapper functions having a `ptr` field pointing to their OpenVINO C structure.
 #[macro_export]
 macro_rules! drop_using_function {
     ($ty: ty, $free_fn: expr) => {
         impl Drop for $ty {
             fn drop(&mut self) {
-                unsafe { $free_fn(self.instance.cast()) }
+                unsafe { $free_fn(self.ptr.cast()) }
             }
         }
     };
