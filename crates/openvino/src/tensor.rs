@@ -83,7 +83,7 @@ impl Tensor {
             self.ptr,
             std::ptr::addr_of_mut!(element_type),
         ))?;
-        Ok(element_type.into())
+        Ok(element_type)
     }
 
     /// Get the number of elements in the tensor. Product of all dimensions e.g. 1*3*227*227.
