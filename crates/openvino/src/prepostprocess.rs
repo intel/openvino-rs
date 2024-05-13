@@ -111,9 +111,7 @@ impl PreProcessInputModelInfo {
         try_unsafe!(ov_preprocess_input_model_info_set_layout(
             self.ptr,
             layout.as_ptr()
-        ))?;
-
-        Ok(())
+        ))
     }
 }
 
@@ -123,9 +121,7 @@ impl PreProcessInputTensorInfo {
         try_unsafe!(ov_preprocess_input_tensor_info_set_layout(
             self.ptr,
             layout.as_ptr()
-        ))?;
-
-        Ok(())
+        ))
     }
 
     /// Sets the input tensor info from an existing tensor.
@@ -133,46 +129,43 @@ impl PreProcessInputTensorInfo {
         try_unsafe!(ov_preprocess_input_tensor_info_set_from(
             self.ptr,
             tensor.as_ptr()
-        ))?;
-
-        Ok(())
+        ))
     }
 }
 
 impl PrePostProcess {
     /// Creates a new `PrePostProcess` pipeline for the given model.
     pub fn new(model: &Model) -> Result<Self> {
-        let mut preprocess = std::ptr::null_mut();
+        let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_create(
             model.as_ptr(),
-            std::ptr::addr_of_mut!(preprocess)
+            std::ptr::addr_of_mut!(ptr)
         ))?;
-
-        Ok(Self { ptr: preprocess })
+        Ok(Self { ptr })
     }
 
     /// Retrieves the input information by index.
     pub fn get_input_info_by_index(&self, index: usize) -> Result<PreProcessInputInfo> {
-        let mut input_info = std::ptr::null_mut();
+        let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_get_input_info_by_index(
             self.ptr,
             index,
-            std::ptr::addr_of_mut!(input_info)
+            std::ptr::addr_of_mut!(ptr)
         ))?;
 
-        Ok(PreProcessInputInfo { ptr: input_info })
+        Ok(PreProcessInputInfo { ptr })
     }
 
     /// Retrieves the input information by name.
     pub fn get_input_info_by_name(&self, name: &str) -> Result<PreProcessInputInfo> {
-        let mut input_info = std::ptr::null_mut();
+        let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_get_input_info_by_name(
             self.ptr,
             cstr!(name),
-            std::ptr::addr_of_mut!(input_info)
+            std::ptr::addr_of_mut!(ptr)
         ))?;
 
-        Ok(PreProcessInputInfo { ptr: input_info })
+        Ok(PreProcessInputInfo { ptr })
     }
 
     /// Retrieves the output information by name.
@@ -188,14 +181,14 @@ impl PrePostProcess {
 
     /// Retrieves the output information by index.
     pub fn get_output_info_by_index(&self, index: usize) -> Result<PreProcessOutputInfo> {
-        let mut output_info = std::ptr::null_mut();
+        let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_get_output_info_by_index(
             self.ptr,
             index,
-            std::ptr::addr_of_mut!(output_info)
+            std::ptr::addr_of_mut!(ptr)
         ))?;
 
-        Ok(PreProcessOutputInfo { ptr: output_info })
+        Ok(PreProcessOutputInfo { ptr })
     }
 
     /// Retrieves the input information.
@@ -259,64 +252,50 @@ impl PreProcessOutputTensorInfo {
         try_unsafe!(ov_preprocess_output_set_element_type(
             self.ptr,
             element_type as u32
-        ))?;
-
-        Ok(())
+        ))
     }
 }
 
 impl PreProcessOutputInfo {
     /// Retrieves preprocess output tensor information.
     pub fn get_output_info_get_tensor_info(&self) -> Result<PreProcessOutputTensorInfo> {
-        let mut preprocess_output_tensor_info: *mut ov_preprocess_output_tensor_info_t =
-            std::ptr::null_mut();
+        let mut ptr: *mut ov_preprocess_output_tensor_info_t = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_output_info_get_tensor_info(
             self.ptr,
-            std::ptr::addr_of_mut!(preprocess_output_tensor_info)
+            std::ptr::addr_of_mut!(ptr)
         ))?;
-
-        Ok(PreProcessOutputTensorInfo {
-            ptr: preprocess_output_tensor_info,
-        })
+        Ok(PreProcessOutputTensorInfo { ptr })
     }
 }
 
 impl PreProcessInputInfo {
     /// Retrieves the preprocessing model input information.
     pub fn get_model_info(&self) -> Result<PreProcessInputModelInfo> {
-        let mut model_info = std::ptr::null_mut();
+        let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_input_info_get_model_info(
             self.ptr,
-            std::ptr::addr_of_mut!(model_info)
+            std::ptr::addr_of_mut!(ptr)
         ))?;
-
-        Ok(PreProcessInputModelInfo { ptr: model_info })
+        Ok(PreProcessInputModelInfo { ptr })
     }
 
     /// Retrieves the input tensor information.
     pub fn preprocess_input_info_get_tensor_info(&self) -> Result<PreProcessInputTensorInfo> {
-        let mut preprocess_input_tensor_info: *mut ov_preprocess_input_tensor_info_t =
-            std::ptr::null_mut();
+        let mut ptr: *mut ov_preprocess_input_tensor_info_t = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_input_info_get_tensor_info(
             self.ptr,
-            std::ptr::addr_of_mut!(preprocess_input_tensor_info)
+            std::ptr::addr_of_mut!(ptr)
         ))?;
-
-        Ok(PreProcessInputTensorInfo {
-            ptr: preprocess_input_tensor_info,
-        })
+        Ok(PreProcessInputTensorInfo { ptr })
     }
 
     /// Retrieves preprocessing steps object.
     pub fn get_preprocess_steps(&self) -> Result<PreProcessSteps> {
-        let mut preprocess_steps = std::ptr::null_mut();
+        let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_input_info_get_preprocess_steps(
             self.ptr,
-            std::ptr::addr_of_mut!(preprocess_steps)
+            std::ptr::addr_of_mut!(ptr)
         ))?;
-
-        Ok(PreProcessSteps {
-            ptr: preprocess_steps,
-        })
+        Ok(PreProcessSteps { ptr })
     }
 }
