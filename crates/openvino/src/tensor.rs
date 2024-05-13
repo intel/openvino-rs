@@ -15,22 +15,20 @@ pub struct Tensor {
 drop_using_function!(Tensor, ov_tensor_free);
 
 impl Tensor {
-    /// Get the pointer to the underlying OpenVINO tensor.
-    pub fn instance(&self) -> *mut ov_tensor_t {
-        self.instance
+    /// Create a new [`Tensor`].
+    pub fn new(element_type: ElementType, shape: &Shape) -> Result<Self> {
+        let mut instance = std::ptr::null_mut();
+        try_unsafe!(ov_tensor_create(
+            element_type as u32,
+            shape.instance(),
+            std::ptr::addr_of_mut!(instance),
+        ))?;
+        Ok(Self { instance })
     }
 
-    /// Create a new [`Tensor`].
-    pub fn new(data_type: ElementType, shape: &Shape) -> Result<Self> {
-        let mut tensor = std::ptr::null_mut();
-        let element_type = data_type as u32;
-        let code = try_unsafe!(ov_tensor_create(
-            element_type,
-            shape.instance(),
-            std::ptr::addr_of_mut!(tensor),
-        ));
-        assert_eq!(code, Ok(()));
-        Ok(Self { instance: tensor })
+    /// Create a new [`Tensor`] from a instance pointer.
+    pub(crate) fn new_from_instance(instance: *mut ov_tensor_t) -> Self {
+        Self { instance }
     }
 
     /// Create a new [`Tensor`] from a host pointer.
@@ -57,9 +55,9 @@ impl Tensor {
         Ok(Self { instance: tensor })
     }
 
-    ///Create a new [`Tensor`] from a instance pointer.
-    pub(crate) fn new_from_instance(instance: *mut ov_tensor_t) -> Result<Self> {
-        Ok(Self { instance })
+    /// Get the pointer to the underlying OpenVINO tensor.
+    pub(crate) fn instance(&self) -> *mut ov_tensor_t {
+        self.instance
     }
 
     /// (Re)Set the shape of the tensor to a new shape.

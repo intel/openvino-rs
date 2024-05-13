@@ -86,6 +86,10 @@ impl PartialShape {
     }
 
     /// Returns the dimensions of the partial shape.
+    ///
+    /// # Panics
+    ///
+    /// Panics in the unlikely case the rank cannot be represented as a `usize`.
     pub fn get_dimensions(&self) -> &[Dimension] {
         if self.instance.dims.is_null() {
             &[]

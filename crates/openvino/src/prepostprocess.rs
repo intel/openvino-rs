@@ -142,7 +142,7 @@ impl PreProcessInputTensorInfo {
 }
 
 impl PrePostProcess {
-    /// Creates a new `PrePostprocess` instance for the given model.
+    /// Creates a new `PrePostProcess` instance for the given model.
     pub fn new(model: &Model) -> Result<Self> {
         let mut preprocess = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_create(
@@ -214,17 +214,18 @@ impl PrePostProcess {
     }
 
     /// Retrieves the input information.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the returned input info is null.
     pub fn get_input_info(&self) -> Result<PreProcessInputInfo> {
-        let mut input_info = std::ptr::null_mut();
+        let mut instance = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_get_input_info(
             self.instance,
-            std::ptr::addr_of_mut!(input_info)
+            std::ptr::addr_of_mut!(instance)
         ))?;
-        assert!(!input_info.is_null());
-
-        Ok(PreProcessInputInfo {
-            instance: input_info,
-        })
+        assert!(!instance.is_null());
+        Ok(PreProcessInputInfo { instance })
     }
 
     /// Builds a new model with all steps from pre/postprocessing.
