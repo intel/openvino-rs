@@ -8,8 +8,9 @@ pub struct Shape {
 }
 
 impl Drop for Shape {
-    /// Drops the Shape instance and frees the associated memory.
-    //Not using drop! macro since ov_shape_free returns an error code unlike other free methods.
+    // We don't use the `drop...!` macro here since:
+    // - `ov_shape_free` returns an error code unlike other free methods
+    // - the `instance` field is not a pointer as with other types.
     fn drop(&mut self) {
         let code = unsafe { ov_shape_free(std::ptr::addr_of_mut!(self.instance)) };
         assert_eq!(code, 0);

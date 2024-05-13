@@ -13,7 +13,8 @@ pub struct PartialShape {
 }
 
 impl Drop for PartialShape {
-    /// Drops the `PartialShape` instance and frees the associated memory.
+    // We don't use the `drop...!` macro here since:
+    // - the `instance` field is not a pointer as with other types.
     fn drop(&mut self) {
         unsafe { ov_partial_shape_free(std::ptr::addr_of_mut!(self.instance)) }
     }
