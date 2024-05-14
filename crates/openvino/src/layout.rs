@@ -3,14 +3,14 @@ use openvino_sys::{ov_layout_create, ov_layout_free, ov_layout_t};
 
 /// See [`Layout`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__layout__c__api.html).
 pub struct Layout {
-    instance: *mut ov_layout_t,
+    ptr: *mut ov_layout_t,
 }
 drop_using_function!(Layout, ov_layout_free);
 
 impl Layout {
-    /// Get [`ov_layout_t`] instance.
-    pub(crate) fn instance(&self) -> *mut ov_layout_t {
-        self.instance
+    /// Get a pointer to the [`ov_layout_t`].
+    pub(crate) fn as_ptr(&self) -> *mut ov_layout_t {
+        self.ptr
     }
 
     /// Creates a new layout with the given description.
@@ -20,7 +20,7 @@ impl Layout {
             cstr!(layout_desc),
             std::ptr::addr_of_mut!(layout)
         ))?;
-        Ok(Self { instance: layout })
+        Ok(Self { ptr: layout })
     }
 }
 
@@ -37,6 +37,6 @@ mod tests {
             .unwrap();
         let layout_desc = "NCHW";
         let layout = Layout::new(layout_desc).unwrap();
-        assert_eq!(layout.instance.is_null(), false);
+        assert_eq!(layout.ptr.is_null(), false);
     }
 }
