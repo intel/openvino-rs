@@ -4,7 +4,7 @@
 //!
 //! ```
 //!
-//! # use openvino::{prepostprocess, Core, ElementType, Layout, Shape, Tensor};
+//! # use openvino::{prepostprocess, Core, ElementType, Layout, Shape, Tensor, ResizeAlgorithm};
 //! # use std::fs;
 //! # let mut core = Core::new().expect("to instantiate the OpenVINO library");
 //! # let mut model = core.read_model_from_file(
@@ -24,13 +24,14 @@
 //! input_tensor_info.preprocess_input_tensor_set_from(&tensor).expect("to set tensor from");
 //! input_tensor_info.preprocess_input_tensor_set_layout(&Layout::new("NHWC").expect("to create a new layout")).expect("to set layout");
 //! let mut preprocess_steps = input_info.get_preprocess_steps().expect("to get preprocess steps");
-//! preprocess_steps.preprocess_steps_resize(0).expect("to resize");
+//! preprocess_steps.preprocess_steps_resize(ResizeAlgorithm::Linear).expect("to resize");
 //! let model_info = input_info.get_model_info().expect("to get model info");
 //! model_info.model_info_set_layout(&Layout::new("NCHW").expect("to create a new layout")).expect("to set layout");
 //! let new_model = pre_post_process.build_new_model().expect("to build new model with above prepostprocess steps");
 //! ```
 use crate::{
-    cstr, drop_using_function, layout::Layout, try_unsafe, util::Result, ElementType, Model, Tensor,
+    cstr, drop_using_function, layout::Layout, try_unsafe, util::Result, ElementType, Model,
+    ResizeAlgorithm, Tensor,
 };
 use openvino_sys::{
     ov_preprocess_input_info_free, ov_preprocess_input_info_get_model_info,
@@ -219,8 +220,11 @@ impl PrePostProcess {
 
 impl PreProcessSteps {
     /// Resizes data in tensor.
-    pub fn preprocess_steps_resize(&mut self, resize_algo: u32) -> Result<()> {
-        try_unsafe!(ov_preprocess_preprocess_steps_resize(self.ptr, resize_algo,))?;
+    pub fn preprocess_steps_resize(&mut self, resize_algo: ResizeAlgorithm) -> Result<()> {
+        try_unsafe!(ov_preprocess_preprocess_steps_resize(
+            self.ptr,
+            resize_algo as u32,
+        ))?;
 
         Ok(())
     }

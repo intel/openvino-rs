@@ -5,7 +5,7 @@ mod util;
 
 use anyhow::Ok;
 use fixtures::alexnet::Fixture;
-use openvino::{prepostprocess, Core, ElementType, Layout, Shape, Tensor};
+use openvino::{prepostprocess, Core, ElementType, Layout, ResizeAlgorithm, Shape, Tensor};
 use std::fs;
 use util::{Prediction, Predictions};
 
@@ -36,7 +36,7 @@ fn classify_alexnet() -> anyhow::Result<()> {
     input_tensor_info.preprocess_input_tensor_set_from(&tensor)?;
     input_tensor_info.preprocess_input_tensor_set_layout(&Layout::new("NHWC")?)?;
     let mut preprocess_steps = input_info.get_preprocess_steps()?;
-    preprocess_steps.preprocess_steps_resize(0)?;
+    preprocess_steps.preprocess_steps_resize(ResizeAlgorithm::Linear)?;
     let model_info = input_info.get_model_info()?;
     model_info.model_info_set_layout(&Layout::new("NCHW")?)?;
     let output_info = pre_post_process.get_output_info_by_index(0)?;
