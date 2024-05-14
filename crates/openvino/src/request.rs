@@ -8,7 +8,7 @@ use openvino_sys::{
 
 /// See [`InferRequest`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__infer__request__c__api.html).
 pub struct InferRequest {
-    instance: *mut ov_infer_request_t,
+    ptr: *mut ov_infer_request_t,
 }
 drop_using_function!(InferRequest, ov_infer_request_free);
 
@@ -17,15 +17,15 @@ unsafe impl Sync for InferRequest {}
 
 impl InferRequest {
     /// Create a new [`InferRequest`] from [`ov_infer_request_t`].
-    pub(crate) fn new(instance: *mut ov_infer_request_t) -> Self {
-        Self { instance }
+    pub(crate) fn from_ptr(ptr: *mut ov_infer_request_t) -> Self {
+        Self { ptr }
     }
     /// Assign a [`Tensor`] to the input on the model.
     pub fn set_tensor(&mut self, name: &str, tensor: &Tensor) -> Result<()> {
         try_unsafe!(ov_infer_request_set_tensor(
-            self.instance,
+            self.ptr,
             cstr!(name),
-            tensor.instance()
+            tensor.as_ptr()
         ))?;
         Ok(())
     }
@@ -34,25 +34,25 @@ impl InferRequest {
     pub fn get_tensor(&self, name: &str) -> Result<Tensor> {
         let mut tensor = std::ptr::null_mut();
         try_unsafe!(ov_infer_request_get_tensor(
-            self.instance,
+            self.ptr,
             cstr!(name),
             std::ptr::addr_of_mut!(tensor)
         ))?;
-        Ok(Tensor::new_from_instance(tensor))
+        Ok(Tensor::from_ptr(tensor))
     }
 
     /// Execute the inference request.
     pub fn infer(&mut self) -> Result<()> {
-        try_unsafe!(ov_infer_request_infer(self.instance))
+        try_unsafe!(ov_infer_request_infer(self.ptr))
     }
 
     /// Execute the inference request asyncroneously.
     pub fn infer_async(&mut self) -> Result<()> {
-        try_unsafe!(ov_infer_request_start_async(self.instance))
+        try_unsafe!(ov_infer_request_start_async(self.ptr))
     }
 
     /// Wait for the result of the inference asyncroneous request.
     pub fn wait(&mut self, timeout: i64) -> Result<()> {
-        try_unsafe!(ov_infer_request_wait_for(self.instance, timeout))
+        try_unsafe!(ov_infer_request_wait_for(self.ptr, timeout))
     }
 }

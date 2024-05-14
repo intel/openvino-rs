@@ -1,3 +1,5 @@
+use openvino_sys::*;
+
 use std::convert::TryFrom;
 use std::error::Error;
 use std::fmt;
@@ -7,50 +9,50 @@ use std::fmt;
 #[repr(u32)]
 pub enum ElementType {
     /// An undefined element type.
-    Undefined = 0,
+    Undefined = ov_element_type_e_UNDEFINED,
     /// A dynamic element type.
-    Dynamic = 1,
+    Dynamic = ov_element_type_e_DYNAMIC,
     /// A boolean element type.
-    Boolean = 2,
+    Boolean = ov_element_type_e_OV_BOOLEAN,
     /// A Bf16 element type.
-    Bf16 = 3,
+    Bf16 = ov_element_type_e_BF16,
     /// A F16 element type.
-    F16 = 4,
+    F16 = ov_element_type_e_F16,
     /// A F32 element type.
-    F32 = 5,
+    F32 = ov_element_type_e_F32,
     /// A F64 element type.
-    F64 = 6,
+    F64 = ov_element_type_e_F64,
     /// A 4-bit integer element type.
-    I4 = 7,
+    I4 = ov_element_type_e_I4,
     /// An 8-bit integer element type.
-    I8 = 8,
+    I8 = ov_element_type_e_I8,
     /// A 16-bit integer element type.
-    I16 = 9,
+    I16 = ov_element_type_e_I16,
     /// A 32-bit integer element type.
-    I32 = 10,
+    I32 = ov_element_type_e_I32,
     /// A 64-bit integer element type.
-    I64 = 11,
+    I64 = ov_element_type_e_I64,
     /// An 1-bit unsigned integer element type.
-    U1 = 12,
+    U1 = ov_element_type_e_U1,
     /// An 4-bit unsigned integer element type.
-    U4 = 13,
+    U4 = ov_element_type_e_U4,
     /// An 8-bit unsigned integer element type.
-    U8 = 14,
+    U8 = ov_element_type_e_U8,
     /// A 16-bit unsigned integer element type.
-    U16 = 15,
+    U16 = ov_element_type_e_U16,
     /// A 32-bit unsigned integer element type.
-    U32 = 16,
+    U32 = ov_element_type_e_U32,
     /// A 64-bit unsigned integer element type.
-    U64 = 17,
+    U64 = ov_element_type_e_U64,
     /// NF4 element type.
-    NF4 = 18,
+    NF4 = ov_element_type_e_NF4,
     /// F8E4M3 element type.
-    F8E4M3 = 19,
+    F8E4M3 = ov_element_type_e_F8E4M3,
     /// F8E5M3 element type.
-    F8E5M3 = 20,
+    F8E5M3 = ov_element_type_e_F8E5M3,
 }
 
-/// Error returned when attempting to create an [ElementType] from an illegal `u32` value.
+/// Error returned when attempting to create an [`ElementType`] from an illegal `u32` value.
 #[derive(Debug)]
 pub struct IllegalValueError(u32);
 
@@ -66,28 +68,29 @@ impl TryFrom<u32> for ElementType {
     type Error = IllegalValueError;
 
     fn try_from(value: u32) -> Result<Self, Self::Error> {
+        #[allow(non_upper_case_globals)]
         match value {
-            0 => Ok(Self::Undefined),
-            1 => Ok(Self::Dynamic),
-            2 => Ok(Self::Boolean),
-            3 => Ok(Self::Bf16),
-            4 => Ok(Self::F16),
-            5 => Ok(Self::F32),
-            6 => Ok(Self::F64),
-            7 => Ok(Self::I4),
-            8 => Ok(Self::I8),
-            9 => Ok(Self::I16),
-            10 => Ok(Self::I32),
-            11 => Ok(Self::I64),
-            12 => Ok(Self::U1),
-            13 => Ok(Self::U4),
-            14 => Ok(Self::U8),
-            15 => Ok(Self::U16),
-            16 => Ok(Self::U32),
-            17 => Ok(Self::U64),
-            18 => Ok(Self::NF4),
-            19 => Ok(Self::F8E4M3),
-            20 => Ok(Self::F8E5M3),
+            ov_element_type_e_UNDEFINED => Ok(Self::Undefined),
+            ov_element_type_e_DYNAMIC => Ok(Self::Dynamic),
+            ov_element_type_e_OV_BOOLEAN => Ok(Self::Boolean),
+            ov_element_type_e_BF16 => Ok(Self::Bf16),
+            ov_element_type_e_F16 => Ok(Self::F16),
+            ov_element_type_e_F32 => Ok(Self::F32),
+            ov_element_type_e_F64 => Ok(Self::F64),
+            ov_element_type_e_I4 => Ok(Self::I4),
+            ov_element_type_e_I8 => Ok(Self::I8),
+            ov_element_type_e_I16 => Ok(Self::I16),
+            ov_element_type_e_I32 => Ok(Self::I32),
+            ov_element_type_e_I64 => Ok(Self::I64),
+            ov_element_type_e_U1 => Ok(Self::U1),
+            ov_element_type_e_U4 => Ok(Self::U4),
+            ov_element_type_e_U8 => Ok(Self::U8),
+            ov_element_type_e_U16 => Ok(Self::U16),
+            ov_element_type_e_U32 => Ok(Self::U32),
+            ov_element_type_e_U64 => Ok(Self::U64),
+            ov_element_type_e_NF4 => Ok(Self::NF4),
+            ov_element_type_e_F8E4M3 => Ok(Self::F8E4M3),
+            ov_element_type_e_F8E5M3 => Ok(Self::F8E5M3),
             _ => Err(IllegalValueError(value)),
         }
     }
@@ -95,29 +98,7 @@ impl TryFrom<u32> for ElementType {
 
 impl From<ElementType> for u32 {
     fn from(value: ElementType) -> Self {
-        match value {
-            ElementType::Undefined => 0,
-            ElementType::Dynamic => 1,
-            ElementType::Boolean => 2,
-            ElementType::Bf16 => 3,
-            ElementType::F16 => 4,
-            ElementType::F32 => 5,
-            ElementType::F64 => 6,
-            ElementType::I4 => 7,
-            ElementType::I8 => 8,
-            ElementType::I16 => 9,
-            ElementType::I32 => 10,
-            ElementType::I64 => 11,
-            ElementType::U1 => 12,
-            ElementType::U4 => 13,
-            ElementType::U8 => 14,
-            ElementType::U16 => 15,
-            ElementType::U32 => 16,
-            ElementType::U64 => 17,
-            ElementType::NF4 => 18,
-            ElementType::F8E4M3 => 19,
-            ElementType::F8E5M3 => 20,
-        }
+        value as Self
     }
 }
 
@@ -152,32 +133,7 @@ impl fmt::Display for ElementType {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use openvino_sys::*;
     use std::convert::TryInto as _;
-
-    #[test]
-    fn check_discriminant_values() {
-        assert_eq!(ov_element_type_e_UNDEFINED, ElementType::Undefined as u32);
-        assert_eq!(ov_element_type_e_U1, ElementType::U1 as u32);
-        assert_eq!(ov_element_type_e_U4, ElementType::U4 as u32);
-        assert_eq!(ov_element_type_e_U8, ElementType::U8 as u32);
-        assert_eq!(ov_element_type_e_U16, ElementType::U16 as u32);
-        assert_eq!(ov_element_type_e_U32, ElementType::U32 as u32);
-        assert_eq!(ov_element_type_e_U64, ElementType::U64 as u32);
-        assert_eq!(ov_element_type_e_I4, ElementType::I4 as u32);
-        assert_eq!(ov_element_type_e_I8, ElementType::I8 as u32);
-        assert_eq!(ov_element_type_e_I16, ElementType::I16 as u32);
-        assert_eq!(ov_element_type_e_I32, ElementType::I32 as u32);
-        assert_eq!(ov_element_type_e_I64, ElementType::I64 as u32);
-        assert_eq!(ov_element_type_e_F16, ElementType::F16 as u32);
-        assert_eq!(ov_element_type_e_F32, ElementType::F32 as u32);
-        assert_eq!(ov_element_type_e_F64, ElementType::F64 as u32);
-        assert_eq!(ov_element_type_e_OV_BOOLEAN, ElementType::Boolean as u32);
-        assert_eq!(ov_element_type_e_DYNAMIC, ElementType::Dynamic as u32);
-        assert_eq!(ov_element_type_e_NF4, ElementType::NF4 as u32);
-        assert_eq!(ov_element_type_e_F8E4M3, ElementType::F8E4M3 as u32);
-        assert_eq!(ov_element_type_e_F8E5M3, ElementType::F8E5M3 as u32);
-    }
 
     #[test]
     fn try_from_u32() {

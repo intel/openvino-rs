@@ -4,12 +4,12 @@ use openvino_sys::{ov_rank_is_dynamic, ov_rank_t};
 #[derive(Copy, Clone, Debug)]
 #[repr(transparent)]
 pub struct Rank {
-    instance: ov_rank_t,
+    c_struct: ov_rank_t,
 }
 
 impl PartialEq for Rank {
     fn eq(&self, other: &Self) -> bool {
-        self.instance.min == other.instance.min && self.instance.max == other.instance.max
+        self.c_struct.min == other.c_struct.min && self.c_struct.max == other.c_struct.max
     }
 }
 
@@ -17,34 +17,35 @@ impl Eq for Rank {}
 
 impl Rank {
     /// Get the pointer to the underlying OpenVINO rank.
-    pub(crate) fn instance(&self) -> ov_rank_t {
-        self.instance
+    pub(crate) fn as_c_struct(&self) -> ov_rank_t {
+        self.c_struct
     }
 
     /// Create a new rank object from `ov_rank_t`.
-    pub(crate) fn new_from_instance(instance: ov_rank_t) -> Self {
-        Self { instance }
+    pub(crate) fn from_c_struct(ptr: ov_rank_t) -> Self {
+        Self { c_struct: ptr }
     }
 
     /// Creates a new Rank with minimum and maximum values.
     pub fn new(min: i64, max: i64) -> Self {
-        let instance = ov_rank_t { min, max };
-        Self { instance }
+        Self {
+            c_struct: ov_rank_t { min, max },
+        }
     }
 
     /// Returns the minimum value.
     pub fn get_min(&self) -> i64 {
-        self.instance.min
+        self.c_struct.min
     }
 
     /// Returns the maximum value.
     pub fn get_max(&self) -> i64 {
-        self.instance.max
+        self.c_struct.max
     }
 
     /// Returns `true` if the rank is dynamic.
     pub fn is_dynamic(&self) -> bool {
-        unsafe { ov_rank_is_dynamic(self.instance) }
+        unsafe { ov_rank_is_dynamic(self.c_struct) }
     }
 }
 

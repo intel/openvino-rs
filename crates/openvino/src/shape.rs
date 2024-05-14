@@ -4,23 +4,23 @@ use std::convert::TryInto;
 
 /// See [`Shape`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__shape__c__api.html).
 pub struct Shape {
-    instance: ov_shape_t,
+    c_struct: ov_shape_t,
 }
 
 impl Drop for Shape {
     // We don't use the `drop...!` macro here since:
     // - `ov_shape_free` returns an error code unlike other free methods
-    // - the `instance` field is not a pointer as with other types.
+    // - the `c_struct` field is not a pointer as with other types.
     fn drop(&mut self) {
-        let code = unsafe { ov_shape_free(std::ptr::addr_of_mut!(self.instance)) };
+        let code = unsafe { ov_shape_free(std::ptr::addr_of_mut!(self.c_struct)) };
         assert_eq!(code, 0);
-        debug_assert!(self.instance.dims.is_null());
-        debug_assert_eq!(self.instance.rank, 0);
+        debug_assert!(self.c_struct.dims.is_null());
+        debug_assert_eq!(self.c_struct.rank, 0);
     }
 }
 
 impl Shape {
-    /// Creates a new Shape instance with the given dimensions.
+    /// Creates a new [`Shape`] with the given dimensions.
     ///
     /// # Panics
     ///
@@ -35,22 +35,22 @@ impl Shape {
             dimensions.as_ptr(),
             std::ptr::addr_of_mut!(shape)
         ))?;
-        Ok(Self { instance: shape })
+        Ok(Self { c_struct: shape })
     }
 
     /// Create a new shape object from `ov_shape_t`.
-    pub(crate) fn new_from_instance(instance: ov_shape_t) -> Self {
-        Self { instance }
+    pub(crate) fn from_c_struct(ptr: ov_shape_t) -> Self {
+        Self { c_struct: ptr }
     }
 
     /// Get the pointer to the underlying OpenVINO shape.
-    pub(crate) fn instance(&self) -> ov_shape_t {
-        self.instance
+    pub(crate) fn as_c_struct(&self) -> ov_shape_t {
+        self.c_struct
     }
 
     /// Returns the rank of the shape.
     pub fn get_rank(&self) -> i64 {
-        self.instance.rank
+        self.c_struct.rank
     }
 
     /// Returns the dimensions of the shape.
@@ -59,13 +59,13 @@ impl Shape {
     ///
     /// Panics in the unlikely case the rank cannot be represented as a `usize`.
     pub fn get_dimensions(&self) -> &[i64] {
-        if self.instance.dims.is_null() || self.instance.rank <= 0 {
+        if self.c_struct.dims.is_null() || self.c_struct.rank <= 0 {
             &[]
         } else {
             unsafe {
                 std::slice::from_raw_parts(
-                    self.instance.dims,
-                    self.instance.rank.try_into().unwrap(),
+                    self.c_struct.dims,
+                    self.c_struct.rank.try_into().unwrap(),
                 )
             }
         }

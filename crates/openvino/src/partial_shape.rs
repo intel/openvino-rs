@@ -9,30 +9,24 @@ use std::convert::TryInto;
 
 /// See [`PartialShape`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__partial__shape__c__api.html).
 pub struct PartialShape {
-    instance: ov_partial_shape_t,
+    c_struct: ov_partial_shape_t,
 }
 
 impl Drop for PartialShape {
     // We don't use the `drop...!` macro here since:
-    // - the `instance` field is not a pointer as with other types.
+    // - the `c_struct` field is not a pointer as with other types.
     fn drop(&mut self) {
-        unsafe { ov_partial_shape_free(std::ptr::addr_of_mut!(self.instance)) }
+        unsafe { ov_partial_shape_free(std::ptr::addr_of_mut!(self.c_struct)) }
     }
 }
 
 impl PartialShape {
-    /// Get the pointer to the underlying OpenVINO partial shape.
-    #[allow(dead_code)]
-    pub(crate) fn instance(&self) -> ov_partial_shape_t {
-        self.instance
-    }
-
     /// Create a new partial shape object from `ov_partial_shape_t`.
-    pub(crate) fn new_from_instance(instance: ov_partial_shape_t) -> Self {
-        Self { instance }
+    pub(crate) fn from_c_struct(c_struct: ov_partial_shape_t) -> Self {
+        Self { c_struct }
     }
 
-    /// Creates a new `PartialShape` instance with a static rank and dynamic dimensions.
+    /// Create a new [`PartialShape`] with a static rank and dynamic dimensions.
     pub fn new(rank: i64, dimensions: &[Dimension]) -> Result<Self> {
         let mut partial_shape = ov_partial_shape_t {
             rank: ov_rank_t { min: 0, max: 0 },
@@ -44,27 +38,27 @@ impl PartialShape {
             std::ptr::addr_of_mut!(partial_shape)
         ))?;
         Ok(Self {
-            instance: partial_shape,
+            c_struct: partial_shape,
         })
     }
 
-    /// Creates a new `PartialShape` instance with a dynamic rank and dynamic dimensions.
+    /// Create a new [`PartialShape`] with a dynamic rank and dynamic dimensions.
     pub fn new_dynamic(rank: Rank, dimensions: &[Dimension]) -> Result<Self> {
         let mut partial_shape = ov_partial_shape_t {
             rank: ov_rank_t { min: 0, max: 0 },
             dims: std::ptr::null_mut(),
         };
         try_unsafe!(ov_partial_shape_create_dynamic(
-            rank.instance(),
+            rank.as_c_struct(),
             dimensions.as_ptr().cast::<ov_dimension_t>(),
             std::ptr::addr_of_mut!(partial_shape)
         ))?;
         Ok(Self {
-            instance: partial_shape,
+            c_struct: partial_shape,
         })
     }
 
-    /// Creates a new `PartialShape` instance with a static rank and static dimensions.
+    /// Create a new [`PartialShape`] with a static rank and static dimensions.
     pub fn new_static(rank: i64, dimensions: &[i64]) -> Result<Self> {
         let mut partial_shape = ov_partial_shape_t {
             rank: ov_rank_t { min: 0, max: 0 },
@@ -76,14 +70,14 @@ impl PartialShape {
             std::ptr::addr_of_mut!(partial_shape)
         ))?;
         Ok(Self {
-            instance: partial_shape,
+            c_struct: partial_shape,
         })
     }
 
     /// Returns the rank of the partial shape.
     pub fn get_rank(&self) -> Rank {
-        let rank = self.instance.rank;
-        Rank::new_from_instance(rank)
+        let rank = self.c_struct.rank;
+        Rank::from_c_struct(rank)
     }
 
     /// Returns the dimensions of the partial shape.
@@ -92,13 +86,13 @@ impl PartialShape {
     ///
     /// Panics in the unlikely case the rank cannot be represented as a `usize`.
     pub fn get_dimensions(&self) -> &[Dimension] {
-        if self.instance.dims.is_null() {
+        if self.c_struct.dims.is_null() {
             &[]
         } else {
             unsafe {
                 std::slice::from_raw_parts(
-                    self.instance.dims.cast::<Dimension>(),
-                    self.instance.rank.max.try_into().unwrap(),
+                    self.c_struct.dims.cast::<Dimension>(),
+                    self.c_struct.rank.max.try_into().unwrap(),
                 )
             }
         }
@@ -106,7 +100,7 @@ impl PartialShape {
 
     /// Returns `true` if the partial shape is dynamic.
     pub fn is_dynamic(&self) -> bool {
-        unsafe { ov_partial_shape_is_dynamic(self.instance) }
+        unsafe { ov_partial_shape_is_dynamic(self.c_struct) }
     }
 }
 
