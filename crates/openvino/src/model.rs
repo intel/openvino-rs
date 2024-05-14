@@ -94,7 +94,7 @@ drop_using_function!(CompiledModel, ov_compiled_model_free);
 unsafe impl Send for CompiledModel {}
 
 impl CompiledModel {
-    /// Create a new instance of the CompiledModel struct from ov_compiled_model_t.
+    /// Create a new instance of the [`CompiledModel`] from an internal `ov_compiled_model_t`.
     pub(crate) fn new(instance: *mut ov_compiled_model_t) -> Self {
         Self { instance }
     }
