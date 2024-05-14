@@ -30,7 +30,8 @@
 //! let new_model = pre_post_process.build_new_model().expect("to build new model with above prepostprocess steps");
 //! ```
 use crate::{
-    cstr, drop_using_function, layout::Layout, try_unsafe, util::Result, ElementType, Model, ResizeAlgorithm, Tensor,
+    cstr, drop_using_function, layout::Layout, try_unsafe, util::Result, ElementType, Model,
+    ResizeAlgorithm, Tensor,
 };
 use openvino_sys::{
     ov_preprocess_input_info_free, ov_preprocess_input_info_get_model_info,
@@ -220,7 +221,10 @@ impl PrePostProcess {
 impl PreProcessSteps {
     /// Resizes data in tensor.
     pub fn preprocess_steps_resize(&mut self, resize_algo: ResizeAlgorithm) -> Result<()> {
-        try_unsafe!(ov_preprocess_preprocess_steps_resize(self.ptr, resize_algo as u32,))?;
+        try_unsafe!(ov_preprocess_preprocess_steps_resize(
+            self.ptr,
+            resize_algo as u32,
+        ))?;
 
         Ok(())
     }
