@@ -28,10 +28,9 @@ jobs:
         # APT install and check oldest supported version 2023.2.0
         include:
           - os: ubuntu-22.04
-            version: 2023.2.0
+            version: 2022.3.0
             apt: true
         # APT install and check latest supported version 2024.1.0
-        include:
           - os: ubuntu-22.04
             version: 2024.1.0
             apt: true
