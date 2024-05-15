@@ -4,7 +4,7 @@ use openvino_sys::{
     ov_port_get_element_type, ov_port_get_partial_shape, ov_rank_t, ov_shape_t,
 };
 
-use std::ffi::CStr;
+use std::{convert::TryInto as _, ffi::CStr};
 
 /// See [`Node`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__node__c__api.html).
 pub struct Node {
@@ -31,13 +31,13 @@ impl Node {
     }
 
     /// Get the data type of elements of the port.
-    pub fn get_element_type(&self) -> Result<u32> {
+    pub fn get_element_type(&self) -> Result<ElementType> {
         let mut element_type = ElementType::Undefined as u32;
         try_unsafe!(ov_port_get_element_type(
             self.ptr,
             std::ptr::addr_of_mut!(element_type),
         ))?;
-        Ok(element_type)
+        Ok(element_type.try_into().unwrap())
     }
 
     /// Get the shape of the port.
