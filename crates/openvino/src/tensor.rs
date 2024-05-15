@@ -1,4 +1,6 @@
 //! This module provides functionality related to Tensor objects.
+use std::convert::TryInto as _;
+
 use crate::element_type::ElementType;
 use crate::shape::Shape;
 use crate::{drop_using_function, try_unsafe, util::Result};
@@ -77,13 +79,13 @@ impl Tensor {
     }
 
     /// Get the data type of elements of the tensor.
-    pub fn get_element_type(&self) -> Result<u32> {
+    pub fn get_element_type(&self) -> Result<ElementType> {
         let mut element_type = ElementType::Undefined as u32;
         try_unsafe!(ov_tensor_get_element_type(
             self.ptr,
             std::ptr::addr_of_mut!(element_type),
         ))?;
-        Ok(element_type)
+        Ok(element_type.try_into().unwrap())
     }
 
     /// Get the number of elements in the tensor. Product of all dimensions e.g. 1*3*227*227.
@@ -169,7 +171,7 @@ mod tests {
         )
         .unwrap();
         let element_type = tensor.get_element_type().unwrap();
-        assert_eq!(element_type, ElementType::F32 as u32);
+        assert_eq!(element_type, ElementType::F32);
     }
 
     #[test]

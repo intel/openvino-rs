@@ -3,7 +3,6 @@
 //! See [`PrePostProcess Walkthrough`](https://docs.openvino.ai/2022.3/openvino_docs_OV_UG_Preprocessing_Overview.html).
 //!
 //! ```
-//!
 //! # use openvino::{prepostprocess, Core, ElementType, Layout, Shape, Tensor, ResizeAlgorithm};
 //! # use std::fs;
 //! # let mut core = Core::new().expect("to instantiate the OpenVINO library");
@@ -18,16 +17,16 @@
 //! // Pre-process the input by:
 //! // - converting NHWC to NCHW
 //! // - resizing the input image
-//! let mut pre_post_process = prepostprocess::PrePostProcess::new(&model).expect("to create a new PrePostProcess instance");
-//! let input_info = pre_post_process.get_input_info_by_name("input").expect("to get input info by name");
-//! let mut input_tensor_info = input_info.preprocess_input_info_get_tensor_info().expect("to get tensor info");
-//! input_tensor_info.preprocess_input_tensor_set_from(&tensor).expect("to set tensor from");
-//! input_tensor_info.preprocess_input_tensor_set_layout(&Layout::new("NHWC").expect("to create a new layout")).expect("to set layout");
-//! let mut preprocess_steps = input_info.get_preprocess_steps().expect("to get preprocess steps");
-//! preprocess_steps.preprocess_steps_resize(ResizeAlgorithm::Linear).expect("to resize");
-//! let model_info = input_info.get_model_info().expect("to get model info");
-//! model_info.model_info_set_layout(&Layout::new("NCHW").expect("to create a new layout")).expect("to set layout");
-//! let new_model = pre_post_process.build_new_model().expect("to build new model with above prepostprocess steps");
+//! let mut pipeline = prepostprocess::Pipeline::new(&model).expect("to create a new pipeline");
+//! let input_info = pipeline.get_input_info_by_name("input").expect("to get input info by name");
+//! let mut input_tensor_info = input_info.get_tensor_info().expect("to get tensor info");
+//! input_tensor_info.set_from(&tensor).expect("to set tensor from");
+//! input_tensor_info.set_layout(&Layout::new("NHWC").expect("to create a new layout")).expect("to set layout");
+//! let mut preprocess_steps = input_info.get_steps().expect("to get preprocess steps");
+//! preprocess_steps.resize(ResizeAlgorithm::Linear).expect("to resize");
+//! let mut model_info = input_info.get_model_info().expect("to get model info");
+//! model_info.set_layout(&Layout::new("NCHW").expect("to create a new layout")).expect("to set layout");
+//! let new_model = pipeline.build_new_model().expect("to build new model with above prepostprocess steps");
 //! ```
 use crate::{
     cstr, drop_using_function, layout::Layout, try_unsafe, util::Result, ElementType, Model,
@@ -56,86 +55,12 @@ use openvino_sys::{
 
 /// See [`PrePostProcess`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__prepostprocessor__t.html).
 #[derive(Debug)]
-pub struct PrePostProcess {
+pub struct Pipeline {
     ptr: *mut ov_preprocess_prepostprocessor_t,
 }
-drop_using_function!(PrePostProcess, ov_preprocess_prepostprocessor_free);
-
-/// See [`PreProcessInputInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__input__info__t.html).
-pub struct PreProcessInputInfo {
-    ptr: *mut ov_preprocess_input_info_t,
-}
-drop_using_function!(PreProcessInputInfo, ov_preprocess_input_info_free);
-
-/// See [`PreprocessOutputInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__output__info__t.html).
-pub struct PreProcessOutputInfo {
-    ptr: *mut ov_preprocess_output_info_t,
-}
-drop_using_function!(PreProcessOutputInfo, ov_preprocess_output_info_free);
-
-/// See [`PreprocessSteps`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__preprocess__steps__t.html).
-pub struct PreProcessSteps {
-    ptr: *mut ov_preprocess_preprocess_steps_t,
-}
-drop_using_function!(PreProcessSteps, ov_preprocess_preprocess_steps_free);
-
-/// See [`PreprocessInputModelInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__input__model__info__t.html).
-pub struct PreProcessInputModelInfo {
-    ptr: *mut ov_preprocess_input_model_info_t,
-}
-drop_using_function!(
-    PreProcessInputModelInfo,
-    ov_preprocess_input_model_info_free
-);
-
-/// See [`PreprocessInputTensorInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__input__tensor__info__t.html).
-pub struct PreProcessInputTensorInfo {
-    ptr: *mut ov_preprocess_input_tensor_info_t,
-}
-drop_using_function!(
-    PreProcessInputTensorInfo,
-    ov_preprocess_input_tensor_info_free
-);
-
-/// See [`PreprocessOutputTensorInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__output__tensor__info__t.html).
-pub struct PreProcessOutputTensorInfo {
-    ptr: *mut ov_preprocess_output_tensor_info_t,
-}
-drop_using_function!(
-    PreProcessOutputTensorInfo,
-    ov_preprocess_output_tensor_info_free
-);
-
-impl PreProcessInputModelInfo {
-    /// Sets the layout for the model information obj.
-    pub fn model_info_set_layout(&self, layout: &Layout) -> Result<()> {
-        try_unsafe!(ov_preprocess_input_model_info_set_layout(
-            self.ptr,
-            layout.as_ptr()
-        ))
-    }
-}
-
-impl PreProcessInputTensorInfo {
-    /// Sets the layout for the input tensor.
-    pub fn preprocess_input_tensor_set_layout(&self, layout: &Layout) -> Result<()> {
-        try_unsafe!(ov_preprocess_input_tensor_info_set_layout(
-            self.ptr,
-            layout.as_ptr()
-        ))
-    }
-
-    /// Sets the input tensor info from an existing tensor.
-    pub fn preprocess_input_tensor_set_from(&mut self, tensor: &Tensor) -> Result<()> {
-        try_unsafe!(ov_preprocess_input_tensor_info_set_from(
-            self.ptr,
-            tensor.as_ptr()
-        ))
-    }
-}
-
-impl PrePostProcess {
-    /// Creates a new `PrePostProcess` pipeline for the given model.
+drop_using_function!(Pipeline, ov_preprocess_prepostprocessor_free);
+impl Pipeline {
+    /// Creates a new [`Pipeline`] for the given [`Model`].
     pub fn new(model: &Model) -> Result<Self> {
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_create(
@@ -146,7 +71,7 @@ impl PrePostProcess {
     }
 
     /// Retrieves the input information by index.
-    pub fn get_input_info_by_index(&self, index: usize) -> Result<PreProcessInputInfo> {
+    pub fn get_input_info_by_index(&self, index: usize) -> Result<InputInfo> {
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_get_input_info_by_index(
             self.ptr,
@@ -154,11 +79,11 @@ impl PrePostProcess {
             std::ptr::addr_of_mut!(ptr)
         ))?;
 
-        Ok(PreProcessInputInfo { ptr })
+        Ok(InputInfo { ptr })
     }
 
     /// Retrieves the input information by name.
-    pub fn get_input_info_by_name(&self, name: &str) -> Result<PreProcessInputInfo> {
+    pub fn get_input_info_by_name(&self, name: &str) -> Result<InputInfo> {
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_get_input_info_by_name(
             self.ptr,
@@ -166,22 +91,22 @@ impl PrePostProcess {
             std::ptr::addr_of_mut!(ptr)
         ))?;
 
-        Ok(PreProcessInputInfo { ptr })
+        Ok(InputInfo { ptr })
     }
 
     /// Retrieves the output information by name.
-    pub fn get_output_info_by_name(&self, name: &str) -> Result<PreProcessOutputInfo> {
+    pub fn get_output_info_by_name(&self, name: &str) -> Result<OutputInfo> {
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_get_output_info_by_name(
             self.ptr,
             cstr!(name),
             std::ptr::addr_of_mut!(ptr)
         ))?;
-        Ok(PreProcessOutputInfo { ptr })
+        Ok(OutputInfo { ptr })
     }
 
     /// Retrieves the output information by index.
-    pub fn get_output_info_by_index(&self, index: usize) -> Result<PreProcessOutputInfo> {
+    pub fn get_output_info_by_index(&self, index: usize) -> Result<OutputInfo> {
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_get_output_info_by_index(
             self.ptr,
@@ -189,7 +114,7 @@ impl PrePostProcess {
             std::ptr::addr_of_mut!(ptr)
         ))?;
 
-        Ok(PreProcessOutputInfo { ptr })
+        Ok(OutputInfo { ptr })
     }
 
     /// Retrieves the input information.
@@ -197,14 +122,14 @@ impl PrePostProcess {
     /// # Panics
     ///
     /// Panics if the returned input info is null.
-    pub fn get_input_info(&self) -> Result<PreProcessInputInfo> {
+    pub fn get_input_info(&self) -> Result<InputInfo> {
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_get_input_info(
             self.ptr,
             std::ptr::addr_of_mut!(ptr)
         ))?;
         assert!(!ptr.is_null());
-        Ok(PreProcessInputInfo { ptr })
+        Ok(InputInfo { ptr })
     }
 
     /// Builds a new model with all steps from pre/postprocessing.
@@ -218,41 +143,107 @@ impl PrePostProcess {
     }
 }
 
-impl PreProcessSteps {
-    /// Resizes data in tensor.
-    pub fn preprocess_steps_resize(&mut self, resize_algo: ResizeAlgorithm) -> Result<()> {
-        try_unsafe!(ov_preprocess_preprocess_steps_resize(
-            self.ptr,
-            resize_algo as u32,
-        ))?;
+/// See [`PreProcessInputInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__input__info__t.html).
+pub struct InputInfo {
+    ptr: *mut ov_preprocess_input_info_t,
+}
+drop_using_function!(InputInfo, ov_preprocess_input_info_free);
 
-        Ok(())
+impl InputInfo {
+    /// Retrieves the preprocessing model input information.
+    pub fn get_model_info(&self) -> Result<InputModelInfo> {
+        let mut ptr = std::ptr::null_mut();
+        try_unsafe!(ov_preprocess_input_info_get_model_info(
+            self.ptr,
+            std::ptr::addr_of_mut!(ptr)
+        ))?;
+        Ok(InputModelInfo { ptr })
     }
 
-    /// Converts the layout of data in tensor.
-    pub fn preprocess_convert_layout(&self, layout: &Layout) -> Result<()> {
-        try_unsafe!(ov_preprocess_preprocess_steps_convert_layout(
+    /// Retrieves the input tensor information.
+    pub fn get_tensor_info(&self) -> Result<InputTensorInfo> {
+        let mut ptr: *mut ov_preprocess_input_tensor_info_t = std::ptr::null_mut();
+        try_unsafe!(ov_preprocess_input_info_get_tensor_info(
             self.ptr,
-            layout.as_ptr(),
+            std::ptr::addr_of_mut!(ptr)
         ))?;
-
-        Ok(())
+        Ok(InputTensorInfo { ptr })
     }
 
-    /// Converts the element type of data in tensor.
-    pub fn preprocess_convert_element_type(&self, element_type: ElementType) -> Result<()> {
-        try_unsafe!(ov_preprocess_preprocess_steps_convert_element_type(
+    /// Retrieves the preprocessing steps.
+    pub fn get_steps(&self) -> Result<Steps> {
+        let mut ptr = std::ptr::null_mut();
+        try_unsafe!(ov_preprocess_input_info_get_preprocess_steps(
             self.ptr,
-            element_type as u32
+            std::ptr::addr_of_mut!(ptr)
         ))?;
-
-        Ok(())
+        Ok(Steps { ptr })
     }
 }
 
-impl PreProcessOutputTensorInfo {
+/// See [`PreprocessOutputInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__output__info__t.html).
+pub struct OutputInfo {
+    ptr: *mut ov_preprocess_output_info_t,
+}
+drop_using_function!(OutputInfo, ov_preprocess_output_info_free);
+impl OutputInfo {
+    /// Retrieves preprocess output tensor information.
+    pub fn get_tensor_info(&self) -> Result<OutputTensorInfo> {
+        let mut ptr: *mut ov_preprocess_output_tensor_info_t = std::ptr::null_mut();
+        try_unsafe!(ov_preprocess_output_info_get_tensor_info(
+            self.ptr,
+            std::ptr::addr_of_mut!(ptr)
+        ))?;
+        Ok(OutputTensorInfo { ptr })
+    }
+}
+
+/// See [`PreprocessInputModelInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__input__model__info__t.html).
+pub struct InputModelInfo {
+    ptr: *mut ov_preprocess_input_model_info_t,
+}
+drop_using_function!(InputModelInfo, ov_preprocess_input_model_info_free);
+impl InputModelInfo {
+    /// Sets the layout for the model information obj.
+    pub fn set_layout(&mut self, layout: &Layout) -> Result<()> {
+        try_unsafe!(ov_preprocess_input_model_info_set_layout(
+            self.ptr,
+            layout.as_ptr()
+        ))
+    }
+}
+
+/// See [`PreprocessInputTensorInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__input__tensor__info__t.html).
+pub struct InputTensorInfo {
+    ptr: *mut ov_preprocess_input_tensor_info_t,
+}
+drop_using_function!(InputTensorInfo, ov_preprocess_input_tensor_info_free);
+impl InputTensorInfo {
+    /// Sets the [`Layout`] for the input tensor.
+    pub fn set_layout(&mut self, layout: &Layout) -> Result<()> {
+        try_unsafe!(ov_preprocess_input_tensor_info_set_layout(
+            self.ptr,
+            layout.as_ptr()
+        ))
+    }
+
+    /// Sets the input tensor info from an existing tensor.
+    pub fn set_from(&mut self, tensor: &Tensor) -> Result<()> {
+        try_unsafe!(ov_preprocess_input_tensor_info_set_from(
+            self.ptr,
+            tensor.as_ptr()
+        ))
+    }
+}
+
+/// See [`PreprocessOutputTensorInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__output__tensor__info__t.html).
+pub struct OutputTensorInfo {
+    ptr: *mut ov_preprocess_output_tensor_info_t,
+}
+drop_using_function!(OutputTensorInfo, ov_preprocess_output_tensor_info_free);
+impl OutputTensorInfo {
     /// Sets the element type for output tensor info.
-    pub fn preprocess_set_element_type(&self, element_type: ElementType) -> Result<()> {
+    pub fn set_element_type(&mut self, element_type: ElementType) -> Result<()> {
         try_unsafe!(ov_preprocess_output_set_element_type(
             self.ptr,
             element_type as u32
@@ -260,46 +251,33 @@ impl PreProcessOutputTensorInfo {
     }
 }
 
-impl PreProcessOutputInfo {
-    /// Retrieves preprocess output tensor information.
-    pub fn get_output_info_get_tensor_info(&self) -> Result<PreProcessOutputTensorInfo> {
-        let mut ptr: *mut ov_preprocess_output_tensor_info_t = std::ptr::null_mut();
-        try_unsafe!(ov_preprocess_output_info_get_tensor_info(
-            self.ptr,
-            std::ptr::addr_of_mut!(ptr)
-        ))?;
-        Ok(PreProcessOutputTensorInfo { ptr })
-    }
+/// See [`PreprocessSteps`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__preprocess__steps__t.html).
+pub struct Steps {
+    ptr: *mut ov_preprocess_preprocess_steps_t,
 }
-
-impl PreProcessInputInfo {
-    /// Retrieves the preprocessing model input information.
-    pub fn get_model_info(&self) -> Result<PreProcessInputModelInfo> {
-        let mut ptr = std::ptr::null_mut();
-        try_unsafe!(ov_preprocess_input_info_get_model_info(
+drop_using_function!(Steps, ov_preprocess_preprocess_steps_free);
+impl Steps {
+    /// Resizes the data in a [`Tensor`].
+    pub fn resize(&mut self, resize_algo: ResizeAlgorithm) -> Result<()> {
+        try_unsafe!(ov_preprocess_preprocess_steps_resize(
             self.ptr,
-            std::ptr::addr_of_mut!(ptr)
-        ))?;
-        Ok(PreProcessInputModelInfo { ptr })
+            resize_algo as u32
+        ))
     }
 
-    /// Retrieves the input tensor information.
-    pub fn preprocess_input_info_get_tensor_info(&self) -> Result<PreProcessInputTensorInfo> {
-        let mut ptr: *mut ov_preprocess_input_tensor_info_t = std::ptr::null_mut();
-        try_unsafe!(ov_preprocess_input_info_get_tensor_info(
+    /// Converts the [`Layout`] of the data in a [`Tensor`].
+    pub fn convert_layout(&mut self, new_layout: &Layout) -> Result<()> {
+        try_unsafe!(ov_preprocess_preprocess_steps_convert_layout(
             self.ptr,
-            std::ptr::addr_of_mut!(ptr)
-        ))?;
-        Ok(PreProcessInputTensorInfo { ptr })
+            new_layout.as_ptr(),
+        ))
     }
 
-    /// Retrieves preprocessing steps object.
-    pub fn get_preprocess_steps(&self) -> Result<PreProcessSteps> {
-        let mut ptr = std::ptr::null_mut();
-        try_unsafe!(ov_preprocess_input_info_get_preprocess_steps(
+    /// Converts the element type of data in tensor.
+    pub fn convert_element_type(&mut self, new_element_type: ElementType) -> Result<()> {
+        try_unsafe!(ov_preprocess_preprocess_steps_convert_element_type(
             self.ptr,
-            std::ptr::addr_of_mut!(ptr)
-        ))?;
-        Ok(PreProcessSteps { ptr })
+            new_element_type as u32
+        ))
     }
 }

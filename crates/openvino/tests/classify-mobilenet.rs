@@ -30,18 +30,18 @@ fn classify_mobilenet() -> anyhow::Result<()> {
     // Pre-process the input by:
     // - converting NHWC to NCHW
     // - resizing the input image
-    let pre_post_process = prepostprocess::PrePostProcess::new(&mut model)?;
+    let pre_post_process = prepostprocess::Pipeline::new(&mut model)?;
     let input_info = pre_post_process.get_input_info_by_name("input")?;
-    let mut input_tensor_info = input_info.preprocess_input_info_get_tensor_info()?;
-    input_tensor_info.preprocess_input_tensor_set_from(&tensor)?;
-    input_tensor_info.preprocess_input_tensor_set_layout(&Layout::new("NHWC")?)?;
-    let mut preprocess_steps = input_info.get_preprocess_steps()?;
-    preprocess_steps.preprocess_steps_resize(ResizeAlgorithm::Linear)?;
-    let model_info = input_info.get_model_info()?;
-    model_info.model_info_set_layout(&Layout::new("NCHW")?)?;
+    let mut input_tensor_info = input_info.get_tensor_info()?;
+    input_tensor_info.set_from(&tensor)?;
+    input_tensor_info.set_layout(&Layout::new("NHWC")?)?;
+    let mut steps = input_info.get_steps()?;
+    steps.resize(ResizeAlgorithm::Linear)?;
+    let mut model_info = input_info.get_model_info()?;
+    model_info.set_layout(&Layout::new("NCHW")?)?;
     let output_info = pre_post_process.get_output_info_by_index(0)?;
-    let output_tensor_info = output_info.get_output_info_get_tensor_info()?;
-    output_tensor_info.preprocess_set_element_type(ElementType::F32)?;
+    let mut output_tensor_info = output_info.get_tensor_info()?;
+    output_tensor_info.set_element_type(ElementType::F32)?;
     let new_model = pre_post_process.build_new_model()?;
 
     // Compile the model and infer the results.
