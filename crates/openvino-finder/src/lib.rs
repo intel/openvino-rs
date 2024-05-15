@@ -56,6 +56,22 @@ macro_rules! check_and_return {
     };
 }
 
+/// Distinguish which kind of library to link to.
+///
+/// The difference is important on Windows, e.g., which [requires] `*.lib` libraries when linking
+/// dependent libraries.
+///
+/// [requires]:
+///     https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-creation#creating-an-import-library
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Linking {
+    /// Find _static_ libraries: OpenVINO comes with static libraries on some platforms (e.g.,
+    /// Windows).
+    Static,
+    /// Find _dynamic_ libraries.
+    Dynamic,
+}
+
 /// Find the path to an OpenVINO library.
 ///
 /// Because OpenVINO can be installed in quite a few ways (see module documentation), this function
@@ -87,47 +103,27 @@ macro_rules! check_and_return {
 /// # Panics
 ///
 /// Panics if it cannot list the contents of a search directory.
-pub fn find(library_name: &str) -> Option<PathBuf> {
-    let library = format!(
-        "{}{}{}",
-        env::consts::DLL_PREFIX,
-        library_name,
+pub fn find(library_name: &str, kind: Linking) -> Option<PathBuf> {
+    let suffix = if kind == Linking::Static {
+        // This is a bit rudimentary but works for the top three supported platforms: `linux`,
+        // `macos`, and `windows`.
+        if cfg!(target_os = "windows") {
+            ".lib"
+        } else {
+            ".a"
+        }
+    } else {
         env::consts::DLL_SUFFIX
-    );
-    log::info!("Attempting to find library: {}", library);
-    find_library(&library)
-}
+    };
+    let file = format!("{}{}{}", env::consts::DLL_PREFIX, library_name, suffix);
+    log::info!("Attempting to find library: {}", file);
 
-/// Find the path to an OpenVINO link library.
-///
-/// Follows the same procedure as [find], but searches for "import" libraries.
-/// This differentiation is important on Windows, which requires ".lib" when linking:
-/// https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-creation#creating-an-import-library
-pub fn find_link(library_name: &str) -> Option<PathBuf> {
-    find_import_library(library_name)
-}
-
-#[cfg(target_os = "linux")]
-#[inline(always)]
-fn find_import_library(library_name: &str) -> Option<PathBuf> {
-    find(library_name)
-}
-
-#[cfg(target_os = "windows")]
-#[inline(always)]
-fn find_import_library(library_name: &str) -> Option<PathBuf> {
-    let library = format!("{}.lib", library_name);
-    log::info!("Attempting to find link library: {}", library);
-    find_library(&library)
-}
-
-fn find_library(library: &str) -> Option<PathBuf> {
     // Search using the `OPENVINO_BUILD_DIR` environment variable; this may be set by users of the
     // `openvino-rs` library.
     if let Some(build_dir) = env::var_os(ENV_OPENVINO_BUILD_DIR) {
         let install_dir = PathBuf::from(build_dir);
         for lib_dir in KNOWN_BUILD_SUBDIRECTORIES {
-            let search_path = install_dir.join(lib_dir).join(library);
+            let search_path = install_dir.join(lib_dir).join(&file);
             check_and_return!(search_path);
         }
     }
@@ -137,7 +133,7 @@ fn find_library(library: &str) -> Option<PathBuf> {
     if let Some(install_dir) = env::var_os(ENV_OPENVINO_INSTALL_DIR) {
         let install_dir = PathBuf::from(install_dir);
         for lib_dir in KNOWN_INSTALLATION_SUBDIRECTORIES {
-            let search_path = install_dir.join(lib_dir).join(library);
+            let search_path = install_dir.join(lib_dir).join(&file);
             check_and_return!(search_path);
         }
     }
@@ -147,7 +143,7 @@ fn find_library(library: &str) -> Option<PathBuf> {
     if let Some(install_dir) = env::var_os(ENV_INTEL_OPENVINO_DIR) {
         let install_dir = PathBuf::from(install_dir);
         for lib_dir in KNOWN_INSTALLATION_SUBDIRECTORIES {
-            let search_path = install_dir.join(lib_dir).join(library);
+            let search_path = install_dir.join(lib_dir).join(&file);
             check_and_return!(search_path);
         }
     }
@@ -156,7 +152,7 @@ fn find_library(library: &str) -> Option<PathBuf> {
     // `DYLD_LIBRARY_PATH` on MacOS).
     if let Some(path) = env::var_os(ENV_LIBRARY_PATH) {
         for lib_dir in env::split_paths(&path) {
-            let search_path = lib_dir.join(library);
+            let search_path = lib_dir.join(&file);
             check_and_return!(search_path);
         }
     }
@@ -169,13 +165,13 @@ fn find_library(library: &str) -> Option<PathBuf> {
         .filter(|d| d.is_dir())
     {
         // Check if the file is located in the installation directory.
-        let search_path = install_dir.join(library);
+        let search_path = install_dir.join(&file);
         check_and_return!(search_path);
 
         // Otherwise, check for version terminators: e.g., `libfoo.so.3.1.2`.
         let filenames = list_directory(&install_dir).expect("cannot list installation directory");
-        let versions = get_suffixes(filenames, library);
-        if let Some(path) = build_latest_version(&install_dir, library, versions) {
+        let versions = get_suffixes(filenames, &file);
+        if let Some(path) = build_latest_version(&install_dir, &file, versions) {
             check_and_return!(path);
         }
     }
@@ -187,7 +183,7 @@ fn find_library(library: &str) -> Option<PathBuf> {
         .filter(|d| d.is_dir())
     {
         for lib_dir in KNOWN_INSTALLATION_SUBDIRECTORIES {
-            let search_path = default_dir.join(lib_dir).join(library);
+            let search_path = default_dir.join(lib_dir).join(&file);
             check_and_return!(search_path);
         }
     }
@@ -286,7 +282,7 @@ pub fn find_plugins_xml() -> Option<PathBuf> {
 
     // Check in the same directory as the `openvino_c` library; e.g.,
     // `/opt/intel/openvino_.../runtime/lib/intel64/plugins.xml`.
-    let library = find("openvino_c")?;
+    let library = find("openvino_c", Linking::Dynamic)?;
     let library_parent_dir = library.parent()?;
     check_and_return!(library_parent_dir.join(FILE_NAME));
 
@@ -341,7 +337,7 @@ mod test {
     #[test]
     fn find_openvino_c_locally() {
         env_logger::init();
-        assert!(find("openvino_c").is_some());
+        assert!(find("openvino_c", Linking::Dynamic).is_some());
     }
 
     /// This test shows how the finder would discover the latest shared library on an

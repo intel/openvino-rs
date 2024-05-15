@@ -46,10 +46,13 @@ fn main() {
     };
 
     // Find the OpenVINO libraries to link to, either from a pre-installed location or by building
-    // from source.
+    // from source. We always look for the dynamic libraries here.
+    let link_kind = openvino_finder::Linking::Dynamic;
     let (c_api_library_path, library_search_paths) = if linking == Linking::None {
-        (openvino_finder::find("openvino_c"), vec![])
-    } else if let Some(path) = openvino_finder::find("openvino_c") {
+        // Why try to find the library if we're not going to link against it? Well, this is for the
+        // helpful Cargo warnings that get printed below if we can't find the library on the system.
+        (openvino_finder::find("openvino_c", link_kind), vec![])
+    } else if let Some(path) = openvino_finder::find("openvino_c", link_kind) {
         (Some(path), find_libraries_in_existing_installation())
     } else {
         panic!("Unable to find an OpenVINO installation on your system; build with runtime linking using `--features runtime-linking` or build from source with `OPENVINO_BUILD_DIR`.")
@@ -138,8 +141,16 @@ fn add_dynamically_linked_library(library: &str) {
 ///    unclear how we would discover this in a system-install scenario.
 fn find_libraries_in_existing_installation() -> Vec<PathBuf> {
     let mut dirs = vec![];
+    let link_kind = if cfg!(target_os = "windows") {
+        // Retrieve `*.lib` files on Windows. This is important because, when linking, Windows
+        // expects `*.lib` files. See
+        // https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-creation#creating-an-import-library.
+        openvino_finder::Linking::Static
+    } else {
+        openvino_finder::Linking::Dynamic
+    };
     for library in LIBRARIES {
-        if let Some(path) = openvino_finder::find_link(library) {
+        if let Some(path) = openvino_finder::find(library, link_kind) {
             println!(
                 "cargo:warning=Found library to link against: {}",
                 path.display()
