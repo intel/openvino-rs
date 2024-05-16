@@ -10,6 +10,8 @@ use openvino_sys::{
     ov_core_read_model, ov_core_read_model_from_memory_buffer, ov_core_t,
 };
 
+use std::os::raw::c_char;
+
 /// See [`Core`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__core__c__api.html).
 pub struct Core {
     ptr: *mut ov_core_t,
@@ -53,15 +55,15 @@ impl Core {
     /// Read model with model and weights loaded in memory.
     pub fn read_model_from_buffer(
         &mut self,
-        model_str: &str,
-        weights_buffer: &Tensor,
+        model_str: &[u8],
+        weights_buffer: Option<&Tensor>,
     ) -> Result<Model> {
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_core_read_model_from_memory_buffer(
             self.ptr,
-            cstr!(model_str),
+            model_str.as_ptr().cast::<c_char>(),
             model_str.len(),
-            weights_buffer.as_ptr(),
+            weights_buffer.map_or(std::ptr::null(), |tensor| tensor.as_ptr().cast_const()),
             std::ptr::addr_of_mut!(ptr)
         ))?;
         Ok(Model::from_ptr(ptr))
