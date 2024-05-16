@@ -62,7 +62,7 @@ pub mod library {
     /// `find().unwrap().parent()`.
     pub fn find() -> Option<PathBuf> {
         if cfg!(feature = "runtime-linking") {
-            openvino_finder::find("openvino_c")
+            openvino_finder::find("openvino_c", openvino_finder::Linking::Dynamic)
         } else {
             Some(PathBuf::from(env!("OPENVINO_LIB_PATH")))
         }
