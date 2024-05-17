@@ -53,19 +53,17 @@ impl Core {
     }
 
     /// Read model with model and weights loaded in memory.
-    pub fn read_model_from_buffer<'a, T: Into<Option<&'a Tensor>>>(
+    pub fn read_model_from_buffer(
         &mut self,
         model_str: &[u8],
-        weights_buffer: T,
+        weights_buffer: Option<&Tensor>,
     ) -> Result<Model> {
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_core_read_model_from_memory_buffer(
             self.ptr,
             model_str.as_ptr().cast::<c_char>(),
             model_str.len(),
-            weights_buffer
-                .into()
-                .map_or(std::ptr::null(), |tensor| tensor.as_ptr().cast_const()),
+            weights_buffer.map_or(std::ptr::null(), |tensor| tensor.as_ptr().cast_const()),
             std::ptr::addr_of_mut!(ptr)
         ))?;
         Ok(Model::from_ptr(ptr))
