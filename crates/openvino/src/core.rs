@@ -11,6 +11,8 @@ use openvino_sys::{
 };
 use std::ffi::CString;
 
+use std::os::raw::c_char;
+
 /// See [`Core`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__core__c__api.html).
 pub struct Core {
     ptr: *mut ov_core_t,
@@ -54,15 +56,15 @@ impl Core {
     /// Read model with model and weights loaded in memory.
     pub fn read_model_from_buffer(
         &mut self,
-        model_str: &str,
-        weights_buffer: &Tensor,
+        model_str: &[u8],
+        weights_buffer: Option<&Tensor>,
     ) -> Result<Model> {
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_core_read_model_from_memory_buffer(
             self.ptr,
-            cstr!(model_str),
+            model_str.as_ptr().cast::<c_char>(),
             model_str.len(),
-            weights_buffer.as_ptr(),
+            weights_buffer.map_or(std::ptr::null(), |tensor| tensor.as_ptr().cast_const()),
             std::ptr::addr_of_mut!(ptr)
         ))?;
         Ok(Model::from_ptr(ptr))
@@ -87,9 +89,18 @@ impl Core {
 #[cfg(test)]
 mod core_tests {
     use super::*;
+
     #[test]
     fn test_new() {
         let core = Core::new();
         assert!(core.is_ok());
+    }
+
+    #[test]
+    fn test_load_onnx_from_buffer() {
+        let model = b"\x08\x07\x12\nonnx-wally:j\n*\n\x06inputs\x12\x07outputs\x1a\ridentity_node\"\x08Identity\x12\x0bno-op-modelZ\x16\n\x06inputs\x12\x0c\n\n\x08\x01\x12\x06\n\x00\n\x02\x08\x02b\x17\n\x07outputs\x12\x0c\n\n\x08\x01\x12\x06\n\x00\n\x02\x08\x02B\x02\x10\x0c";
+        let mut core = Core::new().unwrap();
+        let model = core.read_model_from_buffer(model, None);
+        assert!(model.is_ok());
     }
 }
