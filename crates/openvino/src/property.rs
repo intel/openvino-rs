@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+/// See [`Property`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__property__c__api.html).
 /// `PropertyKey` represents valid configuration properties for a [crate::Core] instance.
 #[derive(Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
 pub enum PropertyKey {
