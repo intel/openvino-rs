@@ -4,12 +4,12 @@
 use crate::error::LoadingError;
 use crate::{cstr, drop_using_function, try_unsafe, util::Result};
 use crate::{model::CompiledModel, Model};
-use crate::{SetupError, Tensor};
+use crate::{DeviceType, SetupError, Tensor};
 use openvino_sys::{
     self, ov_core_compile_model, ov_core_create, ov_core_create_with_config, ov_core_free,
     ov_core_read_model, ov_core_read_model_from_memory_buffer, ov_core_t,
 };
-
+use std::ffi::CString;
 /// See [`Core`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__core__c__api.html).
 pub struct Core {
     ptr: *mut ov_core_t,
@@ -68,13 +68,14 @@ impl Core {
     }
 
     /// Compile a model to `CompiledModel`.
-    pub fn compile_model(&mut self, model: &Model, device: &str) -> Result<CompiledModel> {
+    pub fn compile_model(&mut self, model: &Model, device: DeviceType) -> Result<CompiledModel> {
+        let device: CString = device.into();
         let mut compiled_model = std::ptr::null_mut();
         let num_property_args = 0;
         try_unsafe!(ov_core_compile_model(
             self.ptr,
             model.as_ptr(),
-            cstr!(device),
+            device.as_ptr(),
             num_property_args,
             std::ptr::addr_of_mut!(compiled_model)
         ))?;
