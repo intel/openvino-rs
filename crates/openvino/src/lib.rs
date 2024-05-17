@@ -26,6 +26,7 @@
 )]
 
 mod core;
+mod device_type;
 mod dimension;
 mod element_type;
 mod error;
@@ -42,6 +43,7 @@ mod tensor;
 mod util;
 
 pub use crate::core::Core;
+pub use device_type::DeviceType;
 pub use dimension::Dimension;
 pub use element_type::ElementType;
 pub use error::{InferenceError, LoadingError, SetupError};

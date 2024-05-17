@@ -5,7 +5,9 @@ mod util;
 
 use anyhow::Ok;
 use fixtures::inception::Fixture;
-use openvino::{prepostprocess, Core, ElementType, Layout, ResizeAlgorithm, Shape, Tensor};
+use openvino::{
+    prepostprocess, Core, DeviceType, ElementType, Layout, ResizeAlgorithm, Shape, Tensor,
+};
 use std::fs;
 use util::{Prediction, Predictions};
 
@@ -42,7 +44,7 @@ fn classify_inception() -> anyhow::Result<()> {
     let new_model = pre_post_process.build_new_model()?;
 
     // Compile the model and infer the results.
-    let mut executable_model = core.compile_model(&new_model, "CPU")?;
+    let mut executable_model = core.compile_model(&new_model, DeviceType::CPU)?;
     let mut infer_request = executable_model.create_infer_request()?;
     infer_request.set_tensor("input", &tensor)?;
     infer_request.infer()?;
