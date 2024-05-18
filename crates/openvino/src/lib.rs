@@ -6,7 +6,7 @@
 //!
 //! Check the loaded version of OpenVINO:
 //! ```
-//! assert!(openvino::version().starts_with("2"))
+//! assert!(openvino::version().build_number.starts_with("2"))
 //! ```
 //!
 //! Most interaction with OpenVINO begins with instantiating a [Core]:
@@ -35,12 +35,14 @@ mod model;
 mod node;
 mod partial_shape;
 pub mod prepostprocess;
+mod property;
 mod rank;
 mod request;
 mod resize_algorithm;
 mod shape;
 mod tensor;
 mod util;
+mod version;
 
 pub use crate::core::Core;
 pub use device_type::DeviceType;
@@ -51,30 +53,28 @@ pub use layout::Layout;
 pub use model::{CompiledModel, Model};
 pub use node::Node;
 pub use partial_shape::PartialShape;
+pub use property::{PropertyKey, RwPropertyKey};
 pub use rank::Rank;
 pub use request::InferRequest;
 pub use resize_algorithm::ResizeAlgorithm;
 pub use shape::Shape;
 pub use tensor::Tensor;
+pub use version::Version;
 
 /// Emit the version string of the OpenVINO C API backing this implementation.
 ///
 /// # Panics
 ///
 /// Panics if no OpenVINO library can be found.
-pub fn version() -> String {
-    use std::ffi::CStr;
+pub fn version() -> Version {
     openvino_sys::load().expect("to have an OpenVINO shared library available");
     let mut ov_version = openvino_sys::ov_version_t {
-        // Initialize the fields to default values
-        description: std::ptr::null(),
         buildNumber: std::ptr::null(),
+        description: std::ptr::null(),
     };
     let code = unsafe { openvino_sys::ov_get_openvino_version(&mut ov_version) };
     assert_eq!(code, 0);
-    let version_ptr = { ov_version }.buildNumber;
-    let c_str_version = unsafe { CStr::from_ptr(version_ptr) };
-    let string_version = c_str_version.to_string_lossy().into_owned();
+    let version = Version::from(&ov_version);
     unsafe { openvino_sys::ov_version_free(std::ptr::addr_of_mut!(ov_version)) };
-    string_version
+    version
 }
