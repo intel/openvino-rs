@@ -1,6 +1,6 @@
 [submodule "crates/upstream"]
 	path = crates/openvino-sys/upstream
 	url = https://github.com/openvinotoolkit/openvino
-	update = none
+	update = checkout
 	fetchRecurseSubmodules = false
 	shallow = true
