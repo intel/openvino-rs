@@ -641,7 +641,7 @@ extern "C" {
     pub fn ov_compiled_model_set_property(
         compiled_model: *const ov_compiled_model_t,
         property_key: *const ::std::os::raw::c_char,
-		property_value: *const ::std::os::raw::c_char
+	property_value: *const ::std::os::raw::c_char
     ) -> ov_status_e;
 }
 extern "C" {
@@ -767,7 +767,7 @@ extern "C" {
         core: *const ov_core_t,
         device_name: *const ::std::os::raw::c_char,
         property_key: *const ::std::os::raw::c_char,
-		property_value: *const ::std::os::raw::c_char
+	property_value: *const ::std::os::raw::c_char
     ) -> ov_status_e;
 }
 extern "C" {

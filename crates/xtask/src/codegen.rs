@@ -49,7 +49,7 @@ impl CodegenCommand {
             let re = Regex::new(&format!(r"(?s){}.*?\.\.\.", function)).unwrap();
             if re.is_match(&function_bindings_string) {
                 function_bindings_string = re.replace(&function_bindings_string, |caps: &regex::Captures| {
-                    caps[0].replace("...", "property_key: *const ::std::os::raw::c_char,\n\t\tproperty_value: *const ::std::os::raw::c_char")
+                    caps[0].replace("...", "property_key: *const ::std::os::raw::c_char,\n\tproperty_value: *const ::std::os::raw::c_char")
                 }).to_string();
             }
         }
