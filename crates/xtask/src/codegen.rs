@@ -1,6 +1,7 @@
 use crate::util::path_to_crates;
 use anyhow::{anyhow, ensure, Context, Result};
 use clap::Args;
+use regex::Regex;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -38,6 +39,20 @@ impl CodegenCommand {
 
         // Generate the function bindings into `.../functions.rs`, with a prefix and suffix.
         let function_bindings = Self::generate_function_bindings(&header_file)?;
+
+        // Runtime linking doesn't work yet with variadic args (...), so we need to convert them
+        // to a fixed pair of args (property_key, property_value)for a few select functions.
+        // This is a workaround until the runtime linking is updated to support variadic args.
+        let functions_to_modify = vec!["ov_core_set_property", "ov_compiled_model_set_property"];
+        let mut function_bindings_string = function_bindings.to_string();
+        for function in &functions_to_modify {
+            let re = Regex::new(&format!(r"(?s){}.*?\.\.\.", function)).unwrap();
+            if re.is_match(&function_bindings_string) {
+                function_bindings_string = re.replace(&function_bindings_string, |caps: &regex::Captures| {
+                    caps[0].replace("...", "property_key: *const ::std::os::raw::c_char,\n\t\tproperty_value: *const ::std::os::raw::c_char")
+                }).to_string();
+            }
+        }
         let function_bindings_path = output_directory.join(FUNCTIONS_FILE);
         {
             let mut function_bindings_file = Box::new(File::create(&function_bindings_path)?);
@@ -46,14 +61,12 @@ impl CodegenCommand {
             function_bindings_file.write_all(b"type wchar_t = ::std::os::raw::c_char;\n")?;
             function_bindings_file.write_all(b"link! {\n")?;
             function_bindings_file.write_all(b"\n")?;
-            function_bindings
-                .write(function_bindings_file)
-                .with_context(|| {
-                    format!(
-                        "Failed to write functions to: {}",
-                        &function_bindings_path.display()
-                    )
-                })?;
+            function_bindings_file
+                .write_all(function_bindings_string.as_bytes())
+                .context(format!(
+                    "Failed to write functions to: {}",
+                    &function_bindings_path.display()
+                ))?;
         }
 
         let mut function_bindings_file = OpenOptions::new()

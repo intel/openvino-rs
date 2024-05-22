@@ -753,6 +753,7 @@ dependencies = [
  "anyhow",
  "bindgen",
  "clap",
+ "regex",
  "semver",
  "toml",
 ]
