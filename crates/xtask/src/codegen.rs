@@ -41,7 +41,7 @@ impl CodegenCommand {
         let function_bindings = Self::generate_function_bindings(&header_file)?;
 
         // Runtime linking doesn't work yet with variadic args (...), so we need to convert them
-        // to a fixed pair of args (property_key, property_value)for a few select functions.
+        // to a fixed pair of args (property_key, property_value) for a few select functions.
         // This is a workaround until the runtime linking is updated to support variadic args.
         let functions_to_modify = vec!["ov_core_set_property", "ov_compiled_model_set_property"];
         let mut function_bindings_string = function_bindings.to_string();
