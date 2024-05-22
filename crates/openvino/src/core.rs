@@ -18,7 +18,7 @@ use std::os::raw::c_char;
 use std::slice;
 use std::str::FromStr;
 
-const EMPTY_C_STR: &'static CStr = unsafe { CStr::from_bytes_with_nul_unchecked(b"\0") };
+const EMPTY_C_STR: &CStr = unsafe { CStr::from_bytes_with_nul_unchecked(b"\0") };
 
 /// See [`Core`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__core__c__api.html).
 pub struct Core {
