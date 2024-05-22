@@ -106,7 +106,6 @@ impl Core {
     }
 
     /// Gets properties related to this Core.
-    ///
     /// The method extracts information that can be set via the [set_property] method.
     pub fn property(&self, key: PropertyKey) -> Result<Cow<str>> {
         let ov_prop_key = cstr!(key.as_ref());
@@ -146,7 +145,6 @@ impl Core {
     }
 
     /// Gets properties related to device behaviour.
-    ///
     /// The method extracts information that can be set via the [set_device_property] method.
     pub fn device_property(
         &self,
