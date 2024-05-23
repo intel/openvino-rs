@@ -49,8 +49,8 @@ impl Core {
     /// Gets device plugins version information.
     /// Device name can be complex and identify multiple devices at once like `HETERO:CPU,GPU`;
     /// in this case, the returned map contains multiple entries, each per device.
-    pub fn versions(&self, device_name: impl AsRef<str>) -> Result<Vec<(DeviceType, Version)>> {
-        let device_name = cstr!(device_name.as_ref());
+    pub fn versions(&self, device_name: &str) -> Result<Vec<(DeviceType, Version)>> {
+        let device_name = cstr!(device_name);
         let mut ov_version_list = openvino_sys::ov_core_version_list_t {
             versions: std::ptr::null_mut(),
             size: 0,
@@ -105,7 +105,7 @@ impl Core {
 
     /// Gets properties related to this Core.
     /// The method extracts information that can be set via the [set_property] method.
-    pub fn property(&self, key: PropertyKey) -> Result<Cow<str>> {
+    pub fn get_property(&self, key: PropertyKey) -> Result<Cow<str>> {
         let ov_prop_key = cstr!(key.as_ref());
         let mut ov_prop_value = std::ptr::null_mut();
         try_unsafe!(ov_core_get_property(
@@ -144,12 +144,8 @@ impl Core {
 
     /// Gets properties related to device behaviour.
     /// The method extracts information that can be set via the [set_device_property] method.
-    pub fn device_property(
-        &self,
-        device_name: impl AsRef<str>,
-        key: PropertyKey,
-    ) -> Result<Cow<str>> {
-        let ov_device_name = cstr!(device_name.as_ref());
+    pub fn get_device_property(&self, device_name: &str, key: PropertyKey) -> Result<Cow<str>> {
+        let ov_device_name = cstr!(device_name);
         let ov_prop_key = cstr!(key.as_ref());
         let mut ov_prop_value = std::ptr::null_mut();
         try_unsafe!(ov_core_get_property(
@@ -165,11 +161,11 @@ impl Core {
     /// Sets a property for a device.
     pub fn set_device_property(
         &mut self,
-        device_name: impl AsRef<str>,
+        device_name: &str,
         key: RwPropertyKey,
         value: &str,
     ) -> Result<()> {
-        let ov_device_name = cstr!(device_name.as_ref());
+        let ov_device_name = cstr!(device_name);
         let ov_prop_key = cstr!(key.as_ref());
         let ov_prop_value = cstr!(value);
         try_unsafe!(ov_core_set_property(
@@ -184,10 +180,10 @@ impl Core {
     /// Sets properties for a device.
     pub fn set_device_properties<'a>(
         &mut self,
-        device_name: impl AsRef<str>,
+        device_name: &str,
         properties: impl IntoIterator<Item = (RwPropertyKey, &'a str)>,
     ) -> Result<()> {
-        let device_name = device_name.as_ref();
+        let device_name = device_name;
         for (prop_key, prop_value) in properties {
             self.set_device_property(device_name, prop_key, prop_value)?;
         }
