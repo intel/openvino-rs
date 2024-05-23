@@ -12,7 +12,6 @@ use openvino_sys::{
     ov_core_set_property, ov_core_t, ov_core_versions_free,
 };
 use std::borrow::Cow;
-use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::slice;
@@ -50,7 +49,7 @@ impl Core {
     /// Gets device plugins version information.
     /// Device name can be complex and identify multiple devices at once like `HETERO:CPU,GPU`;
     /// in this case, the returned map contains multiple entries, each per device.
-    pub fn versions(&self, device_name: impl AsRef<str>) -> Result<HashMap<DeviceType, Version>> {
+    pub fn versions(&self, device_name: impl AsRef<str>) -> Result<Vec<(DeviceType, Version)>> {
         let device_name = cstr!(device_name.as_ref());
         let mut ov_version_list = openvino_sys::ov_core_version_list_t {
             versions: std::ptr::null_mut(),
@@ -65,13 +64,12 @@ impl Core {
         let ov_versions =
             unsafe { slice::from_raw_parts(ov_version_list.versions, ov_version_list.size) };
 
-        let mut versions: HashMap<DeviceType, Version> =
-            HashMap::with_capacity(ov_version_list.size);
+        let mut versions: Vec<(DeviceType, Version)> = Vec::with_capacity(ov_version_list.size);
         for ov_version in ov_versions {
             let c_str_device_name = unsafe { std::ffi::CStr::from_ptr(ov_version.device_name) };
             let device_name = c_str_device_name.to_string_lossy();
             let device_type = DeviceType::from_str(device_name.as_ref()).unwrap();
-            versions.insert(device_type, Version::from(&ov_version.version));
+            versions.push((device_type, Version::from(&ov_version.version)));
         }
 
         unsafe { ov_core_versions_free(std::ptr::addr_of_mut!(ov_version_list)) };
