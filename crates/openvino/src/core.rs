@@ -188,7 +188,6 @@ impl Core {
         device_name: &str,
         properties: impl IntoIterator<Item = (RwPropertyKey, &'a str)>,
     ) -> Result<()> {
-        let device_name = device_name;
         for (prop_key, prop_value) in properties {
             self.set_device_property(device_name, prop_key, prop_value)?;
         }
