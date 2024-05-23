@@ -11,7 +11,6 @@ use openvino_sys::{
     ov_core_get_versions_by_device_name, ov_core_read_model, ov_core_read_model_from_memory_buffer,
     ov_core_set_property, ov_core_t, ov_core_versions_free,
 };
-use std::borrow::Cow;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::slice;
@@ -105,7 +104,7 @@ impl Core {
 
     /// Gets properties related to this Core.
     /// The method extracts information that can be set via the [set_property] method.
-    pub fn get_property(&self, key: PropertyKey) -> Result<Cow<str>> {
+    pub fn get_property(&self, key: PropertyKey) -> Result<String> {
         let ov_prop_key = cstr!(key.as_ref());
         let mut ov_prop_value = std::ptr::null_mut();
         try_unsafe!(ov_core_get_property(
@@ -114,7 +113,10 @@ impl Core {
             ov_prop_key,
             std::ptr::addr_of_mut!(ov_prop_value)
         ))?;
-        let rust_prop = unsafe { CStr::from_ptr(ov_prop_value) }.to_string_lossy();
+        let rust_prop = unsafe { CStr::from_ptr(ov_prop_value) }
+            .to_str()
+            .unwrap()
+            .to_owned();
         Ok(rust_prop)
     }
 
@@ -144,7 +146,7 @@ impl Core {
 
     /// Gets properties related to device behaviour.
     /// The method extracts information that can be set via the [set_device_property] method.
-    pub fn get_device_property(&self, device_name: &str, key: PropertyKey) -> Result<Cow<str>> {
+    pub fn get_device_property(&self, device_name: &str, key: PropertyKey) -> Result<String> {
         let ov_device_name = cstr!(device_name);
         let ov_prop_key = cstr!(key.as_ref());
         let mut ov_prop_value = std::ptr::null_mut();
@@ -154,7 +156,10 @@ impl Core {
             ov_prop_key,
             std::ptr::addr_of_mut!(ov_prop_value)
         ))?;
-        let rust_prop = unsafe { CStr::from_ptr(ov_prop_value) }.to_string_lossy();
+        let rust_prop = unsafe { CStr::from_ptr(ov_prop_value) }
+            .to_str()
+            .unwrap()
+            .to_owned();
         Ok(rust_prop)
     }
 
