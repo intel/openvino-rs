@@ -1,15 +1,15 @@
 [package]
 name = "openvino-sys"
-version = "0.6.0"
-license = "Apache-2.0"
 description = "Low-level bindings for OpenVINO (use the `openvino` crate for easier-to-use bindings)."
-readme = "README.md"
-authors = ["OpenVINO Project Developers"]
-repository = "https://github.com/intel/openvino-rs"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+readme.workspace = true
+repository.workspace = true
 documentation = "https://docs.rs/openvino-sys"
 keywords = ["openvino", "machine-learning", "ml", "neural-network"]
 categories = ["external-ffi-bindings", "science"]
-edition = "2018"
 include = [
     "/Cargo.toml",
     "/README.md",
@@ -22,16 +22,16 @@ include = [
     # - built from an OpenVINO installation when used as a dependency
     "/upstream/src/bindings/c/include",
 ]
-links = "inference_engine_c_api"
+links = "openvino_c_api"
 
 [dependencies]
 once_cell = { version = "1.18", optional = true }
 libloading = { version = "0.8", optional = true }
-openvino-finder = { version = "0.6.0", path = "../openvino-finder" }
+openvino-finder = { workspace = true }
 
 [build-dependencies]
-openvino-finder = { version = "0.6.0", path = "../openvino-finder" }
-env_logger = "0.10"
+openvino-finder = { workspace = true }
+env_logger = { workspace = true }
 
 [features]
 # Linking features: `build.rs` will default to dynamic linking if none is selected.

@@ -1,5 +1,5 @@
-use crate::util::{get_crates, Crate};
-use anyhow::{bail, Context, Result};
+use crate::util::{get_crates, get_top_level_cargo_toml, get_top_level_version, Crate};
+use anyhow::{Context, Result};
 use clap::Args;
 use semver::{BuildMetadata, Prerelease};
 use std::fs;
@@ -26,17 +26,10 @@ impl BumpCommand {
         let publishable_crates: Vec<Crate> =
             get_crates()?.into_iter().filter(|c| c.publish).collect();
 
-        // Check that all of the versions are the same.
-        if !publishable_crates
-            .windows(2)
-            .all(|w| w[0].version == w[1].version)
-        {
-            bail!("Not all crate versions are the same: {publishable_crates:?}");
-        }
-
         // Change the version. Unless specified with a custom version, the `pre` and `build`
         // metadata are cleared.
-        let mut next_version = semver::Version::parse(&publishable_crates[0].version)?;
+        let current_version = get_top_level_version()?;
+        let mut next_version = current_version.clone();
         next_version.pre = Prerelease::EMPTY;
         next_version.build = BuildMetadata::EMPTY;
         match &self.bump {
@@ -55,11 +48,17 @@ impl BumpCommand {
             Bump::Custom(v) => next_version = semver::Version::parse(v)?,
         }
 
-        // Update the Cargo.toml files.
-        let next_version_str = &next_version.to_string();
-        for c in &publishable_crates {
-            update_version(c, &publishable_crates, next_version_str, self.dry_run)?;
-        }
+        // Update the top-level Cargo.toml version. We expect all the crates use the top-level
+        // workspace version.
+        assert!(publishable_crates.iter().all(uses_workspace_version));
+        let current_version_str = current_version.to_string();
+        let next_version_str = next_version.to_string();
+        update_version(
+            &publishable_crates,
+            &current_version_str,
+            &next_version_str,
+            self.dry_run,
+        )?;
 
         // Update the Cargo.lock file.
         if !self.dry_run {
@@ -107,17 +106,27 @@ impl std::str::FromStr for Bump {
     }
 }
 
-/// Update the version of `krate` and any dependencies in `crates` to match the version passed in
-/// `next_version`. Adapted from Wasmtime's [publish.rs] script.
+/// Check that a publishable crate pulls its version from the workspace version.
+fn uses_workspace_version(krate: &Crate) -> bool {
+    let contents = fs::read_to_string(&krate.path).unwrap();
+    let toml: toml::Value = contents.parse().unwrap();
+    let version_workspace = &toml["package"]["version"]["workspace"];
+    *version_workspace == toml::Value::Boolean(true)
+}
+
+/// Update the version in the top-level Cargo.toml and any dependencies in its
+/// `[workspace.dependencies]` to match the version passed in `next_version`. Adapted from
+/// Wasmtime's [publish.rs] script.
 ///
 /// [publish.rs]: https://github.com/bytecodealliance/wasmtime/blob/main/scripts/publish.rs
 fn update_version(
-    krate: &Crate,
     crates: &[Crate],
+    current_version: &str,
     next_version: &str,
     dry_run: bool,
 ) -> Result<()> {
-    let contents = fs::read_to_string(&krate.path)?;
+    let top_level_cargo_toml_path = get_top_level_cargo_toml()?;
+    let contents = fs::read_to_string(&top_level_cargo_toml_path)?;
     let mut new_contents = String::new();
     let mut reading_dependencies = false;
     for line in contents.lines() {
@@ -125,11 +134,13 @@ fn update_version(
 
         // Update top-level `version = "..."` line.
         if !reading_dependencies && line.starts_with("version =") {
+            let modified_line = line.replace(current_version, next_version);
             println!(
-                "> bump `{}` {} => {}",
-                krate.name, krate.version, next_version
+                "> bump: {} => {}",
+                line.trim_start_matches("version =").trim(),
+                modified_line.trim_start_matches("version =").trim()
             );
-            new_contents.push_str(&line.replace(&krate.version.to_string(), next_version));
+            new_contents.push_str(&modified_line);
             rewritten = true;
         }
 
@@ -145,21 +156,21 @@ fn update_version(
             if !reading_dependencies || !line.starts_with(&format!("{} ", other.name)) {
                 continue;
             }
-            if !line.contains(&other.version.to_string()) {
+            if !line.contains(current_version) {
                 if !line.contains("version =") {
                     continue;
                 }
                 panic!(
-                    "{:?} has a dependency on {} but doesn't list version {}",
-                    krate.path, other.name, other.version
+                    "workspace dependency {} doesn't list version {}",
+                    other.name, current_version
                 );
             }
             println!(
                 ">   bump dependency `{}` {} => {}",
-                other.name, other.version, next_version
+                other.name, current_version, next_version
             );
             rewritten = true;
-            new_contents.push_str(&line.replace(&other.version, next_version));
+            new_contents.push_str(&line.replace(current_version, next_version));
             break;
         }
 
@@ -172,7 +183,7 @@ fn update_version(
     }
 
     if !dry_run {
-        fs::write(&krate.path, new_contents)?;
+        fs::write(top_level_cargo_toml_path, new_contents)?;
     }
 
     Ok(())

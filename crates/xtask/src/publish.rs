@@ -1,7 +1,7 @@
-use crate::util::{exec, get_crates, path_to_crates, Crate};
-use anyhow::{bail, Result};
+use crate::util::{exec, get_crates, get_top_level_version, path_to_crates, Crate};
+use anyhow::Result;
 use clap::Args;
-use std::{process::Command, thread::sleep, time::Duration};
+use std::process::Command;
 
 #[derive(Debug, Args)]
 pub struct PublishCommand {
@@ -16,17 +16,12 @@ pub struct PublishCommand {
 
 impl PublishCommand {
     pub fn execute(&self) -> Result<()> {
+        // Find the single crate version in the top-level Cargo.toml.
+        let version = get_top_level_version()?;
+
         // Find the publishable crates.
         let publishable_crates: Vec<Crate> =
             get_crates()?.into_iter().filter(|c| c.publish).collect();
-
-        // Check that all of the versions are the same.
-        if !publishable_crates
-            .windows(2)
-            .all(|w| w[0].version == w[1].version)
-        {
-            bail!("Not all crate versions are the same: {publishable_crates:?}");
-        }
 
         // Check that all of the publishable crates are in `PUBLICATION_ORDER`.
         assert_eq!(publishable_crates.len(), PUBLICATION_ORDER.len());
@@ -52,14 +47,11 @@ impl PublishCommand {
                 if let Err(e) = exec_result {
                     println!("Failed to publish crate {krate}, continuing:\n  {e}");
                 }
-
-                // Hopefully this gives crates.io enough time for subsequent publications to work.
-                sleep(Duration::from_secs(20));
             }
         }
 
         // Tag the repository.
-        let tag = format!("v{}", publishable_crates[0].version);
+        let tag = format!("v{}", version);
         if self.git {
             println!("> push Git tag: {tag}");
             if !self.dry_run {
