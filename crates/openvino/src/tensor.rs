@@ -58,12 +58,12 @@ impl Tensor {
     }
 
     /// Get the pointer to the underlying OpenVINO tensor.
-    pub(crate) fn as_ptr(&self) -> *mut ov_tensor_t {
+    pub(crate) fn as_ptr(&self) -> *const ov_tensor_t {
         self.ptr
     }
 
     /// (Re)Set the shape of the tensor to a new shape.
-    pub fn set_shape(&self, shape: &Shape) -> Result<Self> {
+    pub fn set_shape(&self, shape: Shape) -> Result<Self> {
         try_unsafe!(ov_tensor_set_shape(self.ptr, shape.as_c_struct()))?;
         Ok(Self { ptr: self.ptr })
     }

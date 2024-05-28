@@ -25,7 +25,7 @@ impl InferRequest {
     }
 
     /// Assign a [`Tensor`] to the input on the model.
-    pub fn set_tensor(&mut self, name: &str, tensor: &Tensor) -> Result<()> {
+    pub fn set_tensor(&mut self, name: &str, tensor: Tensor) -> Result<()> {
         try_unsafe!(ov_infer_request_set_tensor(
             self.ptr,
             cstr!(name),

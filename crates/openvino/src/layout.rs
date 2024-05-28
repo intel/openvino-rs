@@ -9,7 +9,7 @@ drop_using_function!(Layout, ov_layout_free);
 
 impl Layout {
     /// Get a pointer to the [`ov_layout_t`].
-    pub(crate) fn as_ptr(&self) -> *mut ov_layout_t {
+    pub(crate) fn as_mut_ptr(&mut self) -> *mut ov_layout_t {
         self.ptr
     }
 
