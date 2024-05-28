@@ -20,6 +20,7 @@ unsafe impl Sync for InferRequest {}
 
 impl InferRequest {
     /// Create a new [`InferRequest`] from [`ov_infer_request_t`].
+    #[inline]
     pub(crate) fn from_ptr(ptr: *mut ov_infer_request_t) -> Self {
         Self { ptr }
     }

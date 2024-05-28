@@ -28,11 +28,13 @@ unsafe impl Sync for Model {}
 
 impl Model {
     /// Create a new [`Model`] from an internal pointer.
+    #[inline]
     pub(crate) fn from_ptr(ptr: *mut ov_model_t) -> Self {
         Self { ptr }
     }
 
     /// Get the pointer to the underlying [`ov_model_t`].
+    #[inline]
     pub(crate) fn as_ptr(&self) -> *mut ov_model_t {
         self.ptr
     }

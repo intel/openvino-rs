@@ -39,16 +39,19 @@ impl Shape {
     }
 
     /// Create a new shape object from `ov_shape_t`.
+    #[inline]
     pub(crate) fn from_c_struct(ptr: ov_shape_t) -> Self {
         Self { c_struct: ptr }
     }
 
     /// Get the pointer to the underlying OpenVINO shape.
+    #[inline]
     pub(crate) fn as_c_struct(&self) -> ov_shape_t {
         self.c_struct
     }
 
     /// Returns the rank of the shape.
+    #[inline]
     pub fn get_rank(&self) -> i64 {
         self.c_struct.rank
     }

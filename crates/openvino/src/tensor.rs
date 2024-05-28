@@ -29,6 +29,7 @@ impl Tensor {
     }
 
     /// Create a new [`Tensor`] from a pointer.
+    #[inline]
     pub(crate) fn from_ptr(ptr: *mut ov_tensor_t) -> Self {
         Self { ptr }
     }
@@ -58,6 +59,7 @@ impl Tensor {
     }
 
     /// Get the pointer to the underlying OpenVINO tensor.
+    #[inline]
     pub(crate) fn as_ptr(&self) -> *const ov_tensor_t {
         self.ptr
     }
