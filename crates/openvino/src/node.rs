@@ -14,7 +14,7 @@ pub struct Node {
 impl Node {
     /// Create a new [`Port`] from [`ov_output_const_port_t`].
     #[inline]
-    pub(crate) fn new(ptr: *mut ov_output_const_port_t) -> Self {
+    pub(crate) fn from_ptr(ptr: *mut ov_output_const_port_t) -> Self {
         Self { ptr }
     }
 
