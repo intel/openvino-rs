@@ -161,7 +161,7 @@ impl CompiledModel {
         Ok(output_size)
     }
 
-    /// Get the single output port of the compiled model, which only support single output model.
+    /// Get the single output port of the compiled model, which we expect to have a single output.
     pub fn get_output(&self) -> Result<Node> {
         let mut port = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_output(
