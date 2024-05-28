@@ -21,11 +21,11 @@
 //! let input_info = pipeline.get_input_info_by_name("input").expect("to get input info by name");
 //! let mut input_tensor_info = input_info.get_tensor_info().expect("to get tensor info");
 //! input_tensor_info.set_from(&tensor).expect("to set tensor from");
-//! input_tensor_info.set_layout(&Layout::new("NHWC").expect("to create a new layout")).expect("to set layout");
+//! input_tensor_info.set_layout(Layout::new("NHWC").expect("to create a new layout")).expect("to set layout");
 //! let mut preprocess_steps = input_info.get_steps().expect("to get preprocess steps");
 //! preprocess_steps.resize(ResizeAlgorithm::Linear).expect("to resize");
 //! let mut model_info = input_info.get_model_info().expect("to get model info");
-//! model_info.set_layout(&Layout::new("NCHW").expect("to create a new layout")).expect("to set layout");
+//! model_info.set_layout(Layout::new("NCHW").expect("to create a new layout")).expect("to set layout");
 //! let new_model = pipeline.build_new_model().expect("to build new model with above prepostprocess steps");
 //! ```
 use crate::{
@@ -205,10 +205,10 @@ pub struct InputModelInfo {
 drop_using_function!(InputModelInfo, ov_preprocess_input_model_info_free);
 impl InputModelInfo {
     /// Sets the layout for the model information obj.
-    pub fn set_layout(&mut self, layout: &Layout) -> Result<()> {
+    pub fn set_layout(&mut self, mut layout: Layout) -> Result<()> {
         try_unsafe!(ov_preprocess_input_model_info_set_layout(
             self.ptr,
-            layout.as_ptr()
+            layout.as_mut_ptr()
         ))
     }
 }
@@ -220,10 +220,10 @@ pub struct InputTensorInfo {
 drop_using_function!(InputTensorInfo, ov_preprocess_input_tensor_info_free);
 impl InputTensorInfo {
     /// Sets the [`Layout`] for the input tensor.
-    pub fn set_layout(&mut self, layout: &Layout) -> Result<()> {
+    pub fn set_layout(&mut self, mut layout: Layout) -> Result<()> {
         try_unsafe!(ov_preprocess_input_tensor_info_set_layout(
             self.ptr,
-            layout.as_ptr()
+            layout.as_mut_ptr()
         ))
     }
 
@@ -266,10 +266,10 @@ impl Steps {
     }
 
     /// Converts the [`Layout`] of the data in a [`Tensor`].
-    pub fn convert_layout(&mut self, new_layout: &Layout) -> Result<()> {
+    pub fn convert_layout(&mut self, mut new_layout: Layout) -> Result<()> {
         try_unsafe!(ov_preprocess_preprocess_steps_convert_layout(
             self.ptr,
-            new_layout.as_ptr(),
+            new_layout.as_mut_ptr(),
         ))
     }
 

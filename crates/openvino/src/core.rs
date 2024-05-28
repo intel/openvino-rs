@@ -218,7 +218,7 @@ impl Core {
             self.ptr,
             model_str.as_ptr().cast::<c_char>(),
             model_str.len(),
-            weights_buffer.map_or(std::ptr::null(), |tensor| tensor.as_ptr().cast_const()),
+            weights_buffer.map_or(std::ptr::null(), |tensor| tensor.as_ptr()),
             std::ptr::addr_of_mut!(ptr)
         ))?;
         Ok(Model::from_ptr(ptr))

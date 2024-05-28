@@ -22,6 +22,7 @@ impl Drop for PartialShape {
 
 impl PartialShape {
     /// Create a new partial shape object from `ov_partial_shape_t`.
+    #[inline]
     pub(crate) fn from_c_struct(c_struct: ov_partial_shape_t) -> Self {
         Self { c_struct }
     }

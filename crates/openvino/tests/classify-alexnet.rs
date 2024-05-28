@@ -36,11 +36,11 @@ fn classify_alexnet() -> anyhow::Result<()> {
     let input_info = pre_post_process.get_input_info_by_name("data")?;
     let mut input_tensor_info = input_info.get_tensor_info()?;
     input_tensor_info.set_from(&tensor)?;
-    input_tensor_info.set_layout(&Layout::new("NHWC")?)?;
+    input_tensor_info.set_layout(Layout::new("NHWC")?)?;
     let mut steps = input_info.get_steps()?;
     steps.resize(ResizeAlgorithm::Linear)?;
     let mut model_info = input_info.get_model_info()?;
-    model_info.set_layout(&Layout::new("NCHW")?)?;
+    model_info.set_layout(Layout::new("NCHW")?)?;
     let output_info = pre_post_process.get_output_info_by_index(0)?;
     let mut output_tensor_info = output_info.get_tensor_info()?;
     output_tensor_info.set_element_type(ElementType::F32)?;

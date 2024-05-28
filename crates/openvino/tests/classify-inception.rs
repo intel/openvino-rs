@@ -36,11 +36,11 @@ fn classify_inception() -> anyhow::Result<()> {
     let input_info = pre_post_process.get_input_info_by_name("input")?;
     let mut input_tensor_info = input_info.get_tensor_info()?;
     input_tensor_info.set_from(&tensor)?;
-    input_tensor_info.set_layout(&Layout::new("NHWC")?)?;
+    input_tensor_info.set_layout(Layout::new("NHWC")?)?;
     let mut steps = input_info.get_steps()?;
     steps.resize(ResizeAlgorithm::Linear)?;
     let mut model_info = input_info.get_model_info()?;
-    model_info.set_layout(&Layout::new("NCHW")?)?;
+    model_info.set_layout(Layout::new("NCHW")?)?;
     let new_model = pre_post_process.build_new_model()?;
 
     // Compile the model and infer the results.

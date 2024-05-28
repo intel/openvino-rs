@@ -28,12 +28,14 @@ unsafe impl Sync for Model {}
 
 impl Model {
     /// Create a new [`Model`] from an internal pointer.
+    #[inline]
     pub(crate) fn from_ptr(ptr: *mut ov_model_t) -> Self {
         Self { ptr }
     }
 
     /// Get the pointer to the underlying [`ov_model_t`].
-    pub(crate) fn as_ptr(&self) -> *mut ov_model_t {
+    #[inline]
+    pub(crate) fn as_ptr(&self) -> *const ov_model_t {
         self.ptr
     }
 
@@ -59,7 +61,7 @@ impl Model {
             index,
             std::ptr::addr_of_mut!(node)
         ))?;
-        Ok(Node::new(node))
+        Ok(Node::from_ptr(node))
     }
 
     /// Retrieve the output node by index.
@@ -70,7 +72,7 @@ impl Model {
             index,
             std::ptr::addr_of_mut!(node)
         ))?;
-        Ok(Node::new(node))
+        Ok(Node::from_ptr(node))
     }
 
     /// Retrieve the constant output node by index.
@@ -81,7 +83,7 @@ impl Model {
             index,
             std::ptr::addr_of_mut!(node)
         ))?;
-        Ok(Node::new(node))
+        Ok(Node::from_ptr(node))
     }
 
     /// Returns `true` if the model contains dynamic shapes.
@@ -128,7 +130,7 @@ impl CompiledModel {
             self.ptr,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Node::new(port))
+        Ok(Node::from_ptr(port))
     }
 
     /// Get an input port of the compiled model by port index.
@@ -139,7 +141,7 @@ impl CompiledModel {
             index,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Node::new(port))
+        Ok(Node::from_ptr(port))
     }
 
     /// Get an input port of the compiled model by name.
@@ -151,7 +153,7 @@ impl CompiledModel {
             name,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Node::new(port))
+        Ok(Node::from_ptr(port))
     }
 
     /// Get the number of outputs of the compiled model.
@@ -168,7 +170,7 @@ impl CompiledModel {
             self.ptr,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Node::new(port))
+        Ok(Node::from_ptr(port))
     }
 
     /// Get an output port of the compiled model by port index.
@@ -179,7 +181,7 @@ impl CompiledModel {
             index,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Node::new(port))
+        Ok(Node::from_ptr(port))
     }
 
     /// Get an output port of the compiled model by name.
@@ -191,7 +193,7 @@ impl CompiledModel {
             name,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Node::new(port))
+        Ok(Node::from_ptr(port))
     }
 
     /// Gets runtime model information from a device.
