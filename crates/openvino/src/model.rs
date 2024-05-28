@@ -130,7 +130,7 @@ impl CompiledModel {
             self.ptr,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Node::new(port))
+        Ok(Node::from_ptr(port))
     }
 
     /// Get an input port of the compiled model by port index.
@@ -141,7 +141,7 @@ impl CompiledModel {
             index,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Node::new(port))
+        Ok(Node::from_ptr(port))
     }
 
     /// Get an input port of the compiled model by name.
@@ -153,7 +153,7 @@ impl CompiledModel {
             name,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Node::new(port))
+        Ok(Node::from_ptr(port))
     }
 
     /// Get the number of outputs of the compiled model.
@@ -170,7 +170,7 @@ impl CompiledModel {
             self.ptr,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Node::new(port))
+        Ok(Node::from_ptr(port))
     }
 
     /// Get an output port of the compiled model by port index.
@@ -181,7 +181,7 @@ impl CompiledModel {
             index,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Node::new(port))
+        Ok(Node::from_ptr(port))
     }
 
     /// Get an output port of the compiled model by name.
@@ -193,7 +193,7 @@ impl CompiledModel {
             name,
             std::ptr::addr_of_mut!(port)
         ))?;
-        Ok(Node::new(port))
+        Ok(Node::from_ptr(port))
     }
 
     /// Gets runtime model information from a device.
