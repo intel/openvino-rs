@@ -114,16 +114,15 @@ impl CompiledModel {
         Ok(InferRequest::from_ptr(infer_request))
     }
 
-    /// Get the input size of the compiled model.
-    pub fn input_size(&self) -> Result<usize> {
+    /// Get the number of inputs of the compiled model.
+    pub fn get_input_size(&self) -> Result<usize> {
         let mut input_size: usize = 0;
         try_unsafe!(ov_compiled_model_inputs_size(self.ptr, &mut input_size))?;
         Ok(input_size)
     }
 
-    /// Get the single input port of the compiled model,
-    /// which only support single input model.
-    pub fn input(&self) -> Result<Node> {
+    /// Get the single input port of the compiled model, which only support single input model.
+    pub fn get_input(&self) -> Result<Node> {
         let mut port = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_input(
             self.ptr,
@@ -133,7 +132,7 @@ impl CompiledModel {
     }
 
     /// Get an input port of the compiled model by port index.
-    pub fn input_by_index(&self, index: usize) -> Result<Node> {
+    pub fn get_input_by_index(&self, index: usize) -> Result<Node> {
         let mut port = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_input_by_index(
             self.ptr,
@@ -144,7 +143,7 @@ impl CompiledModel {
     }
 
     /// Get an input port of the compiled model by name.
-    pub fn input_by_name(&self, name: &str) -> Result<Node> {
+    pub fn get_input_by_name(&self, name: &str) -> Result<Node> {
         let name = cstr!(name);
         let mut port = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_input_by_name(
@@ -155,16 +154,15 @@ impl CompiledModel {
         Ok(Node::new(port))
     }
 
-    /// Get the output size of the compiled model.
-    pub fn output_size(&self) -> Result<usize> {
+    /// Get the number of outputs of the compiled model.
+    pub fn get_output_size(&self) -> Result<usize> {
         let mut output_size: usize = 0;
         try_unsafe!(ov_compiled_model_outputs_size(self.ptr, &mut output_size))?;
         Ok(output_size)
     }
 
-    /// Get the single output port of the compiled model,
-    /// which only support single output model.
-    pub fn output(&self) -> Result<Node> {
+    /// Get the single output port of the compiled model, which only support single output model.
+    pub fn get_output(&self) -> Result<Node> {
         let mut port = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_output(
             self.ptr,
@@ -174,7 +172,7 @@ impl CompiledModel {
     }
 
     /// Get an output port of the compiled model by port index.
-    pub fn output_by_index(&self, index: usize) -> Result<Node> {
+    pub fn get_output_by_index(&self, index: usize) -> Result<Node> {
         let mut port = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_output_by_index(
             self.ptr,
@@ -185,7 +183,7 @@ impl CompiledModel {
     }
 
     /// Get an output port of the compiled model by name.
-    pub fn output_by_name(&self, name: &str) -> Result<Node> {
+    pub fn get_output_by_name(&self, name: &str) -> Result<Node> {
         let name = cstr!(name);
         let mut port = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_output_by_name(
@@ -197,7 +195,7 @@ impl CompiledModel {
     }
 
     /// Gets runtime model information from a device.
-    pub fn runtime_model(&self) -> Result<Model> {
+    pub fn get_runtime_model(&self) -> Result<Model> {
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_get_runtime_model(
             self.ptr,
@@ -207,7 +205,7 @@ impl CompiledModel {
     }
 
     /// Gets a property for the compiled model.
-    pub fn property(&self, key: PropertyKey) -> Result<Cow<str>> {
+    pub fn get_property(&self, key: PropertyKey) -> Result<Cow<str>> {
         let ov_prop_key = cstr!(key.as_ref());
         let mut ov_prop_value = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_get_property(
@@ -220,7 +218,7 @@ impl CompiledModel {
     }
 
     /// Sets a property for the compiled model.
-    pub fn set_property(&self, key: RwPropertyKey, value: &str) -> Result<()> {
+    pub fn set_property(&mut self, key: RwPropertyKey, value: &str) -> Result<()> {
         let ov_prop_key = cstr!(key.as_ref());
         let ov_prop_value = cstr!(value);
         try_unsafe!(ov_compiled_model_set_property(
