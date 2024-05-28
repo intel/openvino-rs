@@ -121,7 +121,7 @@ impl CompiledModel {
         Ok(input_size)
     }
 
-    /// Get the single input port of the compiled model, which only support single input model.
+    /// Get the single input port of the compiled model, which we expect to have only one input.
     pub fn get_input(&self) -> Result<Node> {
         let mut port = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_input(
