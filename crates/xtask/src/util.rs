@@ -26,6 +26,32 @@ pub fn path_to_crates() -> Result<PathBuf> {
         .into())
 }
 
+/// Determine the path to the top-level `Cargo.toml` file.
+pub fn get_top_level_cargo_toml() -> Result<PathBuf> {
+    let crates_dir = path_to_crates()?;
+    let top_level_dir = crates_dir
+        .parent()
+        .with_context(|| "Failed to get parent of path.".to_string())?;
+    let cargo_toml = top_level_dir.join("Cargo.toml");
+    assert!(cargo_toml.is_file());
+    Ok(cargo_toml)
+}
+
+/// Parse the top-level `Cargo.toml` for the workspace version.
+pub fn get_top_level_version() -> Result<Version> {
+    let path = get_top_level_cargo_toml()?;
+    let contents = fs::read_to_string(&path)?;
+    let toml: Value = contents
+        .parse()
+        .with_context(|| format!("unable to parse TOML of {}", &path.display()))?;
+
+    let version = toml["workspace"]["package"]["version"]
+        .as_str()
+        .with_context(|| "No top-level package version in workspace Cargo.toml")?
+        .to_owned();
+    Ok(Version::parse(&version)?)
+}
+
 /// Retrieve information about all of the crates found in the `crates` directory.
 pub fn get_crates() -> Result<Vec<Crate>> {
     let crates_dir = path_to_crates()?;
@@ -38,17 +64,10 @@ pub fn get_crates() -> Result<Vec<Crate>> {
         let toml: Value = contents
             .parse()
             .with_context(|| format!("unable to parse TOML of {}", &path.display()))?;
-
         let name = toml["package"]["name"]
             .as_str()
             .with_context(|| "Every Cargo.toml should have a package name")?
             .to_owned();
-
-        let version = toml["package"]["version"]
-            .as_str()
-            .with_context(|| "Every Cargo.toml should have a package name")?
-            .to_owned();
-        Version::parse(&version)?;
 
         let publish = toml["package"]
             .get("publish")
@@ -59,7 +78,6 @@ pub fn get_crates() -> Result<Vec<Crate>> {
         crates.push(Crate {
             name,
             path,
-            version,
             publish,
         });
     }
@@ -72,6 +90,5 @@ pub fn get_crates() -> Result<Vec<Crate>> {
 pub struct Crate {
     pub name: String,
     pub path: PathBuf,
-    pub version: String,
     pub publish: bool,
 }

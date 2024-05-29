@@ -1,19 +1,19 @@
 [package]
 name = "openvino-finder"
-version = "0.6.0"
 description = "A helper crate for finding OpenVINO installations on a system."
-license = "Apache-2.0"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
 readme = "README.md"
-authors = ["OpenVINO Project Developers"]
 repository = "https://github.com/intel/openvino-rs"
 documentation = "https://docs.rs/openvino-finder"
 keywords = ["openvino", "machine-learning", "ml", "neural-network"]
 categories = ["development-tools"]
-edition = "2018"
 
 [dependencies]
 cfg-if = "1.0"
 log = "0.4"
 
 [dev-dependencies]
-env_logger = "0.10"
+env_logger = { workspace = true }

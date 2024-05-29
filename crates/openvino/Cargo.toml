@@ -1,20 +1,20 @@
 [package]
 name = "openvino"
-version = "0.6.0"
-license = "Apache-2.0"
 description = "High-level bindings for OpenVINO."
-readme = "README.md"
-authors = ["OpenVINO Project Developers"]
-repository = "https://github.com/intel/openvino-rs"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+readme.workspace = true
+repository.workspace = true
 documentation = "https://docs.rs/openvino"
 keywords = ["openvino", "machine-learning", "ml", "neural-network"]
 categories = ["api-bindings", "science"]
-edition = "2018"
 exclude = ["/tests"]
 
 [dependencies]
-openvino-sys = { path = "../openvino-sys", version = "0.6.0" }
-openvino-finder = { path = "../openvino-finder", version = "0.6.0" }
+openvino-sys = { workspace = true }
+openvino-finder = { workspace = true }
 thiserror = "1.0"
 
 [dev-dependencies]
