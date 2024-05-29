@@ -18,4 +18,4 @@ repository = "https://github.com/intel/openvino-rs"
 [workspace.dependencies]
 openvino-sys = { path = "crates/openvino-sys", version = "=0.6.0" }
 openvino-finder = { path = "crates/openvino-finder", version = "=0.6.0" }
-env_logger = "0.10"
+env_logger = "0.11.3"
