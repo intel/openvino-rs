@@ -8,7 +8,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.6.0"
+version = "0.7.0"
 authors = ["OpenVINO Project Developers"]
 edition = "2021"
 license = "Apache-2.0"
@@ -16,6 +16,6 @@ readme = "README.md"
 repository = "https://github.com/intel/openvino-rs"
 
 [workspace.dependencies]
-openvino-sys = { path = "crates/openvino-sys", version = "=0.6.0" }
-openvino-finder = { path = "crates/openvino-finder", version = "=0.6.0" }
+openvino-sys = { path = "crates/openvino-sys", version = "=0.7.0" }
+openvino-finder = { path = "crates/openvino-finder", version = "=0.7.0" }
 env_logger = "0.10"
