@@ -37,9 +37,10 @@ impl Core {
 
     /// Construct a new OpenVINO [`Core`] with config specified in an xml file.
     pub fn new_with_config(xml_config_file: &str) -> std::result::Result<Core, SetupError> {
+        let xml_config_file = cstr!(xml_config_file);
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_core_create_with_config(
-            cstr!(xml_config_file.to_string()),
+            xml_config_file.as_ptr(),
             std::ptr::addr_of_mut!(ptr)
         ))?;
         Ok(Core { ptr })
@@ -56,7 +57,7 @@ impl Core {
         };
         try_unsafe!(ov_core_get_versions_by_device_name(
             self.ptr,
-            device_name,
+            device_name.as_ptr(),
             std::ptr::addr_of_mut!(ov_version_list)
         ))?;
 
@@ -110,7 +111,7 @@ impl Core {
         try_unsafe!(ov_core_get_property(
             self.ptr,
             EMPTY_C_STR.as_ptr(),
-            ov_prop_key,
+            ov_prop_key.as_ptr(),
             std::ptr::addr_of_mut!(ov_prop_value)
         ))?;
         let rust_prop = unsafe { CStr::from_ptr(ov_prop_value) }
@@ -127,8 +128,8 @@ impl Core {
         try_unsafe!(ov_core_set_property(
             self.ptr,
             EMPTY_C_STR.as_ptr(),
-            ov_prop_key,
-            ov_prop_value,
+            ov_prop_key.as_ptr(),
+            ov_prop_value.as_ptr(),
         ))?;
         Ok(())
     }
@@ -152,8 +153,8 @@ impl Core {
         let mut ov_prop_value = std::ptr::null_mut();
         try_unsafe!(ov_core_get_property(
             self.ptr,
-            ov_device_name,
-            ov_prop_key,
+            ov_device_name.as_ptr(),
+            ov_prop_key.as_ptr(),
             std::ptr::addr_of_mut!(ov_prop_value)
         ))?;
         let rust_prop = unsafe { CStr::from_ptr(ov_prop_value) }
@@ -175,9 +176,9 @@ impl Core {
         let ov_prop_value = cstr!(value);
         try_unsafe!(ov_core_set_property(
             self.ptr,
-            ov_device_name,
-            ov_prop_key,
-            ov_prop_value,
+            ov_device_name.as_ptr(),
+            ov_prop_key.as_ptr(),
+            ov_prop_value.as_ptr(),
         ))?;
         Ok(())
     }
@@ -197,11 +198,13 @@ impl Core {
     /// Read a Model from a pair of files: `model_path` points to an XML file containing the
     /// OpenVINO model IR and `weights_path` points to the binary weights file.
     pub fn read_model_from_file(&mut self, model_path: &str, weights_path: &str) -> Result<Model> {
+        let model_path = cstr!(model_path);
+        let weights_path = cstr!(weights_path);
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_core_read_model(
             self.ptr,
-            cstr!(model_path),
-            cstr!(weights_path),
+            model_path.as_ptr(),
+            weights_path.as_ptr(),
             std::ptr::addr_of_mut!(ptr)
         ))?;
         Ok(Model::from_ptr(ptr))

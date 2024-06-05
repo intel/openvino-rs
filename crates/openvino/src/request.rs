@@ -27,9 +27,10 @@ impl InferRequest {
 
     /// Assign a [`Tensor`] to the input on the model.
     pub fn set_tensor(&mut self, name: &str, tensor: &Tensor) -> Result<()> {
+        let name = cstr!(name);
         try_unsafe!(ov_infer_request_set_tensor(
             self.ptr,
-            cstr!(name),
+            name.as_ptr(),
             tensor.as_ptr()
         ))?;
         Ok(())
@@ -37,10 +38,11 @@ impl InferRequest {
 
     /// Retrieve a [`Tensor`] from the output on the model.
     pub fn get_tensor(&self, name: &str) -> Result<Tensor> {
+        let name = cstr!(name);
         let mut tensor = std::ptr::null_mut();
         try_unsafe!(ov_infer_request_get_tensor(
             self.ptr,
-            cstr!(name),
+            name.as_ptr(),
             std::ptr::addr_of_mut!(tensor)
         ))?;
         Ok(Tensor::from_ptr(tensor))

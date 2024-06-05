@@ -8,9 +8,7 @@ pub(crate) type Result<T> = std::result::Result<T, InferenceError>;
 #[macro_export]
 macro_rules! cstr {
     ($str: expr) => {
-        std::ffi::CString::new($str)
-            .expect("a valid C string")
-            .into_raw()
+        std::ffi::CString::new($str).expect("a valid C string")
     };
 }
 

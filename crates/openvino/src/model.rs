@@ -150,7 +150,7 @@ impl CompiledModel {
         let mut port = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_input_by_name(
             self.ptr,
-            name,
+            name.as_ptr(),
             std::ptr::addr_of_mut!(port)
         ))?;
         Ok(Node::from_ptr(port))
@@ -190,7 +190,7 @@ impl CompiledModel {
         let mut port = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_output_by_name(
             self.ptr,
-            name,
+            name.as_ptr(),
             std::ptr::addr_of_mut!(port)
         ))?;
         Ok(Node::from_ptr(port))
@@ -212,7 +212,7 @@ impl CompiledModel {
         let mut ov_prop_value = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_get_property(
             self.ptr,
-            ov_prop_key,
+            ov_prop_key.as_ptr(),
             std::ptr::addr_of_mut!(ov_prop_value)
         ))?;
         let rust_prop = unsafe { CStr::from_ptr(ov_prop_value) }.to_string_lossy();
@@ -225,8 +225,8 @@ impl CompiledModel {
         let ov_prop_value = cstr!(value);
         try_unsafe!(ov_compiled_model_set_property(
             self.ptr,
-            ov_prop_key,
-            ov_prop_value,
+            ov_prop_key.as_ptr(),
+            ov_prop_value.as_ptr(),
         ))?;
         Ok(())
     }
