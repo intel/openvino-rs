@@ -84,10 +84,11 @@ impl Pipeline {
 
     /// Retrieves the input information by name.
     pub fn get_input_info_by_name(&self, name: &str) -> Result<InputInfo> {
+        let name = cstr!(name);
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_get_input_info_by_name(
             self.ptr,
-            cstr!(name),
+            name.as_ptr(),
             std::ptr::addr_of_mut!(ptr)
         ))?;
 
@@ -96,10 +97,11 @@ impl Pipeline {
 
     /// Retrieves the output information by name.
     pub fn get_output_info_by_name(&self, name: &str) -> Result<OutputInfo> {
+        let name = cstr!(name);
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_preprocess_prepostprocessor_get_output_info_by_name(
             self.ptr,
-            cstr!(name),
+            name.as_ptr(),
             std::ptr::addr_of_mut!(ptr)
         ))?;
         Ok(OutputInfo { ptr })

@@ -16,9 +16,10 @@ impl Layout {
 
     /// Creates a new layout with the given description.
     pub fn new(layout_desc: &str) -> Result<Self> {
+        let layout_desc = cstr!(layout_desc);
         let mut layout = std::ptr::null_mut();
         try_unsafe!(ov_layout_create(
-            cstr!(layout_desc),
+            layout_desc.as_ptr(),
             std::ptr::addr_of_mut!(layout)
         ))?;
         Ok(Self { ptr: layout })
