@@ -16,8 +16,6 @@ use std::os::raw::c_char;
 use std::slice;
 use std::str::FromStr;
 
-const EMPTY_C_STR: &CStr = unsafe { CStr::from_bytes_with_nul_unchecked(b"\0") };
-
 /// See [`Core`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__core__c__api.html).
 pub struct Core {
     ptr: *mut ov_core_t,
@@ -103,52 +101,10 @@ impl Core {
         Ok(devices)
     }
 
-    /// Gets properties related to this Core.
-    /// The method extracts information that can be set via the [set_property] method.
-    pub fn get_property(&self, key: PropertyKey) -> Result<String> {
-        let ov_prop_key = cstr!(key.as_ref());
-        let mut ov_prop_value = std::ptr::null_mut();
-        try_unsafe!(ov_core_get_property(
-            self.ptr,
-            EMPTY_C_STR.as_ptr(),
-            ov_prop_key.as_ptr(),
-            std::ptr::addr_of_mut!(ov_prop_value)
-        ))?;
-        let rust_prop = unsafe { CStr::from_ptr(ov_prop_value) }
-            .to_str()
-            .unwrap()
-            .to_owned();
-        Ok(rust_prop)
-    }
-
-    /// Sets a property for this Core instance.
-    pub fn set_property(&mut self, key: RwPropertyKey, value: &str) -> Result<()> {
-        let ov_prop_key = cstr!(key.as_ref());
-        let ov_prop_value = cstr!(value);
-        try_unsafe!(ov_core_set_property(
-            self.ptr,
-            EMPTY_C_STR.as_ptr(),
-            ov_prop_key.as_ptr(),
-            ov_prop_value.as_ptr(),
-        ))?;
-        Ok(())
-    }
-
-    /// Sets properties for this Core instance.
-    pub fn set_properties<'a>(
-        &mut self,
-        properties: impl IntoIterator<Item = (RwPropertyKey, &'a str)>,
-    ) -> Result<()> {
-        for (prop_key, prop_value) in properties {
-            self.set_property(prop_key, prop_value)?;
-        }
-        Ok(())
-    }
-
-    /// Gets properties related to device behaviour.
-    /// The method extracts information that can be set via the [set_device_property] method.
-    pub fn get_device_property(&self, device_name: &str, key: PropertyKey) -> Result<String> {
-        let ov_device_name = cstr!(device_name);
+    /// Gets properties related to device behaviour for this core.
+    /// The method extracts information that can be set via the [`set_property`] method.
+    pub fn get_property(&self, device_name: &DeviceType, key: PropertyKey) -> Result<String> {
+        let ov_device_name = cstr!(device_name.as_ref());
         let ov_prop_key = cstr!(key.as_ref());
         let mut ov_prop_value = std::ptr::null_mut();
         try_unsafe!(ov_core_get_property(
@@ -165,13 +121,13 @@ impl Core {
     }
 
     /// Sets a property for a device.
-    pub fn set_device_property(
+    pub fn set_property(
         &mut self,
-        device_name: &str,
+        device_name: &DeviceType,
         key: RwPropertyKey,
         value: &str,
     ) -> Result<()> {
-        let ov_device_name = cstr!(device_name);
+        let ov_device_name = cstr!(device_name.as_ref());
         let ov_prop_key = cstr!(key.as_ref());
         let ov_prop_value = cstr!(value);
         try_unsafe!(ov_core_set_property(
@@ -184,13 +140,13 @@ impl Core {
     }
 
     /// Sets properties for a device.
-    pub fn set_device_properties<'a>(
+    pub fn set_properties<'a>(
         &mut self,
-        device_name: &str,
+        device_name: DeviceType,
         properties: impl IntoIterator<Item = (RwPropertyKey, &'a str)>,
     ) -> Result<()> {
         for (prop_key, prop_value) in properties {
-            self.set_device_property(device_name, prop_key, prop_value)?;
+            self.set_property(&device_name, prop_key, prop_value)?;
         }
         Ok(())
     }
@@ -259,5 +215,13 @@ mod core_tests {
         let mut core = Core::new().unwrap();
         let model = core.read_model_from_buffer(model, None);
         assert!(model.is_ok());
+    }
+
+    #[test]
+    fn test_get_supported_properties() {
+        let core = Core::new().unwrap();
+        let supported_properties =
+            core.get_property(&DeviceType::CPU, PropertyKey::SupportedProperties);
+        assert!(supported_properties.is_ok());
     }
 }
