@@ -103,7 +103,7 @@ impl Core {
 
     /// Gets properties related to device behaviour for this core.
     /// The method extracts information that can be set via the [`set_property`] method.
-    pub fn get_property(&self, device_name: &DeviceType, key: PropertyKey) -> Result<String> {
+    pub fn get_property(&self, device_name: &DeviceType, key: &PropertyKey) -> Result<String> {
         let ov_device_name = cstr!(device_name.as_ref());
         let ov_prop_key = cstr!(key.as_ref());
         let mut ov_prop_value = std::ptr::null_mut();
@@ -124,7 +124,7 @@ impl Core {
     pub fn set_property(
         &mut self,
         device_name: &DeviceType,
-        key: RwPropertyKey,
+        key: &RwPropertyKey,
         value: &str,
     ) -> Result<()> {
         let ov_device_name = cstr!(device_name.as_ref());
@@ -146,7 +146,7 @@ impl Core {
         properties: impl IntoIterator<Item = (RwPropertyKey, &'a str)>,
     ) -> Result<()> {
         for (prop_key, prop_value) in properties {
-            self.set_property(&device_name, prop_key, prop_value)?;
+            self.set_property(&device_name, &prop_key, prop_value)?;
         }
         Ok(())
     }
@@ -202,6 +202,8 @@ impl Core {
 #[cfg(test)]
 mod core_tests {
     use super::*;
+    use PropertyKey::*;
+    use RwPropertyKey::*;
 
     #[test]
     fn test_new() {
@@ -218,10 +220,52 @@ mod core_tests {
     }
 
     #[test]
-    fn test_get_supported_properties() {
+    fn test_get_core_properties_supported() {
         let core = Core::new().unwrap();
-        let supported_properties =
-            core.get_property(&DeviceType::CPU, PropertyKey::SupportedProperties);
-        assert!(supported_properties.is_ok());
+        let supported_keys = vec![
+            SupportedProperties,
+            AvailableDevices,
+            OptimalNumberOfInferRequests,
+            RangeForAsyncInferRequests,
+            RangeForStreams,
+            DeviceFullName,
+            DeviceCapabilities,
+        ];
+        for key in supported_keys {
+            let supported_properties = core.get_property(&DeviceType::CPU, &key);
+            assert!(
+                supported_properties.is_ok(),
+                "Failed on supported key: {:?}",
+                &key
+            );
+        }
+    }
+
+    #[test]
+    fn test_get_core_properties_rw() {
+        let core = Core::new().unwrap();
+        let rw_keys = vec![
+            CacheDir,
+            NumStreams,
+            Affinity,
+            InferenceNumThreads,
+            HintEnableCpuPinning,
+            HintEnableHyperThreading,
+            HintPerformanceMode,
+            HintSchedulingCoreType,
+            HintInferencePrecision,
+            HintNumRequests,
+            LogLevel,
+            EnableProfiling,
+            HintExecutionMode,
+        ];
+        for key in rw_keys {
+            let supported_properties = core.get_property(&DeviceType::CPU, &PropertyKey::Rw(&key));
+            assert!(
+                supported_properties.is_ok(),
+                "Failed on rw key: {:?}",
+                &PropertyKey::Rw(&key)
+            );
+        }
     }
 }

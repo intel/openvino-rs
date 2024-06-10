@@ -3,7 +3,7 @@ use std::borrow::Cow;
 /// See [`Property`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__property__c__api.html).
 /// `PropertyKey` represents valid configuration properties for a [crate::Core] instance.
 #[derive(Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
-pub enum PropertyKey {
+pub enum PropertyKey<'a> {
     /// A string list of supported read-only properties.
     SupportedProperties,
     /// A list of available device IDs.
@@ -26,7 +26,7 @@ pub enum PropertyKey {
     /// Maximum batch size which does not cause performance degradation due to memory swap impact.
     MaxBatchSize,
     /// Read-write property key.
-    Rw(RwPropertyKey),
+    Rw(&'a RwPropertyKey),
     /// Arbitrary string property key.
     Other(Cow<'static, str>),
 }
@@ -89,7 +89,7 @@ pub enum RwPropertyKey {
     Other(Cow<'static, str>),
 }
 
-impl AsRef<str> for PropertyKey {
+impl AsRef<str> for PropertyKey<'_> {
     fn as_ref(&self) -> &str {
         match self {
             PropertyKey::SupportedProperties => "SUPPORTED_PROPERTIES",
