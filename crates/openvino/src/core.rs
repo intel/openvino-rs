@@ -255,7 +255,6 @@ mod core_tests {
             HintSchedulingCoreType,
             HintInferencePrecision,
             HintNumRequests,
-            LogLevel,
             EnableProfiling,
             HintExecutionMode,
         ];
