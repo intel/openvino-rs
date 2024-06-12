@@ -259,11 +259,34 @@ mod core_tests {
             HintExecutionMode,
         ];
         for key in rw_keys {
-            let supported_properties = core.get_property(&DeviceType::CPU, &PropertyKey::Rw(&key));
+            let key_clone = key.clone();
+            let supported_properties = core.get_property(&DeviceType::CPU, &key.into());
             assert!(
                 supported_properties.is_ok(),
                 "Failed on rw key: {:?}",
-                &PropertyKey::Rw(&key)
+                &PropertyKey::Rw(key_clone)
+            );
+        }
+    }
+
+    #[test]
+    fn test_get_core_properties_unsupported() {
+        let core = Core::new().unwrap();
+        let unsupported_keys = vec![
+            HintModelPriority,
+            DevicePriorities,
+            CacheMode,
+            ForceTbbTerminate,
+            EnableMmap,
+            AutoBatchTimeout,
+        ];
+        for key in unsupported_keys {
+            let key_clone = key.clone();
+            let supported_properties = core.get_property(&DeviceType::CPU, &key.into());
+            assert!(
+                supported_properties.is_err(),
+                "Failed on unsupported key: {:?}",
+                &key_clone
             );
         }
     }

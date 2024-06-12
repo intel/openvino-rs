@@ -3,7 +3,7 @@ use std::borrow::Cow;
 /// See [`Property`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__property__c__api.html).
 /// `PropertyKey` represents valid configuration properties for a [crate::Core] instance.
 #[derive(Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
-pub enum PropertyKey<'a> {
+pub enum PropertyKey {
     /// A string list of supported read-only properties.
     SupportedProperties,
     /// A list of available device IDs.
@@ -26,13 +26,13 @@ pub enum PropertyKey<'a> {
     /// Maximum batch size which does not cause performance degradation due to memory swap impact.
     MaxBatchSize,
     /// Read-write property key.
-    Rw(&'a RwPropertyKey),
+    Rw(RwPropertyKey),
     /// Arbitrary string property key.
     Other(Cow<'static, str>),
 }
 
 /// Read-write property keys.
-#[derive(Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+#[derive(Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Clone)]
 pub enum RwPropertyKey {
     /// The directory which will be used to store any data cached by plugins.
     CacheDir,
@@ -89,7 +89,7 @@ pub enum RwPropertyKey {
     Other(Cow<'static, str>),
 }
 
-impl AsRef<str> for PropertyKey<'_> {
+impl AsRef<str> for PropertyKey {
     fn as_ref(&self) -> &str {
         match self {
             PropertyKey::SupportedProperties => "SUPPORTED_PROPERTIES",
@@ -132,5 +132,11 @@ impl AsRef<str> for RwPropertyKey {
             RwPropertyKey::AutoBatchTimeout => "AUTO_BATCH_TIMEOUT",
             RwPropertyKey::Other(s) => s,
         }
+    }
+}
+
+impl From<RwPropertyKey> for PropertyKey {
+    fn from(key: RwPropertyKey) -> Self {
+        PropertyKey::Rw(key)
     }
 }
