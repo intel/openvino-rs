@@ -32,7 +32,7 @@ pub enum PropertyKey {
 }
 
 /// Read-write property keys.
-#[derive(Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+#[derive(Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Clone)]
 pub enum RwPropertyKey {
     /// The directory which will be used to store any data cached by plugins.
     CacheDir,
@@ -132,5 +132,11 @@ impl AsRef<str> for RwPropertyKey {
             RwPropertyKey::AutoBatchTimeout => "AUTO_BATCH_TIMEOUT",
             RwPropertyKey::Other(s) => s,
         }
+    }
+}
+
+impl From<RwPropertyKey> for PropertyKey {
+    fn from(key: RwPropertyKey) -> Self {
+        PropertyKey::Rw(key)
     }
 }
