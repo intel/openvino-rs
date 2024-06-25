@@ -27,7 +27,9 @@ fn classify_inception() -> anyhow::Result<()> {
     let data = fs::read(Fixture::tensor())?;
     let input_shape = Shape::new(&vec![1, 299, 299, 3])?;
     let element_type = ElementType::F32;
-    let tensor = Tensor::new_from_host_ptr(element_type, &input_shape, &data)?;
+    let mut tensor = Tensor::new(element_type, &input_shape)?;
+    let buffer = tensor.buffer_mut()?;
+    buffer.copy_from_slice(&data);
 
     // Pre-process the input by:
     // - converting NHWC to NCHW

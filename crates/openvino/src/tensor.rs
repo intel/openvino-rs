@@ -5,9 +5,9 @@ use crate::element_type::ElementType;
 use crate::shape::Shape;
 use crate::{drop_using_function, try_unsafe, util::Result};
 use openvino_sys::{
-    self, ov_shape_t, ov_tensor_create, ov_tensor_create_from_host_ptr, ov_tensor_data,
-    ov_tensor_free, ov_tensor_get_byte_size, ov_tensor_get_element_type, ov_tensor_get_shape,
-    ov_tensor_get_size, ov_tensor_set_shape, ov_tensor_t,
+    self, ov_shape_t, ov_tensor_create, ov_tensor_data, ov_tensor_free, ov_tensor_get_byte_size,
+    ov_tensor_get_element_type, ov_tensor_get_shape, ov_tensor_get_size, ov_tensor_set_shape,
+    ov_tensor_t,
 };
 
 /// See [`Tensor`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__tensor__c__api.html).
@@ -32,30 +32,6 @@ impl Tensor {
     #[inline]
     pub(crate) fn from_ptr(ptr: *mut ov_tensor_t) -> Self {
         Self { ptr }
-    }
-
-    /// Create a new [`Tensor`] from a host pointer.
-    ///
-    /// # Arguments
-    ///
-    /// * `data_type` - The data type of the tensor.
-    /// * `shape` - The shape of the tensor.
-    /// * `data` - The data buffer.
-    ///
-    /// # Returns
-    ///
-    /// A new `Tensor` object.
-    pub fn new_from_host_ptr(data_type: ElementType, shape: &Shape, data: &[u8]) -> Result<Self> {
-        let mut tensor: *mut ov_tensor_t = std::ptr::null_mut();
-        let element_type: u32 = data_type as u32;
-        let buffer = data.as_ptr() as *mut std::os::raw::c_void;
-        try_unsafe!(ov_tensor_create_from_host_ptr(
-            element_type,
-            shape.as_c_struct(),
-            buffer,
-            std::ptr::addr_of_mut!(tensor)
-        ))?;
-        Ok(Self { ptr: tensor })
     }
 
     /// Get the pointer to the underlying OpenVINO tensor.
