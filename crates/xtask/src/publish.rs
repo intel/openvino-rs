@@ -51,7 +51,7 @@ impl PublishCommand {
         }
 
         // Tag the repository.
-        let tag = format!("v{}", version);
+        let tag = format!("v{version}");
         if self.git {
             println!("> push Git tag: {tag}");
             if !self.dry_run {

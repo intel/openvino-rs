@@ -41,7 +41,7 @@ impl Tensor {
     }
 
     /// (Re)Set the shape of the tensor to a new shape.
-    pub fn set_shape(&self, shape: Shape) -> Result<Self> {
+    pub fn set_shape(&self, shape: &Shape) -> Result<Self> {
         try_unsafe!(ov_tensor_set_shape(self.ptr, shape.as_c_struct()))?;
         Ok(Self { ptr: self.ptr })
     }
@@ -57,6 +57,10 @@ impl Tensor {
     }
 
     /// Get the data type of elements of the tensor.
+    ///
+    /// # Panics
+    ///
+    /// This function panics in the unlikely case OpenVINO returns an unknown element type.
     pub fn get_element_type(&self) -> Result<ElementType> {
         let mut element_type = ElementType::Undefined as u32;
         try_unsafe!(ov_tensor_get_element_type(
@@ -135,12 +139,14 @@ impl Tensor {
 /// Convenience function for checking that we can cast `data` to a slice of `T`, returning the
 /// length of that slice.
 fn get_safe_len<T>(data: &[u8]) -> usize {
-    if data.len() % std::mem::size_of::<T>() != 0 {
-        panic!("data size is not a multiple of the size of `T`");
-    }
-    if data.as_ptr() as usize % std::mem::align_of::<T>() != 0 {
-        panic!("raw data is not aligned to `T`'s alignment");
-    }
+    assert!(
+        data.len() % std::mem::size_of::<T>() == 0,
+        "data size is not a multiple of the size of `T`"
+    );
+    assert!(
+        data.as_ptr() as usize % std::mem::align_of::<T>() == 0,
+        "raw data is not aligned to `T`'s alignment"
+    );
     data.len() / std::mem::size_of::<T>()
 }
 
@@ -151,7 +157,7 @@ mod tests {
     #[test]
     fn test_create_tensor() {
         openvino_sys::library::load().unwrap();
-        let shape = Shape::new(&vec![1, 3, 227, 227]).unwrap();
+        let shape = Shape::new(&[1, 3, 227, 227]).unwrap();
         let tensor = Tensor::new(ElementType::F32, &shape).unwrap();
         assert!(!tensor.ptr.is_null());
     }
@@ -159,11 +165,8 @@ mod tests {
     #[test]
     fn test_get_shape() {
         openvino_sys::library::load().unwrap();
-        let tensor = Tensor::new(
-            ElementType::F32,
-            &Shape::new(&vec![1, 3, 227, 227]).unwrap(),
-        )
-        .unwrap();
+        let tensor =
+            Tensor::new(ElementType::F32, &Shape::new(&[1, 3, 227, 227]).unwrap()).unwrap();
         let shape = tensor.get_shape().unwrap();
         assert_eq!(shape.get_rank(), 4);
     }
@@ -171,11 +174,8 @@ mod tests {
     #[test]
     fn test_get_element_type() {
         openvino_sys::library::load().unwrap();
-        let tensor = Tensor::new(
-            ElementType::F32,
-            &Shape::new(&vec![1, 3, 227, 227]).unwrap(),
-        )
-        .unwrap();
+        let tensor =
+            Tensor::new(ElementType::F32, &Shape::new(&[1, 3, 227, 227]).unwrap()).unwrap();
         let element_type = tensor.get_element_type().unwrap();
         assert_eq!(element_type, ElementType::F32);
     }
@@ -183,34 +183,25 @@ mod tests {
     #[test]
     fn test_get_size() {
         openvino_sys::library::load().unwrap();
-        let tensor = Tensor::new(
-            ElementType::F32,
-            &Shape::new(&vec![1, 3, 227, 227]).unwrap(),
-        )
-        .unwrap();
+        let tensor =
+            Tensor::new(ElementType::F32, &Shape::new(&[1, 3, 227, 227]).unwrap()).unwrap();
         let size = tensor.get_size().unwrap();
-        assert_eq!(size, 1 * 3 * 227 * 227);
+        assert_eq!(size, 3 * 227 * 227);
     }
 
     #[test]
     fn test_get_byte_size() {
         openvino_sys::library::load().unwrap();
-        let tensor = Tensor::new(
-            ElementType::F32,
-            &Shape::new(&vec![1, 3, 227, 227]).unwrap(),
-        )
-        .unwrap();
+        let tensor =
+            Tensor::new(ElementType::F32, &Shape::new(&[1, 3, 227, 227]).unwrap()).unwrap();
         let byte_size = tensor.get_byte_size().unwrap();
-        assert_eq!(
-            byte_size,
-            1 * 3 * 227 * 227 * std::mem::size_of::<f32>() as usize
-        );
+        assert_eq!(byte_size, 3 * 227 * 227 * std::mem::size_of::<f32>());
     }
 
     #[test]
     fn casting() {
         openvino_sys::library::load().unwrap();
-        let shape = Shape::new(&vec![10, 10, 10]).unwrap();
+        let shape = Shape::new(&[10, 10, 10]).unwrap();
         let tensor = Tensor::new(ElementType::F32, &shape).unwrap();
         let data = tensor.get_data::<f32>().unwrap();
         assert_eq!(data.len(), 10 * 10 * 10);
@@ -220,7 +211,7 @@ mod tests {
     #[should_panic(expected = "data size is not a multiple of the size of `T`")]
     fn casting_check() {
         openvino_sys::library::load().unwrap();
-        let shape = Shape::new(&vec![10, 10, 10]).unwrap();
+        let shape = Shape::new(&[10, 10, 10]).unwrap();
         let tensor = Tensor::new(ElementType::F32, &shape).unwrap();
         #[allow(dead_code)]
         struct LargeOddType([u8; 1061]);

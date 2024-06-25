@@ -32,6 +32,10 @@ impl Node {
     }
 
     /// Get the data type of elements of the port.
+    ///
+    /// # Panics
+    ///
+    /// This function panics in the unlikely case OpenVINO returns an unknown element type.
     pub fn get_element_type(&self) -> Result<ElementType> {
         let mut element_type = ElementType::Undefined as u32;
         try_unsafe!(ov_port_get_element_type(
