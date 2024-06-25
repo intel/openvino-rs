@@ -101,7 +101,8 @@ impl Core {
         Ok(devices)
     }
 
-    /// Gets properties related to device behaviour for this core.
+    /// Gets properties related to device behavior for this core.
+    ///
     /// The method extracts information that can be set via the [`set_property`] method.
     pub fn get_property(&self, device_name: &DeviceType, key: &PropertyKey) -> Result<String> {
         let ov_device_name = cstr!(device_name.as_ref());

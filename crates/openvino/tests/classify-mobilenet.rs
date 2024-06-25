@@ -51,7 +51,7 @@ fn classify_mobilenet() -> anyhow::Result<()> {
     let mut infer_request = executable_model.create_infer_request()?;
     infer_request.set_tensor("input", &tensor)?;
     infer_request.infer()?;
-    let mut results = infer_request.get_tensor(&output_port.get_name()?)?;
+    let results = infer_request.get_tensor(&output_port.get_name()?)?;
 
     // Sort results. It is unclear why the MobileNet output indices are "off by one" but the
     // `.skip(1)` below seems necessary to get results that make sense (e.g. 763 = "revolver" vs 762

@@ -48,7 +48,7 @@ fn classify_inception() -> anyhow::Result<()> {
     let mut infer_request = executable_model.create_infer_request()?;
     infer_request.set_tensor("input", &tensor)?;
     infer_request.infer()?;
-    let mut results = infer_request.get_tensor(&output_port.get_name()?)?;
+    let results = infer_request.get_tensor(&output_port.get_name()?)?;
 
     // Sort results.
     let buffer = results.get_data::<f32>()?.to_vec();
