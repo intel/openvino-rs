@@ -13,9 +13,9 @@
 //! # let data = fs::read("tests/fixtures/inception/tensor-1x3x299x299-f32.bgr").expect("to read the tensor from file");
 //! # let input_shape = Shape::new(&vec![1, 299, 299, 3]).expect("to create a new shape");
 //! # let mut tensor = Tensor::new(ElementType::F32, &input_shape).expect("to create a new tensor");
-//! # let buffer = tensor.buffer_mut().unwrap();
+//! # let buffer = tensor.get_raw_data_mut().unwrap();
 //! # buffer.copy_from_slice(&data);
-//! // Insantiate a new core, read in a model, and set up a tensor with input data before performing pre/post processing
+//! // Instantiate a new core, read in a model, and set up a tensor with input data before performing pre/post processing
 //! // Pre-process the input by:
 //! // - converting NHWC to NCHW
 //! // - resizing the input image
