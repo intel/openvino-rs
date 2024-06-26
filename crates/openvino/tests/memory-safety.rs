@@ -1,6 +1,6 @@
 //! This test originates from some strange segfaults that we observed while using the OpenVINO C
-//! library. Because OpenVINO is taking a pointer to a tensor, we want to be sure that we do the
-//! right thing on this side of the FFI boundary.
+//! library. Because OpenVINO is taking a pointer to a tensor when constructing a model, we want to
+//! be sure that we do the right thing on this side of the FFI boundary.
 
 mod fixtures;
 
@@ -21,7 +21,7 @@ fn memory_safety() -> anyhow::Result<()> {
     weights_tensor.get_raw_data_mut()?.copy_from_slice(&weights);
     drop(weights);
 
-    // Now create a model from a reference to the weights tensor. We observed SEGFAULT crashes when
+    // Now create a model from a reference to the weights tensor. We observed segfault crashes when
     // passing weights by value but not by reference.
     let model = core.read_model_from_buffer(xml.as_bytes(), Some(&weights_tensor))?;
     drop(weights_tensor);
