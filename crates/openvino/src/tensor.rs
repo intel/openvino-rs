@@ -86,39 +86,71 @@ impl Tensor {
         Ok(byte_size)
     }
 
-    /// Get a mutable reference to the data of the tensor.
-    pub fn get_data<T>(&mut self) -> Result<&mut [T]> {
-        let mut data = std::ptr::null_mut();
-        try_unsafe!(ov_tensor_data(self.ptr, std::ptr::addr_of_mut!(data),))?;
-        let size = self.get_byte_size()? / std::mem::size_of::<T>();
-        let slice = unsafe { std::slice::from_raw_parts_mut(data.cast::<T>(), size) };
+    /// Get the underlying data for the tensor.
+    pub fn get_raw_data(&self) -> Result<&[u8]> {
+        let mut buffer = std::ptr::null_mut();
+        try_unsafe!(ov_tensor_data(self.ptr, std::ptr::addr_of_mut!(buffer)))?;
+        let size = self.get_byte_size()?;
+        let slice = unsafe { std::slice::from_raw_parts(buffer.cast::<u8>(), size) };
         Ok(slice)
     }
 
-    /// Get a mutable reference to the buffer of the tensor.
-    ///
-    /// # Returns
-    ///
-    /// A mutable reference to the buffer of the tensor.
-    pub fn buffer_mut(&mut self) -> Result<&mut [u8]> {
+    /// Get a mutable reference to the underlying data for the tensor.
+    pub fn get_raw_data_mut(&mut self) -> Result<&mut [u8]> {
         let mut buffer = std::ptr::null_mut();
         try_unsafe!(ov_tensor_data(self.ptr, std::ptr::addr_of_mut!(buffer)))?;
         let size = self.get_byte_size()?;
         let slice = unsafe { std::slice::from_raw_parts_mut(buffer.cast::<u8>(), size) };
         Ok(slice)
     }
+
+    /// Get a `T`-casted slice of the underlying data for the tensor.
+    ///
+    /// # Panics
+    ///
+    /// This method will panic if it can't cast the data to `T` due to the type size or the
+    /// underlying pointer's alignment.
+    pub fn get_data<T>(&self) -> Result<&[T]> {
+        let raw_data = self.get_raw_data()?;
+        let len = get_safe_len::<T>(raw_data);
+        let slice = unsafe { std::slice::from_raw_parts(raw_data.as_ptr().cast::<T>(), len) };
+        Ok(slice)
+    }
+
+    /// Get a mutable `T`-casted slice of the underlying data for the tensor.
+    ///
+    /// # Panics
+    ///
+    /// This method will panic if it can't cast the data to `T` due to the type size or the
+    /// underlying pointer's alignment.
+    pub fn get_data_mut<T>(&mut self) -> Result<&mut [T]> {
+        let raw_data = self.get_raw_data_mut()?;
+        let len = get_safe_len::<T>(raw_data);
+        let slice =
+            unsafe { std::slice::from_raw_parts_mut(raw_data.as_mut_ptr().cast::<T>(), len) };
+        Ok(slice)
+    }
+}
+
+/// Convenience function for checking that we can cast `data` to a slice of `T`, returning the
+/// length of that slice.
+fn get_safe_len<T>(data: &[u8]) -> usize {
+    if data.len() % std::mem::size_of::<T>() != 0 {
+        panic!("data size is not a multiple of the size of `T`");
+    }
+    if data.as_ptr() as usize % std::mem::align_of::<T>() != 0 {
+        panic!("raw data is not aligned to `T`'s alignment");
+    }
+    data.len() / std::mem::size_of::<T>()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{ElementType, LoadingError, Shape};
 
     #[test]
     fn test_create_tensor() {
-        openvino_sys::library::load()
-            .map_err(LoadingError::SystemFailure)
-            .unwrap();
+        openvino_sys::library::load().unwrap();
         let shape = Shape::new(&vec![1, 3, 227, 227]).unwrap();
         let tensor = Tensor::new(ElementType::F32, &shape).unwrap();
         assert!(!tensor.ptr.is_null());
@@ -126,9 +158,7 @@ mod tests {
 
     #[test]
     fn test_get_shape() {
-        openvino_sys::library::load()
-            .map_err(LoadingError::SystemFailure)
-            .unwrap();
+        openvino_sys::library::load().unwrap();
         let tensor = Tensor::new(
             ElementType::F32,
             &Shape::new(&vec![1, 3, 227, 227]).unwrap(),
@@ -140,9 +170,7 @@ mod tests {
 
     #[test]
     fn test_get_element_type() {
-        openvino_sys::library::load()
-            .map_err(LoadingError::SystemFailure)
-            .unwrap();
+        openvino_sys::library::load().unwrap();
         let tensor = Tensor::new(
             ElementType::F32,
             &Shape::new(&vec![1, 3, 227, 227]).unwrap(),
@@ -154,9 +182,7 @@ mod tests {
 
     #[test]
     fn test_get_size() {
-        openvino_sys::library::load()
-            .map_err(LoadingError::SystemFailure)
-            .unwrap();
+        openvino_sys::library::load().unwrap();
         let tensor = Tensor::new(
             ElementType::F32,
             &Shape::new(&vec![1, 3, 227, 227]).unwrap(),
@@ -168,9 +194,7 @@ mod tests {
 
     #[test]
     fn test_get_byte_size() {
-        openvino_sys::library::load()
-            .map_err(LoadingError::SystemFailure)
-            .unwrap();
+        openvino_sys::library::load().unwrap();
         let tensor = Tensor::new(
             ElementType::F32,
             &Shape::new(&vec![1, 3, 227, 227]).unwrap(),
@@ -181,5 +205,25 @@ mod tests {
             byte_size,
             1 * 3 * 227 * 227 * std::mem::size_of::<f32>() as usize
         );
+    }
+
+    #[test]
+    fn casting() {
+        openvino_sys::library::load().unwrap();
+        let shape = Shape::new(&vec![10, 10, 10]).unwrap();
+        let tensor = Tensor::new(ElementType::F32, &shape).unwrap();
+        let data = tensor.get_data::<f32>().unwrap();
+        assert_eq!(data.len(), 10 * 10 * 10);
+    }
+
+    #[test]
+    #[should_panic(expected = "data size is not a multiple of the size of `T`")]
+    fn casting_check() {
+        openvino_sys::library::load().unwrap();
+        let shape = Shape::new(&vec![10, 10, 10]).unwrap();
+        let tensor = Tensor::new(ElementType::F32, &shape).unwrap();
+        #[allow(dead_code)]
+        struct LargeOddType([u8; 1061]);
+        tensor.get_data::<LargeOddType>().unwrap();
     }
 }
