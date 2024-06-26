@@ -25,7 +25,7 @@ fn classify_alexnet() -> anyhow::Result<()> {
 
     // Retrieve the tensor from the test fixtures.
     let data = fs::read(Fixture::tensor())?;
-    let input_shape = Shape::new(&vec![1, 227, 227, 3])?;
+    let input_shape = Shape::new(&[1, 227, 227, 3])?;
     let element_type = ElementType::F32;
     let mut tensor = Tensor::new(element_type, &input_shape)?;
     let buffer = tensor.get_raw_data_mut()?;
@@ -53,7 +53,7 @@ fn classify_alexnet() -> anyhow::Result<()> {
     let mut infer_request = executable_model.create_infer_request()?;
     infer_request.set_tensor("data", &tensor)?;
     infer_request.infer()?;
-    let mut results = infer_request.get_tensor(&output_port.get_name()?)?;
+    let results = infer_request.get_tensor(&output_port.get_name()?)?;
 
     // Sort results.
     let buffer = results.get_data::<f32>()?.to_vec();

@@ -1,4 +1,12 @@
-use openvino_sys::*;
+use openvino_sys::{
+    ov_element_type_e_BF16, ov_element_type_e_DYNAMIC, ov_element_type_e_F16,
+    ov_element_type_e_F32, ov_element_type_e_F64, ov_element_type_e_F8E4M3,
+    ov_element_type_e_F8E5M3, ov_element_type_e_I16, ov_element_type_e_I32, ov_element_type_e_I4,
+    ov_element_type_e_I64, ov_element_type_e_I8, ov_element_type_e_NF4,
+    ov_element_type_e_OV_BOOLEAN, ov_element_type_e_U1, ov_element_type_e_U16,
+    ov_element_type_e_U32, ov_element_type_e_U4, ov_element_type_e_U64, ov_element_type_e_U8,
+    ov_element_type_e_UNDEFINED,
+};
 
 use std::convert::TryFrom;
 use std::error::Error;

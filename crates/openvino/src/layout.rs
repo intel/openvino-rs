@@ -39,6 +39,6 @@ mod tests {
             .unwrap();
         let layout_desc = "NCHW";
         let layout = Layout::new(layout_desc).unwrap();
-        assert_eq!(layout.ptr.is_null(), false);
+        assert!(!layout.ptr.is_null());
     }
 }

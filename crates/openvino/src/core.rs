@@ -45,8 +45,13 @@ impl Core {
     }
 
     /// Gets device plugins version information.
-    /// Device name can be complex and identify multiple devices at once like `HETERO:CPU,GPU`;
-    /// in this case, the returned map contains multiple entries, each per device.
+    ///
+    /// A device name can be complex and identify multiple devices at once, like `HETERO:CPU,GPU`.
+    /// In this case, the returned map contains multiple entries, each per device.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if OpenVINO returns a device name these bindings do not yet recognize.
     pub fn versions(&self, device_name: &str) -> Result<Vec<(DeviceType, Version)>> {
         let device_name = cstr!(device_name);
         let mut ov_version_list = openvino_sys::ov_core_version_list_t {
@@ -75,6 +80,10 @@ impl Core {
     }
 
     /// Gets devices available for inference.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if OpenVINO returns a device name these bindings do not yet recognize.
     pub fn available_devices(&self) -> Result<Vec<DeviceType>> {
         let mut ov_available_devices = openvino_sys::ov_available_devices_t {
             devices: std::ptr::null_mut(),
@@ -101,8 +110,13 @@ impl Core {
         Ok(devices)
     }
 
-    /// Gets properties related to device behaviour for this core.
+    /// Gets properties related to device behavior.
+    ///
     /// The method extracts information that can be set via the [`set_property`] method.
+    ///
+    /// # Panics
+    ///
+    /// This function panics in the unlikely case OpenVINO returns a non-UTF8 string.
     pub fn get_property(&self, device_name: &DeviceType, key: &PropertyKey) -> Result<String> {
         let ov_device_name = cstr!(device_name.as_ref());
         let ov_prop_key = cstr!(key.as_ref());
@@ -142,11 +156,11 @@ impl Core {
     /// Sets properties for a device.
     pub fn set_properties<'a>(
         &mut self,
-        device_name: DeviceType,
+        device_name: &DeviceType,
         properties: impl IntoIterator<Item = (RwPropertyKey, &'a str)>,
     ) -> Result<()> {
         for (prop_key, prop_value) in properties {
-            self.set_property(&device_name, &prop_key, prop_value)?;
+            self.set_property(device_name, &prop_key, prop_value)?;
         }
         Ok(())
     }
@@ -177,7 +191,7 @@ impl Core {
             self.ptr,
             model_str.as_ptr().cast::<c_char>(),
             model_str.len(),
-            weights_buffer.map_or(std::ptr::null(), |tensor| tensor.as_ptr()),
+            weights_buffer.map_or(std::ptr::null(), Tensor::as_ptr),
             std::ptr::addr_of_mut!(ptr)
         ))?;
         Ok(Model::from_ptr(ptr))

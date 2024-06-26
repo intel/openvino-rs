@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 /// See [`Property`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__property__c__api.html).
-/// `PropertyKey` represents valid configuration properties for a [crate::Core] instance.
+/// `PropertyKey` represents valid configuration properties for a [`crate::Core`] instance.
 #[derive(Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
 pub enum PropertyKey {
     /// A string list of supported read-only properties.
@@ -10,8 +10,8 @@ pub enum PropertyKey {
     AvailableDevices,
     /// An unsigned integer value of optimal number of compiled model infer requests.
     OptimalNumberOfInferRequests,
-    /// A hint for a range for number of async infer requests.
-    /// If device supports streams, the metric provides range for number of IRs per stream.
+    /// A hint for a range for number of async infer requests. If a device supports streams, the
+    /// metric provides the range for number of IRs per stream.
     RangeForAsyncInferRequests,
     /// Information about a range for streams on platforms where streams are supported.
     RangeForStreams,
@@ -27,7 +27,7 @@ pub enum PropertyKey {
     MaxBatchSize,
     /// Read-write property key.
     Rw(RwPropertyKey),
-    /// Arbitrary string property key.
+    /// An arbitrary key.
     Other(Cow<'static, str>),
 }
 
@@ -36,9 +36,9 @@ pub enum PropertyKey {
 pub enum RwPropertyKey {
     /// The directory which will be used to store any data cached by plugins.
     CacheDir,
-    /// The cache mode between optimize_size and optimize_speed.
-    /// If optimize_size is selected, smaller cache files will be created.
-    /// If optimize_speed is selected, loading time will decrease but the cache file size will increase.
+    /// The cache mode between `optimize_size` and `optimize_speed`. If `optimize_size` is selected,
+    /// smaller cache files will be created. If `optimize_speed` is selected, loading time will
+    /// decrease but the cache file size will increase.
     CacheMode,
     /// The number of executor logical partitions.
     NumStreams,
@@ -56,10 +56,9 @@ pub enum RwPropertyKey {
     HintSchedulingCoreType,
     /// Hint for device to use specified precision for inference.
     HintInferencePrecision,
-    /// Backs the Performance Hints by giving
-    /// additional information on how many inference requests the application will be
-    /// keeping in flight usually this value comes from the actual use-case  (e.g.
-    /// number of video-cameras, or other sources of inputs)
+    /// Backs the performance hints by giving additional information on how many inference requests
+    /// the application will be keeping in flight usually this value comes from the actual use-case
+    /// (e.g. number of video-cameras, or other sources of inputs)
     HintNumRequests,
     /// Desirable log level.
     LogLevel,
@@ -67,17 +66,17 @@ pub enum RwPropertyKey {
     HintModelPriority,
     /// Performance counters.
     EnableProfiling,
-    /// Device Priorities config option,
-    /// with comma-separated devices listed in the desired priority.
+    /// Device priorities configuration, with comma-separated devices listed in the desired
+    /// priority.
     DevicePriorities,
-    /// High-level OpenVINO Execution hint
-    /// unlike low-level properties that are individual (per-device), the hints are something that every device accepts
-    /// and turns into device-specific settings
-    /// Execution mode hint controls preferred optimization targets (performance or accuracy) for given model
+    /// A high-level OpenVINO execution hint. Unlike low-level properties that are individual
+    /// (per-device), the hints are something that every device accepts and turns into
+    /// device-specific settings, the execution mode hint controls preferred optimization targets
+    /// (performance or accuracy) for a given model.
     ///
     /// It can be set to be below value:
-    /// - `"PERFORMANCE"`: Optimize for max performance
-    /// - `"ACCURACY"`: Optimize for max accuracy
+    /// - `"PERFORMANCE"`: optimize for max performance
+    /// - `"ACCURACY"`: optimize for max accuracy
     HintExecutionMode,
     /// Whether to force terminate TBB when OV Core is destroyed.
     ForceTbbTerminate,
@@ -85,7 +84,7 @@ pub enum RwPropertyKey {
     EnableMmap,
     /// ?
     AutoBatchTimeout,
-    /// Arbitrary string property key.
+    /// An arbitrary key.
     Other(Cow<'static, str>),
 }
 

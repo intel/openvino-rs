@@ -46,7 +46,7 @@ impl CodegenCommand {
         let functions_to_modify = vec!["ov_core_set_property", "ov_compiled_model_set_property"];
         let mut function_bindings_string = function_bindings.to_string();
         for function in &functions_to_modify {
-            let re = Regex::new(&format!(r"(?s){}.*?\.\.\.", function)).unwrap();
+            let re = Regex::new(&format!(r"(?s){function}.*?\.\.\.")).unwrap();
             if re.is_match(&function_bindings_string) {
                 function_bindings_string = re.replace(&function_bindings_string, |caps: &regex::Captures| {
                     caps[0].replace("...", "property_key: *const ::std::os::raw::c_char,\n        property_value: *const ::std::os::raw::c_char")
