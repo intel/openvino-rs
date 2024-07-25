@@ -116,8 +116,11 @@ impl Tensor {
     /// underlying pointer's alignment.
     pub fn get_data<T>(&self) -> Result<&[T]> {
         let raw_data = self.get_raw_data()?;
-        let len = get_safe_len::<T>(raw_data);
-        let slice = unsafe { std::slice::from_raw_parts(raw_data.as_ptr().cast::<T>(), len) };
+        let (prefix, slice, suffix) = unsafe { raw_data.align_to::<T>() };
+        assert!(
+            prefix.is_empty() && suffix.is_empty(),
+            "raw data is not aligned to `T`'s alignment"
+        );
         Ok(slice)
     }
 
@@ -129,25 +132,13 @@ impl Tensor {
     /// underlying pointer's alignment.
     pub fn get_data_mut<T>(&mut self) -> Result<&mut [T]> {
         let raw_data = self.get_raw_data_mut()?;
-        let len = get_safe_len::<T>(raw_data);
-        let slice =
-            unsafe { std::slice::from_raw_parts_mut(raw_data.as_mut_ptr().cast::<T>(), len) };
+        let (prefix, slice, suffix) = unsafe { raw_data.align_to_mut::<T>() };
+        assert!(
+            prefix.is_empty() && suffix.is_empty(),
+            "raw data is not aligned to `T`'s alignment"
+        );
         Ok(slice)
     }
-}
-
-/// Convenience function for checking that we can cast `data` to a slice of `T`, returning the
-/// length of that slice.
-fn get_safe_len<T>(data: &[u8]) -> usize {
-    assert!(
-        data.len() % std::mem::size_of::<T>() == 0,
-        "data size is not a multiple of the size of `T`"
-    );
-    assert!(
-        data.as_ptr() as usize % std::mem::align_of::<T>() == 0,
-        "raw data is not aligned to `T`'s alignment"
-    );
-    data.len() / std::mem::size_of::<T>()
 }
 
 #[cfg(test)]
@@ -208,7 +199,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "data size is not a multiple of the size of `T`")]
+    #[should_panic(expected = "raw data is not aligned to `T`'s alignment")]
     fn casting_check() {
         openvino_sys::library::load().unwrap();
         let shape = Shape::new(&[10, 10, 10]).unwrap();
