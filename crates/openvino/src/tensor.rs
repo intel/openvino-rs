@@ -17,6 +17,7 @@ use openvino_sys::{
 /// ```rust
 /// # use openvino::{Shape, Tensor, ElementType};
 /// # fn main() -> anyhow::Result<()> {
+/// # openvino_sys::library::load().unwrap();
 /// let data = [1u8; 1000];
 /// let shape = Shape::new(&[10, 10, 10])?;
 /// let mut tensor = Tensor::new(ElementType::U8, &shape)?;
