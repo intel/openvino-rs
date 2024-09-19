@@ -1,10 +1,9 @@
 //! Demonstrates using `openvino-rs` to classify an image using an MobileNet model and a prepared
-//! input tensor. See [README](fixtures/inception/README.md) for details on how this test fixture
-//! was prepared.
+//! input tensor. See [`fixtures::inception`] for details on how this test fixture was prepared.
 mod fixtures;
 mod util;
 
-use fixtures::mobilenet::Fixture;
+use fixtures::mobilenet as fixture;
 use openvino::{
     prepostprocess, Core, DeviceType, ElementType, Layout, ResizeAlgorithm, Shape, Tensor,
 };
@@ -15,8 +14,8 @@ use util::{Prediction, Predictions};
 fn classify_mobilenet() -> anyhow::Result<()> {
     let mut core = Core::new()?;
     let mut model = core.read_model_from_file(
-        &Fixture::graph().to_string_lossy(),
-        &Fixture::weights().to_string_lossy(),
+        &fixture::graph().to_string_lossy(),
+        &fixture::weights().to_string_lossy(),
     )?;
 
     let output_port = model.get_output_by_index(0)?;
@@ -24,7 +23,7 @@ fn classify_mobilenet() -> anyhow::Result<()> {
     assert_eq!(model.get_input_by_index(0)?.get_name()?, "input");
 
     // Retrieve the tensor from the test fixtures.
-    let data = fs::read(Fixture::tensor())?;
+    let data = fs::read(fixture::tensor())?;
     let input_shape = Shape::new(&[1, 224, 224, 3])?;
     let element_type = ElementType::F32;
     let mut tensor = Tensor::new(element_type, &input_shape)?;
