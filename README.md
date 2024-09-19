@@ -20,18 +20,7 @@ crate (high-level, ergonomic bindings) for accessing OpenVINO™ functionality i
 1. The [openvino-sys] crate creates bindings to the OpenVINO™ C API using `bindgen`; this requires a
    local installation of `libclang`. Also, be sure to retrieve all Git submodules.
 
-2. This repo currently uses [git-lfs](https://git-lfs.github.com/) for large file storage. If you
-   [install it](https://github.com/git-lfs/git-lfs/wiki/Installation) before cloning this
-   repository, it should have downloaded all large files. To check this, verify that `find
-   crates/openvino -name *.bin | xargs ls -lhr` returns `.bin` files of tens of megabytes. If not,
-   download the large files with:
-
-   ```shell
-   git lfs fetch
-   git lfs checkout
-   ```
-
-3. This library binds to OpenVINO™'s shared libraries; how those native libraries are configured and
+2. This library binds to OpenVINO™'s shared libraries; how those native libraries are configured and
    installed on your system determines how these Rust bindings work. The [openvino-finder] crate
    attempts to locate the necessary libraries and configuration; if you run into problems, you may
    need to understand additional details documented in the [`openvino-finder`
@@ -39,7 +28,7 @@ crate (high-level, ergonomic bindings) for accessing OpenVINO™ functionality i
 
 [openvino-finder-docs]: https://docs.rs/openvino-finder
 
-4. __For macOS (homebrew) users__. Install the openvino toolkit, which includes the native C library,
+3. __For macOS (homebrew) users__. Install the openvino toolkit, which includes the native C library,
    and set `DYLD_LIBRARY_PATH`:
    ```
        brew install openvino
