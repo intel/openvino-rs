@@ -112,7 +112,7 @@ impl Core {
 
     /// Gets properties related to device behavior.
     ///
-    /// The method extracts information that can be set via the [`set_property`] method.
+    /// The method extracts information that can be set via the [`Core::set_property`] method.
     ///
     /// # Panics
     ///
