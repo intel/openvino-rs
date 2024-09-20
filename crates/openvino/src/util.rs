@@ -27,7 +27,8 @@ macro_rules! drop_using_function {
     ($ty: ty, $free_fn: expr) => {
         impl Drop for $ty {
             fn drop(&mut self) {
-                unsafe { $free_fn(self.ptr.cast()) }
+                let free = $free_fn;
+                unsafe { free(self.ptr.cast()) }
             }
         }
     };

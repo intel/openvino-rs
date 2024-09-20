@@ -11,6 +11,26 @@ use openvino_sys::{
 };
 
 /// See [`Tensor`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__tensor__c__api.html).
+///
+/// To create a tensor from in-memory data, construct it and then fill it:
+///
+/// ```rust
+/// # use openvino::{Shape, Tensor, ElementType};
+/// # fn main() -> anyhow::Result<()> {
+/// # openvino_sys::library::load().unwrap();
+/// let data = [1u8; 1000];
+/// let shape = Shape::new(&[10, 10, 10])?;
+/// let mut tensor = Tensor::new(ElementType::U8, &shape)?;
+/// tensor.get_raw_data_mut()?.copy_from_slice(&data);
+/// # Ok(())
+/// # }
+/// ```
+///
+/// This approach currently results in a copy, which is sub-optimal. It is safe, however; passing a
+/// slice to OpenVINO is unsafe unless additional lifetime constraints are added (to improve this in
+/// the future, see the context in [#125]).
+///
+/// [#125]: https://github.com/intel/openvino-rs/pull/125
 pub struct Tensor {
     ptr: *mut ov_tensor_t,
 }
