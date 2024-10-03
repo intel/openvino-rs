@@ -5,7 +5,7 @@ use std::process::Command;
 
 #[derive(Debug, Args)]
 pub struct UpdateCommand {
-    /// The upstream tag to update to; see https://github.com/openvinotoolkit/openvino/releases.
+    /// The upstream tag to update to; see <https://github.com/openvinotoolkit/openvino/releases>.
     #[arg(name = "TAG")]
     tag: String,
 }
