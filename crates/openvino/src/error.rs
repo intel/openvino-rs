@@ -1,46 +1,28 @@
-use thiserror::Error;
+use std::error::Error;
+use std::fmt;
 
 /// Enumerate errors returned by the OpenVINO implementation. See
 /// [`OvStatusCode`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__base__c__api.html#_CPPv411ov_status_e).
-// TODO This could be auto-generated (https://github.com/intel/openvino-rs/issues/20).
 #[allow(missing_docs)]
-#[derive(Debug, Error, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum InferenceError {
-    #[error("general error")]
     GeneralError,
-    #[error("not implemented")]
     NotImplemented,
-    #[error("network not loaded")]
     NetworkNotLoaded,
-    #[error("parameter mismatch")]
     ParameterMismatch,
-    #[error("not found")]
     NotFound,
-    #[error("out of bounds")]
     OutOfBounds,
-    #[error("unexpected")]
     Unexpected,
-    #[error("request busy")]
     RequestBusy,
-    #[error("result not ready")]
     ResultNotReady,
-    #[error("not allocated")]
     NotAllocated,
-    #[error("infer not started")]
     InferNotStarted,
-    #[error("network not read")]
     NetworkNotRead,
-    #[error("infer cancelled")]
     InferCancelled,
-    #[error("invalid c parameter")]
     InvalidCParam,
-    #[error("unknown C error")]
     UnknownCError,
-    #[error("not implemented C method")]
     NotImplementCMethod,
-    #[error("unknown exception")]
     UnknownException,
-    #[error("undefined error code: {0}")]
     Undefined(i32),
 }
 
@@ -75,28 +57,85 @@ impl InferenceError {
     }
 }
 
-/// Enumerate setup failures: in some cases, this library will call library-loading code that may
-/// fail in a different way (i.e., [`LoadingError`]) than the calls to the OpenVINO libraries (i.e.,
-/// [`InferenceError`]).
-#[allow(missing_docs)]
-#[derive(Debug, Error)]
-pub enum SetupError {
-    #[error("inference error")]
-    Inference(#[from] InferenceError),
-    #[error("library loading error")]
-    Loading(#[from] LoadingError),
+impl Error for InferenceError {}
+
+impl fmt::Display for InferenceError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::GeneralError => write!(f, "general error"),
+            Self::NotImplemented => write!(f, "not implemented"),
+            Self::NetworkNotLoaded => write!(f, "network not loaded"),
+            Self::ParameterMismatch => write!(f, "parameter mismatch"),
+            Self::NotFound => write!(f, "not found"),
+            Self::OutOfBounds => write!(f, "out of bounds"),
+            Self::Unexpected => write!(f, "unexpected"),
+            Self::RequestBusy => write!(f, "request busy"),
+            Self::ResultNotReady => write!(f, "result not ready"),
+            Self::NotAllocated => write!(f, "not allocated"),
+            Self::InferNotStarted => write!(f, "infer not started"),
+            Self::NetworkNotRead => write!(f, "network not read"),
+            Self::InferCancelled => write!(f, "infer cancelled"),
+            Self::InvalidCParam => write!(f, "invalid C parameter"),
+            Self::UnknownCError => write!(f, "unknown C error"),
+            Self::NotImplementCMethod => write!(f, "not implemented C method"),
+            Self::UnknownException => write!(f, "unknown exception"),
+            Self::Undefined(code) => write!(f, "undefined error code: {code}"),
+        }
+    }
 }
 
 /// Enumerate the ways that library loading can fail.
 #[allow(missing_docs)]
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum LoadingError {
-    #[error("system failed to load shared libraries (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder): {0}")]
     SystemFailure(String),
-    #[error("cannot find path to shared libraries (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder)")]
     CannotFindLibraryPath,
-    #[error("cannot find path to XML plugin configuration (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder)")]
     CannotFindPluginPath,
-    #[error("unable to convert path to a UTF-8 string (see https://doc.rust-lang.org/std/path/struct.Path.html#method.to_str)")]
     CannotStringifyPath,
+}
+
+impl Error for LoadingError {}
+
+impl fmt::Display for LoadingError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::SystemFailure(msg) => write!(f, "system failed to load shared libraries (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder): {msg}"),
+            Self::CannotFindLibraryPath => write!(f, "cannot find path to shared libraries (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder)"),
+            Self::CannotFindPluginPath => write!(f, "cannot find path to XML plugin configuration (see https://github.com/intel/openvino-rs/blob/main/crates/openvino-finder)"),
+            Self::CannotStringifyPath => write!(f, "unable to convert path to a UTF-8 string (see https://doc.rust-lang.org/std/path/struct.Path.html#method.to_str)"),
+        }
+    }
+}
+
+/// Enumerate setup failures: in some cases, this library will call library-loading code that may
+/// fail in a different way (i.e., [`LoadingError`]) than the calls to the OpenVINO libraries (i.e.,
+/// [`InferenceError`]).
+#[allow(missing_docs)]
+#[derive(Debug)]
+pub enum SetupError {
+    Inference(InferenceError),
+    Loading(LoadingError),
+}
+
+impl Error for SetupError {}
+
+impl fmt::Display for SetupError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Inference(error) => write!(f, "inference error: {error}"),
+            Self::Loading(error) => write!(f, "library loading error: {error}"),
+        }
+    }
+}
+
+impl From<InferenceError> for SetupError {
+    fn from(error: InferenceError) -> Self {
+        SetupError::Inference(error)
+    }
+}
+
+impl From<LoadingError> for SetupError {
+    fn from(error: LoadingError) -> Self {
+        SetupError::Loading(error)
+    }
 }
