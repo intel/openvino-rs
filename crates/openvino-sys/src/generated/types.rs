@@ -42,6 +42,7 @@ pub type ov_status_e = ::std::os::raw::c_int;
 pub const ov_element_type_e_UNDEFINED: ov_element_type_e = 0;
 #[doc = "!< Dynamic element type"]
 pub const ov_element_type_e_DYNAMIC: ov_element_type_e = 1;
+#[doc = "!< boolean element type"]
 pub const ov_element_type_e_OV_BOOLEAN: ov_element_type_e = 2;
 #[doc = "!< bf16 element type"]
 pub const ov_element_type_e_BF16: ov_element_type_e = 3;
@@ -63,24 +64,87 @@ pub const ov_element_type_e_I32: ov_element_type_e = 10;
 pub const ov_element_type_e_I64: ov_element_type_e = 11;
 #[doc = "!< binary element type"]
 pub const ov_element_type_e_U1: ov_element_type_e = 12;
+#[doc = "!< u2 element type"]
+pub const ov_element_type_e_U2: ov_element_type_e = 13;
+#[doc = "!< u3 element type"]
+pub const ov_element_type_e_U3: ov_element_type_e = 14;
 #[doc = "!< u4 element type"]
-pub const ov_element_type_e_U4: ov_element_type_e = 13;
+pub const ov_element_type_e_U4: ov_element_type_e = 15;
+#[doc = "!< u6 element type"]
+pub const ov_element_type_e_U6: ov_element_type_e = 16;
 #[doc = "!< u8 element type"]
-pub const ov_element_type_e_U8: ov_element_type_e = 14;
+pub const ov_element_type_e_U8: ov_element_type_e = 17;
 #[doc = "!< u16 element type"]
-pub const ov_element_type_e_U16: ov_element_type_e = 15;
+pub const ov_element_type_e_U16: ov_element_type_e = 18;
 #[doc = "!< u32 element type"]
-pub const ov_element_type_e_U32: ov_element_type_e = 16;
+pub const ov_element_type_e_U32: ov_element_type_e = 19;
 #[doc = "!< u64 element type"]
-pub const ov_element_type_e_U64: ov_element_type_e = 17;
+pub const ov_element_type_e_U64: ov_element_type_e = 20;
 #[doc = "!< nf4 element type"]
-pub const ov_element_type_e_NF4: ov_element_type_e = 18;
+pub const ov_element_type_e_NF4: ov_element_type_e = 21;
 #[doc = "!< f8e4m3 element type"]
-pub const ov_element_type_e_F8E4M3: ov_element_type_e = 19;
+pub const ov_element_type_e_F8E4M3: ov_element_type_e = 22;
 #[doc = "!< f8e5m2 element type"]
-pub const ov_element_type_e_F8E5M3: ov_element_type_e = 20;
-#[doc = " @enum ov_element_type_e\n @ingroup ov_base_c_api\n @brief This enum contains codes for element type."]
+pub const ov_element_type_e_F8E5M3: ov_element_type_e = 23;
+#[doc = "!< string element type"]
+pub const ov_element_type_e_STRING: ov_element_type_e = 24;
+#[doc = "!< f4e2m1 element type"]
+pub const ov_element_type_e_F4E2M1: ov_element_type_e = 25;
+#[doc = "!< f8e8m0 element type"]
+pub const ov_element_type_e_F8E8M0: ov_element_type_e = 26;
+#[doc = " @enum ov_element_type_e\n @ingroup ov_base_c_api\n @brief This enum contains codes for element type, which is aligned with ov::element::Type_t in\n src/core/include/openvino/core/type/element_type.hpp"]
 pub type ov_element_type_e = ::std::os::raw::c_uint;
+#[doc = " @brief encryption_func is a function pointer that encrypt or decrypt the input memory, example of this function is\n codec(const char* input, const size_t in_size, const char* output, size_t* out_size)\n This function needs to be called twice,\n the first call to obtain out_size (the size of output buffer), the second call to obtain output buffer.\n The first call output is nullptr, before the second call, the caller needs to apply for output\n memory based on the out_size returned by the first call.\n the memory of parameter output is allocated and released by the caller.\n @param input The pointer to the input buffer.\n @param in_size The size of input.\n @param output The pointer to the encrypted/decrypted buffer.\n @param out_size The size of output."]
+pub type encryption_func = ::std::option::Option<
+    unsafe extern "C" fn(
+        arg1: *const ::std::os::raw::c_char,
+        arg2: usize,
+        arg3: *mut ::std::os::raw::c_char,
+        arg4: *mut usize,
+    ),
+>;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ov_encryption_callbacks {
+    pub encrypt_func: encryption_func,
+    pub decrypt_func: encryption_func,
+}
+#[test]
+fn bindgen_test_layout_ov_encryption_callbacks() {
+    const UNINIT: ::std::mem::MaybeUninit<ov_encryption_callbacks> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<ov_encryption_callbacks>(),
+        16usize,
+        concat!("Size of: ", stringify!(ov_encryption_callbacks))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<ov_encryption_callbacks>(),
+        8usize,
+        concat!("Alignment of ", stringify!(ov_encryption_callbacks))
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).encrypt_func) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ov_encryption_callbacks),
+            "::",
+            stringify!(encrypt_func)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).decrypt_func) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ov_encryption_callbacks),
+            "::",
+            stringify!(decrypt_func)
+        )
+    );
+}
 #[doc = " @struct ov_dimension\n @ingroup ov_dimension_c_api\n @brief This is a structure interface equal to ov::Dimension"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
