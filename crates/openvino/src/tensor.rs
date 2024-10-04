@@ -17,10 +17,10 @@ use openvino_sys::{
 /// # use openvino::{Shape, Tensor, ElementType};
 /// # fn main() -> anyhow::Result<()> {
 /// # openvino_sys::library::load().unwrap();
-/// let data = [1u8; 1000];
+/// let data = [1.0f32; 1000];
 /// let shape = Shape::new(&[10, 10, 10])?;
-/// let mut tensor = Tensor::new(ElementType::U8, &shape)?;
-/// tensor.get_raw_data_mut()?.copy_from_slice(&data);
+/// let mut tensor = Tensor::new(ElementType::F32, &shape)?;
+/// tensor.get_data_mut()?.copy_from_slice(&data);
 /// # Ok(())
 /// # }
 /// ```
