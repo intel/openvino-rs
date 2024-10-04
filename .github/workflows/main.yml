@@ -39,9 +39,13 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: true
-        lfs: true
-    - name: Checkout LFS objects
-      run: git lfs checkout
+    - uses: actions/cache@v4.0.2
+      with:
+        key: openvino-test-fixtures
+        path: |
+          crates/openvino/tests/fixtures/alexnet
+          crates/openvino/tests/fixtures/inception
+          crates/openvino/tests/fixtures/mobilenet
     - uses: abrown/install-openvino-action@v8
       with:
         version: ${{ matrix.version }}
@@ -92,7 +96,6 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: true
-        lfs: true
     - name: Build documentation
       run: cargo doc --no-deps --features openvino-sys/runtime-linking
 

@@ -4,15 +4,15 @@
 
 mod fixtures;
 
-use fixtures::mobilenet::Fixture;
+use fixtures::mobilenet as fixture;
 use openvino::{Core, DeviceType, ElementType, Shape, Tensor};
 use std::fs;
 
 #[test]
 fn memory_safety() -> anyhow::Result<()> {
     let mut core = Core::new()?;
-    let xml = fs::read_to_string(Fixture::graph())?;
-    let weights = fs::read(Fixture::weights())?;
+    let xml = fs::read_to_string(fixture::graph())?;
+    let weights = fs::read(fixture::weights())?;
 
     // Copy the fixture weights into a tensor. Once we're done here we want to get rid of the
     // original weights buffer as a sanity check.

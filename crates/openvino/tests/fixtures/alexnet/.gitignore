@@ -1,0 +1,3 @@
+# Ignore all downloaded artifacts in this directory (see `../mod.rs`) except this file.
+*
+!.gitignore
