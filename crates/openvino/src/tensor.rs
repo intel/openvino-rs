@@ -1,13 +1,12 @@
 //! This module provides functionality related to Tensor objects.
-use std::convert::TryInto as _;
 
 use crate::element_type::ElementType;
 use crate::shape::Shape;
 use crate::{drop_using_function, try_unsafe, util::Result};
 use openvino_sys::{
-    self, ov_shape_t, ov_tensor_create, ov_tensor_data, ov_tensor_free, ov_tensor_get_byte_size,
-    ov_tensor_get_element_type, ov_tensor_get_shape, ov_tensor_get_size, ov_tensor_set_shape,
-    ov_tensor_t,
+    self, ov_element_type_e, ov_shape_t, ov_tensor_create, ov_tensor_data, ov_tensor_free,
+    ov_tensor_get_byte_size, ov_tensor_get_element_type, ov_tensor_get_shape, ov_tensor_get_size,
+    ov_tensor_set_shape, ov_tensor_t,
 };
 
 /// See [`ov_tensor_t`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__tensor__c__api.html).
@@ -41,7 +40,7 @@ impl Tensor {
     pub fn new(element_type: ElementType, shape: &Shape) -> Result<Self> {
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_tensor_create(
-            element_type as u32,
+            element_type.into(),
             shape.as_c_struct(),
             std::ptr::addr_of_mut!(ptr),
         ))?;
@@ -82,12 +81,12 @@ impl Tensor {
     ///
     /// This function panics in the unlikely case OpenVINO returns an unknown element type.
     pub fn get_element_type(&self) -> Result<ElementType> {
-        let mut element_type = ElementType::Undefined as u32;
+        let mut element_type = ov_element_type_e::UNDEFINED;
         try_unsafe!(ov_tensor_get_element_type(
             self.ptr,
             std::ptr::addr_of_mut!(element_type),
         ))?;
-        Ok(element_type.try_into().unwrap())
+        Ok(element_type.into())
     }
 
     /// Get the number of elements in the tensor. Product of all dimensions e.g. 1*3*227*227.

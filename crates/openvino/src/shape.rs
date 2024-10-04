@@ -1,5 +1,5 @@
 use crate::{try_unsafe, util::Result};
-use openvino_sys::{ov_shape_create, ov_shape_free, ov_shape_t};
+use openvino_sys::{ov_shape_create, ov_shape_free, ov_shape_t, ov_status_e};
 use std::convert::TryInto;
 
 /// See [`ov_shape_t`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__shape__c__api.html).
@@ -13,7 +13,7 @@ impl Drop for Shape {
     // - the `c_struct` field is not a pointer as with other types.
     fn drop(&mut self) {
         let code = unsafe { ov_shape_free(std::ptr::addr_of_mut!(self.c_struct)) };
-        assert_eq!(code, 0);
+        assert_eq!(code, ov_status_e::OK);
         debug_assert!(self.c_struct.dims.is_null());
         debug_assert_eq!(self.c_struct.rank, 0);
     }

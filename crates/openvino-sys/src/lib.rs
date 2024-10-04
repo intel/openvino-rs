@@ -18,7 +18,7 @@
 //!     buildNumber: std::ptr::null(),
 //! };
 //! let code = unsafe { openvino_sys::ov_get_openvino_version(&mut ov_version) };
-//! assert_eq!(code, 0);
+//! assert_eq!(code, openvino_sys::ov_status_e::OK);
 //! let version_ptr = { ov_version }.buildNumber;
 //! let string_version = unsafe { CStr::from_ptr(version_ptr) }.to_string_lossy().into_owned();
 //! unsafe { openvino_sys::ov_version_free(std::ptr::addr_of_mut!(ov_version)) };
