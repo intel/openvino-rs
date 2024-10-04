@@ -22,12 +22,12 @@ impl From<ov_preprocess_resize_algorithm_e> for ResizeAlgorithm {
     }
 }
 
-impl Into<ov_preprocess_resize_algorithm_e> for ResizeAlgorithm {
-    fn into(self) -> ov_preprocess_resize_algorithm_e {
-        match self {
-            Self::Linear => ov_preprocess_resize_algorithm_e::RESIZE_LINEAR,
-            Self::Cubic => ov_preprocess_resize_algorithm_e::RESIZE_CUBIC,
-            Self::Nearest => ov_preprocess_resize_algorithm_e::RESIZE_NEAREST,
+impl From<ResizeAlgorithm> for ov_preprocess_resize_algorithm_e {
+    fn from(algo: ResizeAlgorithm) -> ov_preprocess_resize_algorithm_e {
+        match algo {
+            ResizeAlgorithm::Linear => ov_preprocess_resize_algorithm_e::RESIZE_LINEAR,
+            ResizeAlgorithm::Cubic => ov_preprocess_resize_algorithm_e::RESIZE_CUBIC,
+            ResizeAlgorithm::Nearest => ov_preprocess_resize_algorithm_e::RESIZE_NEAREST,
         }
     }
 }

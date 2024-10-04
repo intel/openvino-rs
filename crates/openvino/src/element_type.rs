@@ -96,36 +96,36 @@ impl From<ov_element_type_e> for ElementType {
     }
 }
 
-impl Into<ov_element_type_e> for ElementType {
-    fn into(self) -> ov_element_type_e {
-        match self {
-            Self::Undefined => ov_element_type_e::UNDEFINED,
-            Self::Dynamic => ov_element_type_e::DYNAMIC,
-            Self::Boolean => ov_element_type_e::OV_BOOLEAN,
-            Self::Bf16 => ov_element_type_e::BF16,
-            Self::F16 => ov_element_type_e::F16,
-            Self::F32 => ov_element_type_e::F32,
-            Self::F64 => ov_element_type_e::F64,
-            Self::I4 => ov_element_type_e::I4,
-            Self::I8 => ov_element_type_e::I8,
-            Self::I16 => ov_element_type_e::I16,
-            Self::I32 => ov_element_type_e::I32,
-            Self::I64 => ov_element_type_e::I64,
-            Self::U1 => ov_element_type_e::U1,
-            Self::U2 => ov_element_type_e::U2,
-            Self::U3 => ov_element_type_e::U3,
-            Self::U4 => ov_element_type_e::U4,
-            Self::U6 => ov_element_type_e::U6,
-            Self::U8 => ov_element_type_e::U8,
-            Self::U16 => ov_element_type_e::U16,
-            Self::U32 => ov_element_type_e::U32,
-            Self::U64 => ov_element_type_e::U64,
-            Self::NF4 => ov_element_type_e::NF4,
-            Self::F8E4M3 => ov_element_type_e::F8E4M3,
-            Self::F8E5M3 => ov_element_type_e::F8E5M3,
-            Self::String => ov_element_type_e::STRING,
-            Self::F4E2M1 => ov_element_type_e::F4E2M1,
-            Self::F8E8M0 => ov_element_type_e::F8E8M0,
+impl From<ElementType> for ov_element_type_e {
+    fn from(ty: ElementType) -> ov_element_type_e {
+        match ty {
+            ElementType::Undefined => ov_element_type_e::UNDEFINED,
+            ElementType::Dynamic => ov_element_type_e::DYNAMIC,
+            ElementType::Boolean => ov_element_type_e::OV_BOOLEAN,
+            ElementType::Bf16 => ov_element_type_e::BF16,
+            ElementType::F16 => ov_element_type_e::F16,
+            ElementType::F32 => ov_element_type_e::F32,
+            ElementType::F64 => ov_element_type_e::F64,
+            ElementType::I4 => ov_element_type_e::I4,
+            ElementType::I8 => ov_element_type_e::I8,
+            ElementType::I16 => ov_element_type_e::I16,
+            ElementType::I32 => ov_element_type_e::I32,
+            ElementType::I64 => ov_element_type_e::I64,
+            ElementType::U1 => ov_element_type_e::U1,
+            ElementType::U2 => ov_element_type_e::U2,
+            ElementType::U3 => ov_element_type_e::U3,
+            ElementType::U4 => ov_element_type_e::U4,
+            ElementType::U6 => ov_element_type_e::U6,
+            ElementType::U8 => ov_element_type_e::U8,
+            ElementType::U16 => ov_element_type_e::U16,
+            ElementType::U32 => ov_element_type_e::U32,
+            ElementType::U64 => ov_element_type_e::U64,
+            ElementType::NF4 => ov_element_type_e::NF4,
+            ElementType::F8E4M3 => ov_element_type_e::F8E4M3,
+            ElementType::F8E5M3 => ov_element_type_e::F8E5M3,
+            ElementType::String => ov_element_type_e::STRING,
+            ElementType::F4E2M1 => ov_element_type_e::F4E2M1,
+            ElementType::F8E8M0 => ov_element_type_e::F8E8M0,
         }
     }
 }
