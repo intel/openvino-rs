@@ -1,5 +1,6 @@
-//! Demonstrates using `openvino-rs` to classify an image using an MobileNet model and a prepared
-//! input tensor. See [`fixtures::inception`] for details on how this test fixture was prepared.
+//! Demonstrates using `openvino` to classify an image using an MobileNet model and a prepared input
+//! tensor.
+
 mod fixtures;
 mod util;
 

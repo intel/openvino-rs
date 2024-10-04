@@ -1,4 +1,5 @@
 //! These tests demonstrate how to setup OpenVINO networks.
+
 mod fixtures;
 
 use fixtures::alexnet as fixture;
