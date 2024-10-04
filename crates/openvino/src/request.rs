@@ -121,12 +121,12 @@ impl InferRequest {
         try_unsafe!(ov_infer_request_cancel(self.ptr))
     }
 
-    /// Execute the inference request asyncroneously.
+    /// Execute the inference request asynchronously.
     pub fn infer_async(&mut self) -> Result<()> {
         try_unsafe!(ov_infer_request_start_async(self.ptr))
     }
 
-    /// Wait for the result of the inference asyncroneous request.
+    /// Wait for the result of the inference asynchronous request.
     pub fn wait(&mut self, timeout: i64) -> Result<()> {
         try_unsafe!(ov_infer_request_wait_for(self.ptr, timeout))
     }
