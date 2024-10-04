@@ -115,29 +115,16 @@ impl CodegenCommand {
             .header(header_file.as_ref().to_string_lossy())
             .clang_arg("-I./crates/openvino-sys/upstream/src/bindings/c/include")
             .allowlist_type("ov_.*")
-            // Enumerations.
-            .allowlist_type("precision_e")
-            .allowlist_type("layout_e")
-            .allowlist_type("resize_alg_e")
-            .allowlist_type("colorformat_e")
-            // Custom types.
-            .allowlist_type("dimensions_t")
-            .allowlist_type("input_shapes_t")
-            .allowlist_type("tensor_desc_t")
-            .allowlist_type("roi_t")
-            .allowlist_type("IEStatusCode")
             // Convert C's `size_t` to `usize`.
             .size_t_is_usize(true)
             // While understanding the warnings in
-            // https://docs.rs/bindgen/0.36.0/bindgen/struct.Builder.html#method.rustified_enum that
+            // https://docs.rs/bindgen/0.70.1/bindgen/struct.Builder.html#method.rustified_enum that
             // these enums could result in unspecified behavior if constructed from an invalid
-            // value, the expectation here is that OpenVINO only returns valid layout and precision
-            // values. This assumption is reasonable because otherwise OpenVINO itself would be
-            // broken.
-            .rustified_enum("layout_e")
-            .rustified_enum("precision_e")
-            .rustified_enum("resize_alg_e")
-            .rustified_enum("colorformat_e")
+            // value, the expectation here is that OpenVINO only returns valid values. This
+            // assumption is reasonable because otherwise OpenVINO itself would be broken.
+            .default_enum_style(bindgen::EnumVariation::Rust {
+                non_exhaustive: false,
+            })
             // Generate only the types.
             .with_codegen_config(bindgen::CodegenConfig::TYPES)
             .generate()
@@ -151,17 +138,8 @@ impl CodegenCommand {
             .allowlist_function("ov_.*")
             .blocklist_type("__uint8_t")
             .blocklist_type("__int64_t")
+            // Convert C's `size_t` to `usize`.
             .size_t_is_usize(true)
-            // While understanding the warnings in
-            // https://docs.rs/bindgen/0.36.0/bindgen/struct.Builder.html#method.rustified_enum that
-            // these enums could result in unspecified behavior if constructed from an invalid
-            // value, the expectation here is that OpenVINO only returns valid layout and precision
-            // values. This assumption is reasonable because otherwise OpenVINO itself would be
-            // broken.
-            .rustified_enum("layout_e")
-            .rustified_enum("precision_e")
-            .rustified_enum("resize_alg_e")
-            .rustified_enum("colorformat_e")
             // Generate only functions.
             .with_codegen_config(bindgen::CodegenConfig::FUNCTIONS)
             .generate()
