@@ -61,7 +61,7 @@ pub use shape::Shape;
 pub use tensor::Tensor;
 pub use version::Version;
 
-/// Emit the version string of the OpenVINO C API backing this implementation.
+/// Emit the version of the OpenVINO C library backing this implementation.
 ///
 /// # Panics
 ///
