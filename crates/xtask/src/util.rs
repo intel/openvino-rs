@@ -6,6 +6,7 @@ use toml::Value;
 
 /// Convenience wrapper for executing commands.
 pub fn exec(command: &mut Command) -> Result<()> {
+    eprintln!("+ executing: {:?}", &command);
     let status = command.status()?;
     if status.success() {
         Ok(())

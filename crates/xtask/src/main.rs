@@ -6,6 +6,7 @@
 mod bump;
 mod codegen;
 mod publish;
+mod update;
 mod util;
 
 use anyhow::Result;
@@ -13,6 +14,7 @@ use bump::BumpCommand;
 use clap::{Parser, Subcommand};
 use codegen::CodegenCommand;
 use publish::PublishCommand;
+use update::UpdateCommand;
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -29,6 +31,8 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum XtaskCommand {
+    /// Update the upstream OpenVINO Git submodule.
+    Update(UpdateCommand),
     /// Generate the Rust bindings for OpenVINO to use in the openvino-sys crate.
     Codegen(CodegenCommand),
     /// Increment the version of each of the publishable crates.
@@ -40,6 +44,7 @@ enum XtaskCommand {
 impl XtaskCommand {
     fn execute(&self) -> Result<()> {
         match self {
+            Self::Update(update) => update.execute(),
             Self::Codegen(codegen) => codegen.execute(),
             Self::Bump(bump) => bump.execute(),
             Self::Publish(publish) => publish.execute(),
