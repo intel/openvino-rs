@@ -1,6 +1,6 @@
 use openvino_sys::ov_version_t;
 
-/// Represents OpenVINO version information.
+/// See [`Version`](https://docs.openvino.ai/2024/api/c_cpp_api/structov__version.html).
 pub struct Version {
     /// A string representing OpenVINO version.
     pub build_number: String,
