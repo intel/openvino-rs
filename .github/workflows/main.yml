@@ -131,4 +131,4 @@ jobs:
     - name: Generate bindings
       run: cargo xtask codegen
     - name: Verify no changes
-      run: git diff --ignore-submodules --no-ext-diff --name-only --exit-code
+      run: git diff --ignore-submodules --no-ext-diff --exit-code
