@@ -13,7 +13,7 @@ use std::error::Error;
 use std::fmt;
 
 /// See
-/// [`ElementType`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__base__c__api.html#_CPPv417ov_element_type_e).
+/// [`ov_element_type_e`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__base__c__api.html#_CPPv417ov_element_type_e).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u32)]
 pub enum ElementType {

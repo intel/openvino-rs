@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt;
 
 /// See
-/// [`OvStatusCode`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__base__c__api.html#_CPPv411ov_status_e);
+/// [`ov_status_e`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__base__c__api.html#_CPPv411ov_status_e);
 /// enumerates errors returned by the OpenVINO implementation.
 #[allow(missing_docs)]
 #[derive(Debug, PartialEq, Eq)]

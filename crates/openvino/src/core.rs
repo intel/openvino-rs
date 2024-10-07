@@ -16,7 +16,7 @@ use std::os::raw::c_char;
 use std::slice;
 use std::str::FromStr;
 
-/// See [`Core`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__core__c__api.html).
+/// See [`ov_core_t`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__core__c__api.html).
 pub struct Core {
     ptr: *mut ov_core_t,
 }
