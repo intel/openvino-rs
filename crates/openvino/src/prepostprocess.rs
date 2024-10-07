@@ -1,4 +1,4 @@
-//! See [`PrePostProcess`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__prepostprocess__c__api.html#).
+//! See [`PrePostProcess`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__prepostprocess__c__api.html#).
 //!
 //! See [`PrePostProcess Walkthrough`](https://docs.openvino.ai/2022.3/openvino_docs_OV_UG_Preprocessing_Overview.html).
 //!
@@ -55,7 +55,7 @@ use openvino_sys::{
     ov_preprocess_preprocess_steps_resize, ov_preprocess_preprocess_steps_t,
 };
 
-/// See [`PrePostProcess`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__prepostprocessor__t.html).
+/// See [`PrePostProcess`](https://docs.openvino.ai/2024/api/c_cpp_api/structov__preprocess__prepostprocessor__t.html).
 #[derive(Debug)]
 pub struct Pipeline {
     ptr: *mut ov_preprocess_prepostprocessor_t,
@@ -147,7 +147,7 @@ impl Pipeline {
     }
 }
 
-/// See [`PreProcessInputInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__input__info__t.html).
+/// See [`PreProcessInputInfo`](https://docs.openvino.ai/2024/api/c_cpp_api/structov__preprocess__input__info__t.html).
 pub struct InputInfo {
     ptr: *mut ov_preprocess_input_info_t,
 }
@@ -185,7 +185,7 @@ impl InputInfo {
     }
 }
 
-/// See [`PreprocessOutputInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__output__info__t.html).
+/// See [`PreprocessOutputInfo`](https://docs.openvino.ai/2024/api/c_cpp_api/structov__preprocess__output__info__t.html).
 pub struct OutputInfo {
     ptr: *mut ov_preprocess_output_info_t,
 }
@@ -202,7 +202,7 @@ impl OutputInfo {
     }
 }
 
-/// See [`PreprocessInputModelInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__input__model__info__t.html).
+/// See [`PreprocessInputModelInfo`](https://docs.openvino.ai/2024/api/c_cpp_api/structov__preprocess__input__model__info__t.html).
 pub struct InputModelInfo {
     ptr: *mut ov_preprocess_input_model_info_t,
 }
@@ -217,7 +217,7 @@ impl InputModelInfo {
     }
 }
 
-/// See [`PreprocessInputTensorInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__input__tensor__info__t.html).
+/// See [`PreprocessInputTensorInfo`](https://docs.openvino.ai/2024/api/c_cpp_api/structov__preprocess__input__tensor__info__t.html).
 pub struct InputTensorInfo {
     ptr: *mut ov_preprocess_input_tensor_info_t,
 }
@@ -240,7 +240,7 @@ impl InputTensorInfo {
     }
 }
 
-/// See [`PreprocessOutputTensorInfo`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__output__tensor__info__t.html).
+/// See [`PreprocessOutputTensorInfo`](https://docs.openvino.ai/2024/api/c_cpp_api/structov__preprocess__output__tensor__info__t.html).
 pub struct OutputTensorInfo {
     ptr: *mut ov_preprocess_output_tensor_info_t,
 }
@@ -255,7 +255,7 @@ impl OutputTensorInfo {
     }
 }
 
-/// See [`PreprocessSteps`](https://docs.openvino.ai/2023.3/api/c_cpp_api/structov__preprocess__preprocess__steps__t.html).
+/// See [`PreprocessSteps`](https://docs.openvino.ai/2024/api/c_cpp_api/structov__preprocess__preprocess__steps__t.html).
 pub struct Steps {
     ptr: *mut ov_preprocess_preprocess_steps_t,
 }

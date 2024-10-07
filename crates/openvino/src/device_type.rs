@@ -13,7 +13,7 @@ pub enum DeviceType<'a> {
     GPU,
     /// [NPU Device](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/npu-device.html)
     NPU,
-    /// [GNA Device](https://docs.openvino.ai/2023.3/openvino_docs_OV_UG_supported_plugins_GNA.html)
+    /// [GNA Device](https://docs.openvino.ai/2024/openvino_docs_OV_UG_supported_plugins_GNA.html)
     #[deprecated = "Deprecated since OpenVINO 2024.0; use NPU device instead"]
     GNA,
     /// Arbitrary device.

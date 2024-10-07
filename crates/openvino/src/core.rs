@@ -1,5 +1,5 @@
 //! Define the core interface between Rust and OpenVINO's C
-//! [API](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__core__c__api.html).
+//! [API](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__core__c__api.html).
 
 use crate::error::LoadingError;
 use crate::{cstr, drop_using_function, try_unsafe, util::Result};

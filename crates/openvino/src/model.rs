@@ -92,7 +92,7 @@ impl Model {
     }
 }
 
-/// See [`CompiledModel`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__compiled__model__c__api.html).
+/// See [`CompiledModel`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__compiled__model__c__api.html).
 pub struct CompiledModel {
     ptr: *mut ov_compiled_model_t,
 }
