@@ -42,7 +42,6 @@ pub type ov_status_e = ::std::os::raw::c_int;
 pub const ov_element_type_e_UNDEFINED: ov_element_type_e = 0;
 #[doc = "!< Dynamic element type"]
 pub const ov_element_type_e_DYNAMIC: ov_element_type_e = 1;
-#[doc = "!< boolean element type"]
 pub const ov_element_type_e_OV_BOOLEAN: ov_element_type_e = 2;
 #[doc = "!< bf16 element type"]
 pub const ov_element_type_e_BF16: ov_element_type_e = 3;
