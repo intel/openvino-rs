@@ -17,7 +17,7 @@ openvino-sys = { workspace = true }
 openvino-finder = { workspace = true }
 
 [dev-dependencies]
-float-cmp = "0.9"
+float-cmp = "0.10"
 anyhow = "1.0"
 
 [features]

@@ -12,8 +12,8 @@ wildcards = "allow"
 
 # Skip some multiple-versions checks until they can be fixed.
 skip = [
-    # `bindgen` is still using an older version of `libloading` than we choose to, causing a
-    # duplicate version issue (this isn't a real issue because `bindgen` is only used for `xtask`
-    # tooling and is not deployed).
-    { name = "libloading", version = "<= 0.8.0" },
+    { crate = "libloading@0.7.4", reason = "clang-sys is stuck on an older version of this crate" },
+]
+skip-tree = [
+    { crate = "anstream@0.5.0", reason = "clap-builder and env-logger are using different versions of this crate" },
 ]
