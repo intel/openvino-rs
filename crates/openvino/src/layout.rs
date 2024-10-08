@@ -1,7 +1,7 @@
 use crate::{cstr, drop_using_function, try_unsafe, util::Result};
 use openvino_sys::{ov_layout_create, ov_layout_free, ov_layout_t};
 
-/// See [`Layout`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__layout__c__api.html).
+/// See [`ov_layout_t`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__layout__c__api.html).
 pub struct Layout {
     ptr: *mut ov_layout_t,
 }

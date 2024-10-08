@@ -6,7 +6,7 @@ use openvino_sys::{
 
 use std::{convert::TryInto as _, ffi::CStr};
 
-/// See [`Node`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__node__c__api.html).
+/// See [`ov_node_c_api`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__node__c__api.html).
 pub struct Node {
     ptr: *mut ov_output_const_port_t,
 }

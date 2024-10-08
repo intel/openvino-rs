@@ -1,6 +1,7 @@
 use openvino_sys::{ov_dimension_is_dynamic, ov_dimension_t};
 
-/// See [`Dimension`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__dimension__c__api.html).
+/// See
+/// [`ov_dimension_t`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__dimension__c__api.html).
 #[derive(Copy, Clone, Debug)]
 #[repr(transparent)]
 pub struct Dimension {

@@ -1,6 +1,6 @@
 use openvino_sys::{ov_rank_is_dynamic, ov_rank_t};
 
-/// See [`Rank`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__rank__c__api.html).
+/// See [`ov_rank_t`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__rank__c__api.html).
 #[derive(Copy, Clone, Debug)]
 #[repr(transparent)]
 pub struct Rank {

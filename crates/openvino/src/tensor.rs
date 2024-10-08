@@ -10,7 +10,7 @@ use openvino_sys::{
     ov_tensor_t,
 };
 
-/// See [`Tensor`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__tensor__c__api.html).
+/// See [`ov_tensor_t`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__tensor__c__api.html).
 ///
 /// To create a tensor from in-memory data, construct it and then fill it:
 ///

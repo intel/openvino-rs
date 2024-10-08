@@ -7,7 +7,8 @@ use openvino_sys::{
 
 use std::convert::TryInto;
 
-/// See [`PartialShape`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__partial__shape__c__api.html).
+/// See
+/// [`ov_partial_shape_t`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__partial__shape__c__api.html).
 pub struct PartialShape {
     c_struct: ov_partial_shape_t,
 }

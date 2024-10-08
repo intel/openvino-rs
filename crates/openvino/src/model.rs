@@ -17,7 +17,7 @@ use openvino_sys::{
 use std::borrow::Cow;
 use std::ffi::CStr;
 
-/// See [`Model`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__model__c__api.html).
+/// See [`ov_model_t`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__model__c__api.html).
 pub struct Model {
     ptr: *mut ov_model_t,
 }
@@ -92,7 +92,8 @@ impl Model {
     }
 }
 
-/// See [`CompiledModel`](https://docs.openvino.ai/2023.3/api/c_cpp_api/group__ov__compiled__model__c__api.html).
+/// See
+/// [`ov_compiled_model_t`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__compiled__model__c__api.html).
 pub struct CompiledModel {
     ptr: *mut ov_compiled_model_t,
 }

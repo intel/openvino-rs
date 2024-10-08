@@ -5,6 +5,7 @@ use crate::InferenceError;
 pub(crate) type Result<T> = std::result::Result<T, InferenceError>;
 
 /// Convert a Rust string into a string to pass across the C boundary.
+#[doc(hidden)]
 #[macro_export]
 macro_rules! cstr {
     ($str: expr) => {
@@ -13,6 +14,7 @@ macro_rules! cstr {
 }
 
 /// Convert an unsafe call to openvino-sys into an [`InferenceError`].
+#[doc(hidden)]
 #[macro_export]
 macro_rules! try_unsafe {
     ($e: expr) => {
@@ -22,6 +24,7 @@ macro_rules! try_unsafe {
 
 /// Drop one of the Rust wrapper structures using the provided free function. This relies on all
 /// Rust wrapper functions having a `ptr` field pointing to their OpenVINO C structure.
+#[doc(hidden)]
 #[macro_export]
 macro_rules! drop_using_function {
     ($ty: ty, $free_fn: expr) => {

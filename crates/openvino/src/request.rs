@@ -9,7 +9,8 @@ use openvino_sys::{
     ov_infer_request_start_async, ov_infer_request_t, ov_infer_request_wait_for,
 };
 
-/// See [`InferRequest`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__infer__request__c__api.html).
+/// See
+/// [`ov_infer_request_t`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__infer__request__c__api.html).
 pub struct InferRequest {
     ptr: *mut ov_infer_request_t,
 }
