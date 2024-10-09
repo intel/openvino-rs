@@ -90,5 +90,5 @@ pub fn is_version_pre_2024_2() -> bool {
     let mut parts = version.parts();
     let year: usize = parts.next().unwrap().parse().unwrap();
     let minor: usize = parts.next().unwrap().parse().unwrap();
-    year <= 2024 || (year == 2024 && minor < 2)
+    year < 2024 || (year == 2024 && minor < 2)
 }
