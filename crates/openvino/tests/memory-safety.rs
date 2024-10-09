@@ -16,6 +16,7 @@ fn memory_safety() -> anyhow::Result<()> {
     // with older versions. Since we are using 2024.2+ bindings here, we skip this test when
     // using older libraries.
     if is_version_pre_2024_2() {
+        eprintln!("> skipping test due to pre-2024.2 OpenVINO version");
         return Ok(());
     }
 
