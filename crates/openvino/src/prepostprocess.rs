@@ -258,7 +258,7 @@ impl OutputTensorInfo {
     pub fn set_element_type(&mut self, element_type: ElementType) -> Result<()> {
         try_unsafe!(ov_preprocess_output_set_element_type(
             self.ptr,
-            element_type as u32
+            element_type.into()
         ))
     }
 }
@@ -274,7 +274,7 @@ impl Steps {
     pub fn resize(&mut self, resize_algo: ResizeAlgorithm) -> Result<()> {
         try_unsafe!(ov_preprocess_preprocess_steps_resize(
             self.ptr,
-            resize_algo as u32
+            resize_algo.into()
         ))
     }
 
@@ -290,7 +290,7 @@ impl Steps {
     pub fn convert_element_type(&mut self, new_element_type: ElementType) -> Result<()> {
         try_unsafe!(ov_preprocess_preprocess_steps_convert_element_type(
             self.ptr,
-            new_element_type as u32
+            new_element_type.into()
         ))
     }
 }

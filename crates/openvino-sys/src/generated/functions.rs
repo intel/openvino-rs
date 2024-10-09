@@ -924,10 +924,26 @@ extern "C" {
     ) -> ov_status_e;
 }
 extern "C" {
+    #[doc = " @brief Add scale preprocess operation. Divide each channel element of input by different specified value.\n @ingroup ov_prepostprocess_c_api\n @param preprocess_input_process_steps A pointer to ov_preprocess_preprocess_steps_t.\n @param values Scaling values array for each channels\n @param value_size Scaling value size\n @return Status code of the operation: OK(0) for success."]
+    pub fn ov_preprocess_preprocess_steps_scale_multi_channels(
+        preprocess_input_process_steps: *mut ov_preprocess_preprocess_steps_t,
+        values: *const f32,
+        value_size: i32,
+    ) -> ov_status_e;
+}
+extern "C" {
     #[doc = " @brief Add mean preprocess operation. Subtract specified value from each element of input.\n @ingroup ov_prepostprocess_c_api\n @param preprocess_input_process_steps A pointer to ov_preprocess_preprocess_steps_t.\n @param value Value to subtract from each element.\n @return Status code of the operation: OK(0) for success."]
     pub fn ov_preprocess_preprocess_steps_mean(
         preprocess_input_process_steps: *mut ov_preprocess_preprocess_steps_t,
         value: f32,
+    ) -> ov_status_e;
+}
+extern "C" {
+    #[doc = " @brief Add mean preprocess operation. Subtract each channel element of input by different specified value.\n @ingroup ov_prepostprocess_c_api\n @param preprocess_input_process_steps A pointer to ov_preprocess_preprocess_steps_t.\n @param values Value array to subtract from each element.\n @param value_size Mean value size\n @return Status code of the operation: OK(0) for success."]
+    pub fn ov_preprocess_preprocess_steps_mean_multi_channels(
+        preprocess_input_process_steps: *mut ov_preprocess_preprocess_steps_t,
+        values: *const f32,
+        value_size: i32,
     ) -> ov_status_e;
 }
 extern "C" {

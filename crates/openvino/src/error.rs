@@ -1,3 +1,4 @@
+use openvino_sys::ov_status_e;
 use std::error::Error;
 use std::fmt;
 
@@ -28,32 +29,29 @@ pub enum InferenceError {
 }
 
 impl InferenceError {
-    /// Convert an `error_code` to a [`Result`]:
+    /// Convert an `openvino_sys` error to a [`Result`]:
     /// - `0` becomes `Ok`
     /// - anything else becomes `Err` containing an [`InferenceError`]
-    pub fn from(error_code: i32) -> Result<(), InferenceError> {
-        #[allow(clippy::enum_glob_use)]
-        use InferenceError::*;
-        match error_code {
-            openvino_sys::ov_status_e_OK => Ok(()),
-            openvino_sys::ov_status_e_GENERAL_ERROR => Err(GeneralError),
-            openvino_sys::ov_status_e_NOT_IMPLEMENTED => Err(NotImplemented),
-            openvino_sys::ov_status_e_NETWORK_NOT_LOADED => Err(NetworkNotLoaded),
-            openvino_sys::ov_status_e_PARAMETER_MISMATCH => Err(ParameterMismatch),
-            openvino_sys::ov_status_e_NOT_FOUND => Err(NotFound),
-            openvino_sys::ov_status_e_OUT_OF_BOUNDS => Err(OutOfBounds),
-            openvino_sys::ov_status_e_UNEXPECTED => Err(Unexpected),
-            openvino_sys::ov_status_e_REQUEST_BUSY => Err(RequestBusy),
-            openvino_sys::ov_status_e_RESULT_NOT_READY => Err(ResultNotReady),
-            openvino_sys::ov_status_e_NOT_ALLOCATED => Err(NotAllocated),
-            openvino_sys::ov_status_e_INFER_NOT_STARTED => Err(InferNotStarted),
-            openvino_sys::ov_status_e_NETWORK_NOT_READ => Err(NetworkNotRead),
-            openvino_sys::ov_status_e_INFER_CANCELLED => Err(InferCancelled),
-            openvino_sys::ov_status_e_INVALID_C_PARAM => Err(InvalidCParam),
-            openvino_sys::ov_status_e_UNKNOWN_C_ERROR => Err(UnknownCError),
-            openvino_sys::ov_status_e_NOT_IMPLEMENT_C_METHOD => Err(NotImplementCMethod),
-            openvino_sys::ov_status_e_UNKNOW_EXCEPTION => Err(UnknownException),
-            _ => Err(Undefined(error_code)),
+    pub fn convert(status: ov_status_e) -> Result<(), InferenceError> {
+        match status {
+            ov_status_e::OK => Ok(()),
+            ov_status_e::GENERAL_ERROR => Err(Self::GeneralError),
+            ov_status_e::NOT_IMPLEMENTED => Err(Self::NotImplemented),
+            ov_status_e::NETWORK_NOT_LOADED => Err(Self::NetworkNotLoaded),
+            ov_status_e::PARAMETER_MISMATCH => Err(Self::ParameterMismatch),
+            ov_status_e::NOT_FOUND => Err(Self::NotFound),
+            ov_status_e::OUT_OF_BOUNDS => Err(Self::OutOfBounds),
+            ov_status_e::UNEXPECTED => Err(Self::Unexpected),
+            ov_status_e::REQUEST_BUSY => Err(Self::RequestBusy),
+            ov_status_e::RESULT_NOT_READY => Err(Self::ResultNotReady),
+            ov_status_e::NOT_ALLOCATED => Err(Self::NotAllocated),
+            ov_status_e::INFER_NOT_STARTED => Err(Self::InferNotStarted),
+            ov_status_e::NETWORK_NOT_READ => Err(Self::NetworkNotRead),
+            ov_status_e::INFER_CANCELLED => Err(Self::InferCancelled),
+            ov_status_e::INVALID_C_PARAM => Err(Self::InvalidCParam),
+            ov_status_e::UNKNOWN_C_ERROR => Err(Self::UnknownCError),
+            ov_status_e::NOT_IMPLEMENT_C_METHOD => Err(Self::NotImplementCMethod),
+            ov_status_e::UNKNOW_EXCEPTION => Err(Self::UnknownException),
         }
     }
 }

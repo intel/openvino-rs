@@ -59,22 +59,4 @@ pub use request::InferRequest;
 pub use resize_algorithm::ResizeAlgorithm;
 pub use shape::Shape;
 pub use tensor::Tensor;
-pub use version::Version;
-
-/// Emit the version of the OpenVINO C library backing this implementation.
-///
-/// # Panics
-///
-/// Panics if no OpenVINO library can be found.
-pub fn version() -> Version {
-    openvino_sys::load().expect("to have an OpenVINO shared library available");
-    let mut ov_version = openvino_sys::ov_version_t {
-        buildNumber: std::ptr::null(),
-        description: std::ptr::null(),
-    };
-    let code = unsafe { openvino_sys::ov_get_openvino_version(&mut ov_version) };
-    assert_eq!(code, 0);
-    let version = Version::from(&ov_version);
-    unsafe { openvino_sys::ov_version_free(std::ptr::addr_of_mut!(ov_version)) };
-    version
-}
+pub use version::{version, Version};

@@ -1,15 +1,4 @@
-use openvino_sys::{
-    ov_element_type_e_BF16, ov_element_type_e_DYNAMIC, ov_element_type_e_F16,
-    ov_element_type_e_F32, ov_element_type_e_F64, ov_element_type_e_F8E4M3,
-    ov_element_type_e_F8E5M3, ov_element_type_e_I16, ov_element_type_e_I32, ov_element_type_e_I4,
-    ov_element_type_e_I64, ov_element_type_e_I8, ov_element_type_e_NF4,
-    ov_element_type_e_OV_BOOLEAN, ov_element_type_e_U1, ov_element_type_e_U16,
-    ov_element_type_e_U32, ov_element_type_e_U4, ov_element_type_e_U64, ov_element_type_e_U8,
-    ov_element_type_e_UNDEFINED,
-};
-
-use std::convert::TryFrom;
-use std::error::Error;
+use openvino_sys::ov_element_type_e;
 use std::fmt;
 
 /// See
@@ -18,96 +7,126 @@ use std::fmt;
 #[repr(u32)]
 pub enum ElementType {
     /// An undefined element type.
-    Undefined = ov_element_type_e_UNDEFINED,
+    Undefined,
     /// A dynamic element type.
-    Dynamic = ov_element_type_e_DYNAMIC,
+    Dynamic,
     /// A boolean element type.
-    Boolean = ov_element_type_e_OV_BOOLEAN,
+    Boolean,
     /// A Bf16 element type.
-    Bf16 = ov_element_type_e_BF16,
+    Bf16,
     /// A F16 element type.
-    F16 = ov_element_type_e_F16,
+    F16,
     /// A F32 element type.
-    F32 = ov_element_type_e_F32,
+    F32,
     /// A F64 element type.
-    F64 = ov_element_type_e_F64,
+    F64,
     /// A 4-bit integer element type.
-    I4 = ov_element_type_e_I4,
+    I4,
     /// An 8-bit integer element type.
-    I8 = ov_element_type_e_I8,
+    I8,
     /// A 16-bit integer element type.
-    I16 = ov_element_type_e_I16,
+    I16,
     /// A 32-bit integer element type.
-    I32 = ov_element_type_e_I32,
+    I32,
     /// A 64-bit integer element type.
-    I64 = ov_element_type_e_I64,
-    /// An 1-bit unsigned integer element type.
-    U1 = ov_element_type_e_U1,
-    /// An 4-bit unsigned integer element type.
-    U4 = ov_element_type_e_U4,
+    I64,
+    /// A 1-bit unsigned integer element type.
+    U1,
+    /// A 2-bit unsigned integer element type.
+    U2,
+    /// A 3-bit unsigned integer element type.
+    U3,
+    /// A 4-bit unsigned integer element type.
+    U4,
+    /// A 6-bit unsigned integer element type.
+    U6,
     /// An 8-bit unsigned integer element type.
-    U8 = ov_element_type_e_U8,
+    U8,
     /// A 16-bit unsigned integer element type.
-    U16 = ov_element_type_e_U16,
+    U16,
     /// A 32-bit unsigned integer element type.
-    U32 = ov_element_type_e_U32,
+    U32,
     /// A 64-bit unsigned integer element type.
-    U64 = ov_element_type_e_U64,
+    U64,
     /// NF4 element type.
-    NF4 = ov_element_type_e_NF4,
+    NF4,
     /// F8E4M3 element type.
-    F8E4M3 = ov_element_type_e_F8E4M3,
+    F8E4M3,
     /// F8E5M3 element type.
-    F8E5M3 = ov_element_type_e_F8E5M3,
+    F8E5M3,
+    /// A string element type.
+    String,
+    /// F4E2M1 element type.
+    F4E2M1,
+    /// F8E8M0 element type.
+    F8E8M0,
 }
 
-/// Error returned when attempting to create an [`ElementType`] from an illegal `u32` value.
-#[derive(Debug)]
-pub struct IllegalValueError(u32);
-
-impl Error for IllegalValueError {}
-
-impl fmt::Display for IllegalValueError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "illegal value: {}", self.0)
-    }
-}
-
-impl TryFrom<u32> for ElementType {
-    type Error = IllegalValueError;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        #[allow(non_upper_case_globals)]
-        match value {
-            ov_element_type_e_UNDEFINED => Ok(Self::Undefined),
-            ov_element_type_e_DYNAMIC => Ok(Self::Dynamic),
-            ov_element_type_e_OV_BOOLEAN => Ok(Self::Boolean),
-            ov_element_type_e_BF16 => Ok(Self::Bf16),
-            ov_element_type_e_F16 => Ok(Self::F16),
-            ov_element_type_e_F32 => Ok(Self::F32),
-            ov_element_type_e_F64 => Ok(Self::F64),
-            ov_element_type_e_I4 => Ok(Self::I4),
-            ov_element_type_e_I8 => Ok(Self::I8),
-            ov_element_type_e_I16 => Ok(Self::I16),
-            ov_element_type_e_I32 => Ok(Self::I32),
-            ov_element_type_e_I64 => Ok(Self::I64),
-            ov_element_type_e_U1 => Ok(Self::U1),
-            ov_element_type_e_U4 => Ok(Self::U4),
-            ov_element_type_e_U8 => Ok(Self::U8),
-            ov_element_type_e_U16 => Ok(Self::U16),
-            ov_element_type_e_U32 => Ok(Self::U32),
-            ov_element_type_e_U64 => Ok(Self::U64),
-            ov_element_type_e_NF4 => Ok(Self::NF4),
-            ov_element_type_e_F8E4M3 => Ok(Self::F8E4M3),
-            ov_element_type_e_F8E5M3 => Ok(Self::F8E5M3),
-            _ => Err(IllegalValueError(value)),
+impl From<ov_element_type_e> for ElementType {
+    fn from(ty: ov_element_type_e) -> Self {
+        match ty {
+            ov_element_type_e::UNDEFINED => Self::Undefined,
+            ov_element_type_e::DYNAMIC => Self::Dynamic,
+            ov_element_type_e::OV_BOOLEAN => Self::Boolean,
+            ov_element_type_e::BF16 => Self::Bf16,
+            ov_element_type_e::F16 => Self::F16,
+            ov_element_type_e::F32 => Self::F32,
+            ov_element_type_e::F64 => Self::F64,
+            ov_element_type_e::I4 => Self::I4,
+            ov_element_type_e::I8 => Self::I8,
+            ov_element_type_e::I16 => Self::I16,
+            ov_element_type_e::I32 => Self::I32,
+            ov_element_type_e::I64 => Self::I64,
+            ov_element_type_e::U1 => Self::U1,
+            ov_element_type_e::U2 => Self::U2,
+            ov_element_type_e::U3 => Self::U3,
+            ov_element_type_e::U4 => Self::U4,
+            ov_element_type_e::U6 => Self::U6,
+            ov_element_type_e::U8 => Self::U8,
+            ov_element_type_e::U16 => Self::U16,
+            ov_element_type_e::U32 => Self::U32,
+            ov_element_type_e::U64 => Self::U64,
+            ov_element_type_e::NF4 => Self::NF4,
+            ov_element_type_e::F8E4M3 => Self::F8E4M3,
+            ov_element_type_e::F8E5M3 => Self::F8E5M3,
+            ov_element_type_e::STRING => Self::String,
+            ov_element_type_e::F4E2M1 => Self::F4E2M1,
+            ov_element_type_e::F8E8M0 => Self::F8E8M0,
         }
     }
 }
 
-impl From<ElementType> for u32 {
-    fn from(value: ElementType) -> Self {
-        value as Self
+impl From<ElementType> for ov_element_type_e {
+    fn from(ty: ElementType) -> ov_element_type_e {
+        match ty {
+            ElementType::Undefined => ov_element_type_e::UNDEFINED,
+            ElementType::Dynamic => ov_element_type_e::DYNAMIC,
+            ElementType::Boolean => ov_element_type_e::OV_BOOLEAN,
+            ElementType::Bf16 => ov_element_type_e::BF16,
+            ElementType::F16 => ov_element_type_e::F16,
+            ElementType::F32 => ov_element_type_e::F32,
+            ElementType::F64 => ov_element_type_e::F64,
+            ElementType::I4 => ov_element_type_e::I4,
+            ElementType::I8 => ov_element_type_e::I8,
+            ElementType::I16 => ov_element_type_e::I16,
+            ElementType::I32 => ov_element_type_e::I32,
+            ElementType::I64 => ov_element_type_e::I64,
+            ElementType::U1 => ov_element_type_e::U1,
+            ElementType::U2 => ov_element_type_e::U2,
+            ElementType::U3 => ov_element_type_e::U3,
+            ElementType::U4 => ov_element_type_e::U4,
+            ElementType::U6 => ov_element_type_e::U6,
+            ElementType::U8 => ov_element_type_e::U8,
+            ElementType::U16 => ov_element_type_e::U16,
+            ElementType::U32 => ov_element_type_e::U32,
+            ElementType::U64 => ov_element_type_e::U64,
+            ElementType::NF4 => ov_element_type_e::NF4,
+            ElementType::F8E4M3 => ov_element_type_e::F8E4M3,
+            ElementType::F8E5M3 => ov_element_type_e::F8E5M3,
+            ElementType::String => ov_element_type_e::STRING,
+            ElementType::F4E2M1 => ov_element_type_e::F4E2M1,
+            ElementType::F8E8M0 => ov_element_type_e::F8E8M0,
+        }
     }
 }
 
@@ -117,7 +136,7 @@ impl fmt::Display for ElementType {
             Self::Undefined => write!(f, "Undefined"),
             Self::Dynamic => write!(f, "Dynamic"),
             Self::Boolean => write!(f, "Boolean"),
-            Self::Bf16 => write!(f, "Bf16"),
+            Self::Bf16 => write!(f, "BF16"),
             Self::F16 => write!(f, "F16"),
             Self::F32 => write!(f, "F32"),
             Self::F64 => write!(f, "F64"),
@@ -127,7 +146,10 @@ impl fmt::Display for ElementType {
             Self::I32 => write!(f, "I32"),
             Self::I64 => write!(f, "I64"),
             Self::U1 => write!(f, "U1"),
+            Self::U2 => write!(f, "U2"),
+            Self::U3 => write!(f, "U3"),
             Self::U4 => write!(f, "U4"),
+            Self::U6 => write!(f, "U6"),
             Self::U8 => write!(f, "U8"),
             Self::U16 => write!(f, "U16"),
             Self::U32 => write!(f, "U32"),
@@ -135,20 +157,9 @@ impl fmt::Display for ElementType {
             Self::NF4 => write!(f, "NF4"),
             Self::F8E4M3 => write!(f, "F8E4M3"),
             Self::F8E5M3 => write!(f, "F8E5M3"),
+            Self::String => write!(f, "String"),
+            Self::F4E2M1 => write!(f, "F4E2M1"),
+            Self::F8E8M0 => write!(f, "F8E8M0"),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::convert::TryInto as _;
-
-    #[test]
-    fn try_from_u32() {
-        assert_eq!(ElementType::Undefined, 0u32.try_into().unwrap());
-        let last: u32 = ElementType::F8E5M3.into();
-        let result: Result<ElementType, _> = (last + 1).try_into();
-        assert!(result.is_err());
     }
 }

@@ -18,7 +18,7 @@ macro_rules! cstr {
 #[macro_export]
 macro_rules! try_unsafe {
     ($e: expr) => {
-        $crate::InferenceError::from(unsafe { $e })
+        $crate::InferenceError::convert(unsafe { $e })
     };
 }
 

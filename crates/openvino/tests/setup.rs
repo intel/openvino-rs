@@ -1,10 +1,12 @@
 //! These tests demonstrate how to setup OpenVINO networks.
 
 mod fixtures;
+mod util;
 
 use fixtures::alexnet as fixture;
 use openvino::{Core, ElementType, Shape, Tensor};
 use std::fs;
+use util::is_version_pre_2024_2;
 
 #[test]
 fn read_network() {
@@ -23,6 +25,14 @@ fn read_network() {
 
 #[test]
 fn read_network_from_buffers() {
+    // OpenVINO 2024.2 changed the order of the `ov_element_type_e` enum, breaking compatibility
+    // with older versions. Since we are using 2024.2+ bindings here, we skip this test when
+    // using older libraries.
+    if is_version_pre_2024_2() {
+        eprintln!("> skipping test due to pre-2024.2 OpenVINO version");
+        return;
+    }
+
     let mut core = Core::new().unwrap();
     let graph = fs::read(&fixture::graph()).unwrap();
     let weights = {
