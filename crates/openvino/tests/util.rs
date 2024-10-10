@@ -1,8 +1,5 @@
-#![allow(dead_code)] // Not all functions are used by each test.
-
 use core::cmp::Ordering;
 use float_cmp::{ApproxEq, F32Margin};
-use openvino::version;
 
 /// A structure for holding the `(category, probability)` pair extracted from the output tensor of
 /// the OpenVINO classification.
@@ -82,13 +79,3 @@ pub const DEFAULT_MARGIN: F32Margin = F32Margin {
 
 /// A helper type for manipulating lists of results.
 pub type Predictions = Vec<Prediction>;
-
-/// OpenVINO's v2024.2 release introduced breaking changes to the C headers, upon which this crate
-/// relies. This function checks if the running OpenVINO version is pre-2024.2.
-pub fn is_version_pre_2024_2() -> bool {
-    let version = version();
-    let mut parts = version.parts();
-    let year: usize = parts.next().unwrap().parse().unwrap();
-    let minor: usize = parts.next().unwrap().parse().unwrap();
-    year < 2024 || (year == 2024 && minor < 2)
-}

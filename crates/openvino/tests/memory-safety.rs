@@ -3,23 +3,13 @@
 //! be sure that we do the right thing on this side of the FFI boundary.
 
 mod fixtures;
-mod util;
 
 use fixtures::mobilenet as fixture;
 use openvino::{Core, DeviceType, ElementType, Shape, Tensor};
 use std::fs;
-use util::is_version_pre_2024_2;
 
 #[test]
 fn memory_safety() -> anyhow::Result<()> {
-    // OpenVINO 2024.2 changed the order of the `ov_element_type_e` enum, breaking compatibility
-    // with older versions. Since we are using 2024.2+ bindings here, we skip this test when
-    // using older libraries.
-    if is_version_pre_2024_2() {
-        eprintln!("> skipping test due to pre-2024.2 OpenVINO version");
-        return Ok(());
-    }
-
     let mut core = Core::new()?;
     let xml = fs::read_to_string(fixture::graph())?;
     let weights = fs::read(fixture::weights())?;
