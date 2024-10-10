@@ -64,7 +64,7 @@ pub mod library {
         Ok(())
     }
 
-    /// TODO
+    /// Retrieve the OpenVINO library's version string.
     fn get_version() -> Result<String, String> {
         use super::generated::{
             ov_get_openvino_version, ov_status_e, ov_version_free, ov_version_t,
@@ -83,7 +83,7 @@ pub mod library {
         Ok(version)
     }
 
-    /// TODO
+    /// Parse the version string and return true if it is older than 2024.2.
     fn is_pre_2024_2_version(version: &str) -> bool {
         let mut parts = version.split(['.', '-']);
         let year: usize = parts.next().unwrap().parse().unwrap();
