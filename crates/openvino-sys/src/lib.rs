@@ -42,11 +42,54 @@ pub use generated::*;
 pub mod library {
     use std::path::PathBuf;
 
-    // Include the definition of `load` here. This allows hiding all of the "extra" linking-related
-    // functions in the same place, without polluting the top-level namespace (which should only
-    // contain foreign functions and types).
-    #[doc(inline)]
-    pub use super::generated::load;
+    /// When compiled with the `runtime-linking` feature, load the function definitions from a
+    /// shared library; with the `dynamic-linking` feature, this function does nothing since the
+    /// library has already been linked.
+    ///
+    /// # Errors
+    ///
+    /// When compiled with the `runtime-linking` feature, this may fail if the `openvino-finder`
+    /// cannot discover the library on the current system. This may also fail if we link to a
+    /// version of OpenVINO that is too old for these Rust bindings: the upstream library changed
+    /// the `ov_element_type_e` enum in a backwards-incompatible way in v2024.2, meaning users would
+    /// unintentionally use the wrong type when creating tensors (see [#143]).
+    ///
+    /// [#143]: https://github.com/intel/openvino-rs/issues/143
+    pub fn load() -> Result<(), String> {
+        super::generated::load()?;
+        let version = get_version()?;
+        if is_pre_2024_2_version(&version) {
+            return Err(format!("OpenVINO version is too old (see https://github.com/intel/openvino-rs/issues/143): {version}"));
+        }
+        Ok(())
+    }
+
+    /// Retrieve the OpenVINO library's version string.
+    fn get_version() -> Result<String, String> {
+        use super::generated::{
+            ov_get_openvino_version, ov_status_e, ov_version_free, ov_version_t,
+        };
+        let mut ov_version = ov_version_t {
+            buildNumber: std::ptr::null(),
+            description: std::ptr::null(),
+        };
+        let code = unsafe { ov_get_openvino_version(&mut ov_version) };
+        if code != ov_status_e::OK {
+            return Err(format!("failed to get OpenVINO version: {code:?}"));
+        }
+        let c_str_version = unsafe { std::ffi::CStr::from_ptr(ov_version.buildNumber) };
+        let version = c_str_version.to_string_lossy().into_owned();
+        unsafe { ov_version_free(std::ptr::addr_of_mut!(ov_version)) };
+        Ok(version)
+    }
+
+    /// Parse the version string and return true if it is older than 2024.2.
+    fn is_pre_2024_2_version(version: &str) -> bool {
+        let mut parts = version.split(['.', '-']);
+        let year: usize = parts.next().unwrap().parse().unwrap();
+        let minor: usize = parts.next().unwrap().parse().unwrap();
+        year < 2024 || (year == 2024 && minor < 2)
+    }
 
     /// Return the location of the shared library `openvino-sys` will link to. If compiled with
     /// runtime linking, this will attempt to discover the location of a `openvino_c` shared library
