@@ -10,7 +10,7 @@ publish = false
 [dependencies]
 anyhow = "1.0"
 bindgen = "0.70.1"
-clap = { version = "4.4.4", features = ["derive"] }
-toml = "0.8.0"
+clap = { version = "4.5.23", features = ["derive"] }
+toml = "0.8.19"
 semver = "1.0"
-regex = "1.10.4"
+regex = "1.11.1"
