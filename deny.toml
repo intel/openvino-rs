@@ -14,3 +14,6 @@ wildcards = "allow"
 skip = [
     { crate = "libloading@0.7.4", reason = "clang-sys is stuck on an older version of this crate" },
 ]
+skip-tree = [
+    { crate = "windows-sys", reason = "libloading and anstream use different versions of this crate" },
+]
