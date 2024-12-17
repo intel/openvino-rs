@@ -53,7 +53,7 @@ impl<'a> From<&'a DeviceType<'a>> for &'a str {
     }
 }
 
-impl<'a> From<DeviceType<'a>> for CString {
+impl From<DeviceType<'_>> for CString {
     fn from(value: DeviceType) -> Self {
         CString::new(value.as_ref()).expect("a valid C string")
     }

@@ -3,7 +3,7 @@
 
 # See https://embarkstudios.github.io/cargo-deny/checks/licenses/cfg.html.
 [licenses]
-allow = ["Apache-2.0", "BSD-3-Clause", "ISC", "MIT", "Unicode-DFS-2016"]
+allow = ["Apache-2.0", "BSD-3-Clause", "ISC", "MIT", "Unicode-3.0"]
 
 # See https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html.
 [bans]
@@ -15,5 +15,5 @@ skip = [
     { crate = "libloading@0.7.4", reason = "clang-sys is stuck on an older version of this crate" },
 ]
 skip-tree = [
-    { crate = "anstream@0.5.0", reason = "clap-builder and env-logger are using different versions of this crate" },
+    { crate = "windows-sys", reason = "libloading and anstream use different versions of this crate" },
 ]

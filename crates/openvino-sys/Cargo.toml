@@ -25,7 +25,7 @@ include = [
 links = "openvino_c_api"
 
 [dependencies]
-once_cell = { version = "1.18", optional = true }
+once_cell = { version = "1.20", optional = true }
 libloading = { version = "0.8", optional = true }
 openvino-finder = { workspace = true }
 
