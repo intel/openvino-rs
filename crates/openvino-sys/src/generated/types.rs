@@ -49,6 +49,7 @@ pub enum ov_element_type_e {
     UNDEFINED = 0,
     #[doc = "!< Dynamic element type"]
     DYNAMIC = 1,
+    #[doc = "!< boolean element type"]
     OV_BOOLEAN = 2,
     #[doc = "!< bf16 element type"]
     BF16 = 3,
