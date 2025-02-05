@@ -21,7 +21,7 @@ jobs:
         # found ("dyld: Library not loaded; '@rpath/libopenvino.2310.dylib'"). See
         # https://github.com/abrown/openvino-rs/actions/runs/6423141936/job/17441022932#step:7:154
         os: [ubuntu-20.04, ubuntu-22.04, windows-latest]
-        version: [2024.3.0, 2024.4.0, 2024.5.0]
+        version: [2024.4.0, 2024.5.0, 2024.6.0]
         apt: [false]
         # We also spot-check that things work when installing from APT by adding to the matrix: see
         # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#expanding-or-adding-matrix-configurations
