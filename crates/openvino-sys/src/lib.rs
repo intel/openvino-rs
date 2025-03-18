@@ -30,8 +30,11 @@
 #![deny(clippy::all)]
 #![warn(clippy::pedantic)]
 #![warn(clippy::cargo)]
-#![allow(clippy::must_use_candidate)]
-#![allow(clippy::wildcard_imports)]
+#![allow(
+    clippy::must_use_candidate,
+    clippy::suspicious_doc_comments,
+    clippy::wildcard_imports
+)]
 
 mod linking;
 
