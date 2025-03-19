@@ -36,10 +36,9 @@ jobs:
 
       - name: Run clippy
         run: |
-          cargo clippy --features openvino-sys/runtime-linking --message-format=json > clippy.json
+          cargo clippy --features openvino-sys/runtime-linking --message-format=json > clippy.json || true
           clippy-sarif --input clippy.json --output clippy.sarif
           sarif-fmt --input clippy.sarif
-        continue-on-error: true
 
       - name: Upload analysis
         uses: github/codeql-action/upload-sarif@5618c9fc1e675841ca52c1c6b1304f5255a905a0 # v2.19.0
