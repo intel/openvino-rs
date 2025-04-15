@@ -41,64 +41,65 @@ pub enum ov_status_e {
     #[doc = "!< UNKNOW_EXCEPTION"]
     UNKNOW_EXCEPTION = -17,
 }
+impl ov_element_type_e {
+    pub const DYNAMIC: ov_element_type_e = ov_element_type_e::UNDEFINED;
+}
 #[repr(u32)]
 #[doc = " @enum ov_element_type_e\n @ingroup ov_base_c_api\n @brief This enum contains codes for element type, which is aligned with ov::element::Type_t in\n src/core/include/openvino/core/type/element_type.hpp"]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ov_element_type_e {
     #[doc = "!< Undefined element type"]
     UNDEFINED = 0,
-    #[doc = "!< Dynamic element type"]
-    DYNAMIC = 1,
     #[doc = "!< boolean element type"]
-    OV_BOOLEAN = 2,
+    OV_BOOLEAN = 1,
     #[doc = "!< bf16 element type"]
-    BF16 = 3,
+    BF16 = 2,
     #[doc = "!< f16 element type"]
-    F16 = 4,
+    F16 = 3,
     #[doc = "!< f32 element type"]
-    F32 = 5,
+    F32 = 4,
     #[doc = "!< f64 element type"]
-    F64 = 6,
+    F64 = 5,
     #[doc = "!< i4 element type"]
-    I4 = 7,
+    I4 = 6,
     #[doc = "!< i8 element type"]
-    I8 = 8,
+    I8 = 7,
     #[doc = "!< i16 element type"]
-    I16 = 9,
+    I16 = 8,
     #[doc = "!< i32 element type"]
-    I32 = 10,
+    I32 = 9,
     #[doc = "!< i64 element type"]
-    I64 = 11,
+    I64 = 10,
     #[doc = "!< binary element type"]
-    U1 = 12,
+    U1 = 11,
     #[doc = "!< u2 element type"]
-    U2 = 13,
+    U2 = 12,
     #[doc = "!< u3 element type"]
-    U3 = 14,
+    U3 = 13,
     #[doc = "!< u4 element type"]
-    U4 = 15,
+    U4 = 14,
     #[doc = "!< u6 element type"]
-    U6 = 16,
+    U6 = 15,
     #[doc = "!< u8 element type"]
-    U8 = 17,
+    U8 = 16,
     #[doc = "!< u16 element type"]
-    U16 = 18,
+    U16 = 17,
     #[doc = "!< u32 element type"]
-    U32 = 19,
+    U32 = 18,
     #[doc = "!< u64 element type"]
-    U64 = 20,
+    U64 = 19,
     #[doc = "!< nf4 element type"]
-    NF4 = 21,
+    NF4 = 20,
     #[doc = "!< f8e4m3 element type"]
-    F8E4M3 = 22,
+    F8E4M3 = 21,
     #[doc = "!< f8e5m2 element type"]
-    F8E5M3 = 23,
+    F8E5M3 = 22,
     #[doc = "!< string element type"]
-    STRING = 24,
+    STRING = 23,
     #[doc = "!< f4e2m1 element type"]
-    F4E2M1 = 25,
+    F4E2M1 = 24,
     #[doc = "!< f8e8m0 element type"]
-    F8E8M0 = 26,
+    F8E8M0 = 25,
 }
 #[doc = " @brief encryption_func is a function pointer that encrypt or decrypt the input memory, example of this function is\n codec(const char* input, const size_t in_size, const char* output, size_t* out_size)\n This function needs to be called twice,\n the first call to obtain out_size (the size of output buffer), the second call to obtain output buffer.\n The first call output is nullptr, before the second call, the caller needs to apply for output\n memory based on the out_size returned by the first call.\n the memory of parameter output is allocated and released by the caller.\n @param input The pointer to the input buffer.\n @param in_size The size of input.\n @param output The pointer to the encrypted/decrypted buffer.\n @param out_size The size of output."]
 pub type encryption_func = ::std::option::Option<
@@ -485,4 +486,17 @@ pub enum ov_preprocess_resize_algorithm_e {
     RESIZE_CUBIC = 1,
     #[doc = "!< nearest algorithm"]
     RESIZE_NEAREST = 2,
+}
+#[repr(u32)]
+#[doc = " @enum ov_padding_mode_e\n @ingroup ov_prepostprocess_c_api\n @brief This enum contains enumeration for  padding mode."]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum ov_padding_mode_e {
+    #[doc = "!< Pads with given constant value."]
+    CONSTANT = 0,
+    #[doc = "!< Pads with tensor edge values."]
+    EDGE = 1,
+    #[doc = "!< Pads with reflection of tensor data along axis. Values on the edges are not duplicated."]
+    REFLECT = 2,
+    #[doc = "!<  Pads similar like `REFLECT` but values on the edges are duplicated."]
+    SYMMETRIC = 3,
 }
