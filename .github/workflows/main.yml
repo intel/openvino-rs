@@ -20,8 +20,8 @@ jobs:
         # TODO: macos-latest cannot yet be included in the list because a dependency cannot be
         # found ("dyld: Library not loaded; '@rpath/libopenvino.2310.dylib'"). See
         # https://github.com/abrown/openvino-rs/actions/runs/6423141936/job/17441022932#step:7:154
-        os: [ubuntu-20.04, ubuntu-22.04, windows-latest]
-        version: [2024.4.0, 2024.5.0, 2024.6.0]
+        os: [ubuntu-22.04, ubuntu-24.04, windows-latest]
+        version: [2024.5.0, 2024.6.0, 2025.1.0]
         apt: [false]
         # We also spot-check that things work when installing from APT by adding to the matrix: see
         # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#expanding-or-adding-matrix-configurations
@@ -46,7 +46,7 @@ jobs:
           crates/openvino/tests/fixtures/alexnet
           crates/openvino/tests/fixtures/inception
           crates/openvino/tests/fixtures/mobilenet
-    - uses: abrown/install-openvino-action@v8
+    - uses: abrown/install-openvino-action@8cee80e3ed53c3afdd60ca1907b2ba677f29af8b
       with:
         version: ${{ matrix.version }}
         apt: ${{ matrix.apt }}
