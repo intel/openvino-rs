@@ -6,8 +6,6 @@ use std::fmt;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u32)]
 pub enum ElementType {
-    /// An undefined element type.
-    Undefined,
     /// A dynamic element type.
     Dynamic,
     /// A boolean element type.
@@ -65,7 +63,6 @@ pub enum ElementType {
 impl From<ov_element_type_e> for ElementType {
     fn from(ty: ov_element_type_e) -> Self {
         match ty {
-            ov_element_type_e::UNDEFINED => Self::Undefined,
             ov_element_type_e::DYNAMIC => Self::Dynamic,
             ov_element_type_e::OV_BOOLEAN => Self::Boolean,
             ov_element_type_e::BF16 => Self::Bf16,
@@ -99,7 +96,6 @@ impl From<ov_element_type_e> for ElementType {
 impl From<ElementType> for ov_element_type_e {
     fn from(ty: ElementType) -> ov_element_type_e {
         match ty {
-            ElementType::Undefined => ov_element_type_e::UNDEFINED,
             ElementType::Dynamic => ov_element_type_e::DYNAMIC,
             ElementType::Boolean => ov_element_type_e::OV_BOOLEAN,
             ElementType::Bf16 => ov_element_type_e::BF16,
@@ -133,7 +129,6 @@ impl From<ElementType> for ov_element_type_e {
 impl fmt::Display for ElementType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Undefined => write!(f, "Undefined"),
             Self::Dynamic => write!(f, "Dynamic"),
             Self::Boolean => write!(f, "Boolean"),
             Self::Bf16 => write!(f, "BF16"),

@@ -261,7 +261,6 @@ mod core_tests {
         let rw_keys = vec![
             CacheDir,
             NumStreams,
-            Affinity,
             InferenceNumThreads,
             HintEnableCpuPinning,
             HintEnableHyperThreading,
