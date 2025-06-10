@@ -54,15 +54,15 @@ pub mod library {
     /// When compiled with the `runtime-linking` feature, this may fail if the `openvino-finder`
     /// cannot discover the library on the current system. This may also fail if we link to a
     /// version of OpenVINO that is too old for these Rust bindings: the upstream library changed
-    /// the `ov_element_type_e` enum in a backwards-incompatible way in v2024.2, meaning users would
-    /// unintentionally use the wrong type when creating tensors (see [#143]).
+    /// the `ov_element_type_e` enum in a backwards-incompatible way in v2025.1, meaning users would
+    /// unintentionally use the wrong type when creating tensors (see [#167]).
     ///
-    /// [#143]: https://github.com/intel/openvino-rs/issues/143
+    /// [#167]: https://github.com/intel/openvino-rs/issues/167
     pub fn load() -> Result<(), String> {
         super::generated::load()?;
         let version = get_version()?;
-        if is_pre_2024_2_version(&version) {
-            return Err(format!("OpenVINO version is too old (see https://github.com/intel/openvino-rs/issues/143): {version}"));
+        if is_pre_2025_1_version(&version) {
+            return Err(format!("OpenVINO version is too old (see https://github.com/intel/openvino-rs/issues/167): {version}"));
         }
         Ok(())
     }
@@ -86,12 +86,12 @@ pub mod library {
         Ok(version)
     }
 
-    /// Parse the version string and return true if it is older than 2024.2.
-    fn is_pre_2024_2_version(version: &str) -> bool {
+    /// Parse the version string and return true if it is older than 2025.1.
+    fn is_pre_2025_1_version(version: &str) -> bool {
         let mut parts = version.split(['.', '-']);
         let year: usize = parts.next().unwrap().parse().unwrap();
         let minor: usize = parts.next().unwrap().parse().unwrap();
-        year < 2024 || (year == 2024 && minor < 2)
+        year < 2025 || (year == 2025 && minor < 1)
     }
 
     /// Return the location of the shared library `openvino-sys` will link to. If compiled with
