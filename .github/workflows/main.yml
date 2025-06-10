@@ -20,14 +20,14 @@ jobs:
         # TODO: macos-latest cannot yet be included in the list because a dependency cannot be
         # found ("dyld: Library not loaded; '@rpath/libopenvino.2310.dylib'"). See
         # https://github.com/abrown/openvino-rs/actions/runs/6423141936/job/17441022932#step:7:154
-        os: [ubuntu-20.04, ubuntu-22.04, windows-latest]
+        os: [ubuntu-22.04, ubuntu-24.04, windows-latest]
         version: [2024.4.0, 2024.5.0, 2024.6.0]
         apt: [false]
         # We also spot-check that things work when installing from APT by adding to the matrix: see
         # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#expanding-or-adding-matrix-configurations
         # APT install and check latest supported version.
         include:
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             version: 2024.4.0
             apt: true
     env:
@@ -104,7 +104,7 @@ jobs:
   # commands.
   converter:
     name: Check converter tool
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: crates/openvino-tensor-converter
@@ -113,7 +113,7 @@ jobs:
       with:
         submodules: true
     - name: Install OpenCV
-      run: sudo apt update && sudo apt install libclang-dev libopencv-dev libopencv-core4.2
+      run: sudo apt update && sudo apt install libopencv-dev clang libclang-dev
     - name: Build
       run: cargo build -v
     - name: test
