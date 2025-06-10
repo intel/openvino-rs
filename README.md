@@ -47,13 +47,13 @@ cargo test
 ```
 
 The quickest method to build the [openvino] and [openvino-sys] crates is with a local installation
-of OpenVINO™ (see, e.g., [installing from an APT repository][install-apt]). The build script will
-attempt to locate an existing installation (see [openvino-finder]) and link against its shared
-libraries. Provide the `OPENVINO_INSTALL_DIR` environment variable to point at a specific
-installation. Ensure that the correct libraries are available on the system's load path; OpenVINO™'s
-`setupvars.sh` script will do this automatically (e.g., `source /opt/intel/openvino/setupvars.sh`).
+of OpenVINO™ (see the [installation] instructions). The build script will attempt to locate an
+existing installation (see [openvino-finder]) and link against its shared libraries. Provide the
+`OPENVINO_INSTALL_DIR` environment variable to point at a specific installation. Ensure that the
+correct libraries are available on the system's load path; OpenVINO™'s `setupvars.sh` script will do
+this automatically (e.g., `source /opt/intel/openvino/setupvars.sh`).
 
-[install-apt]: https://docs.openvinotoolkit.org/latest/openvino_docs_install_guides_installing_openvino_apt.html
+[installation]: https://www.intel.com/content/www/us/en/developer/tools/openvino-toolkit/download.html
 
 
 
