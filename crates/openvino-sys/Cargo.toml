@@ -6,6 +6,7 @@ authors.workspace = true
 license.workspace = true
 edition.workspace = true
 repository.workspace = true
+rust-version.workspace = true
 readme = "README.md"
 documentation = "https://docs.rs/openvino-sys"
 keywords = ["openvino", "machine-learning", "ml", "neural-network"]
@@ -25,7 +26,6 @@ include = [
 links = "openvino_c_api"
 
 [dependencies]
-once_cell = { version = "1.20", optional = true }
 libloading = { version = "0.8", optional = true }
 openvino-finder = { workspace = true }
 
@@ -38,7 +38,7 @@ env_logger = { workspace = true }
 # - Will find and bind to an OpenVINO shared library at compile time.
 dynamic-linking = []
 # - Will bind to an OpenVINO shared library at runtime using `load`.
-runtime-linking = ["libloading", "once_cell"]
+runtime-linking = ["libloading"]
 
 [package.metadata.docs.rs]
 features = ["runtime-linking"]

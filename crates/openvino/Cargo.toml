@@ -6,6 +6,7 @@ authors.workspace = true
 license.workspace = true
 edition.workspace = true
 repository.workspace = true
+rust-version.workspace = true
 readme = "README.md"
 documentation = "https://docs.rs/openvino"
 keywords = ["openvino", "machine-learning", "ml", "neural-network"]
