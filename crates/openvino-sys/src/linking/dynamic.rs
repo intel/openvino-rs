@@ -3,7 +3,7 @@
 macro_rules! link {
     (
         $(
-            extern "C" {
+            unsafe extern "C" {
                 $(#[doc=$doc:expr])*
                 $(#[cfg($cfg:meta)])*
                 pub fn $name:ident($($pname:ident: $pty:ty),* $(,)?$(,...)?) $(-> $ret:ty)*;
