@@ -1109,5 +1109,17 @@ extern "C" {
         model: *mut *mut ov_model_t,
     ) -> ov_status_e;
 }
+extern "C" {
+    #[doc = " @brief Add pad preprocess operation. Extends an input tensor on edges with constants.\n\n @param preprocess_input_process_steps  A pointer to the ov_preprocess_preprocess_steps_t.\n @param pads_begin                      Number of padding elements to add at the beginning of each axis.\n @param pads_begin_size                 Pads begin size (number of axes).\n @param pads_end                        Number of padding elements to add at the end of each axis.\n @param pads_end_size                   Pads end size (number of axes).\n @param value                           Value to be populated in the padded area (mode=CONSTANT)\n @param mode                            Padding mode."]
+    pub fn ov_preprocess_preprocess_steps_pad(
+        preprocess_input_process_steps: *const ov_preprocess_preprocess_steps_t,
+        pads_begin: *const ::std::os::raw::c_int,
+        pads_begin_size: usize,
+        pads_end: *const ::std::os::raw::c_int,
+        pads_end_size: usize,
+        value: f32,
+        mode: ov_padding_mode_e,
+    ) -> ov_status_e;
+}
 
 }
