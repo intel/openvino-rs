@@ -46,7 +46,7 @@ jobs:
           crates/openvino/tests/fixtures/alexnet
           crates/openvino/tests/fixtures/inception
           crates/openvino/tests/fixtures/mobilenet
-    - uses: abrown/install-openvino-action@v8
+    - uses: abrown/install-openvino-action@8cee80e3ed53c3afdd60ca1907b2ba677f29af8b # v10
       with:
         version: ${{ matrix.version }}
         apt: ${{ matrix.apt }}
