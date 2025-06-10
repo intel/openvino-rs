@@ -2,10 +2,13 @@ name: CI
 permissions: read-all
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  schedule:
+    cron:  '30 7 2,16 * *' # Every 2nd and 16th of the month at 07:30 UTC
 
 env:
   CARGO_TERM_COLOR: always
