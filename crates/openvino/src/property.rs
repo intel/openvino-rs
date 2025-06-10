@@ -43,8 +43,6 @@ pub enum RwPropertyKey {
     CacheMode,
     /// The number of executor logical partitions.
     NumStreams,
-    /// CPU affinity per thread.
-    Affinity,
     /// The maximum number of threads that can be used for inference tasks.
     InferenceNumThreads,
     /// High-level OpenVINO hint for using CPU pinning to bind CPU threads to processors during inference.
@@ -114,7 +112,6 @@ impl AsRef<str> for RwPropertyKey {
             RwPropertyKey::CacheDir => "CACHE_DIR",
             RwPropertyKey::CacheMode => "CACHE_MODE",
             RwPropertyKey::NumStreams => "NUM_STREAMS",
-            RwPropertyKey::Affinity => "AFFINITY",
             RwPropertyKey::InferenceNumThreads => "INFERENCE_NUM_THREADS",
             RwPropertyKey::HintEnableCpuPinning => "ENABLE_CPU_PINNING",
             RwPropertyKey::HintEnableHyperThreading => "ENABLE_HYPER_THREADING",
