@@ -49,7 +49,7 @@ macro_rules! link {
         pub(crate) struct Functions {
             $(
                 $(#[doc=$doc])* $(#[cfg($cfg)])*
-                pub $name: Option<unsafe extern fn($($pname: $pty), *) $(-> $ret)*>,
+                pub $name: Option<unsafe extern "C" fn($($pname: $pty), *) $(-> $ret)*>,
             )+
         }
 
