@@ -90,7 +90,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-    - uses: EmbarkStudios/cargo-deny-action@v1
+    - uses: EmbarkStudios/cargo-deny-action@34899fc7ba81ca6268d5947a7a16b4649013fea1 # v2.0.11
 
   docs:
     name: Check documentation

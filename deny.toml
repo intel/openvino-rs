@@ -8,12 +8,4 @@ allow = ["Apache-2.0", "BSD-3-Clause", "ISC", "MIT", "Unicode-3.0"]
 # See https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html.
 [bans]
 multiple-versions = "deny"
-wildcards = "allow"
-
-# Skip some multiple-versions checks until they can be fixed.
-skip = [
-    { crate = "libloading@0.7.4", reason = "clang-sys is stuck on an older version of this crate" },
-]
-skip-tree = [
-    { crate = "windows-sys", reason = "libloading and anstream use different versions of this crate" },
-]
+wildcards = "deny"

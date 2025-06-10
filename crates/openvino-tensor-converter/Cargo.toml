@@ -7,11 +7,11 @@ publish = false
 
 [dependencies]
 log = "0.4"
-env_logger = "0.11.1"
+env_logger = "0.11"
 structopt = { version = "0.3", default-features = false }
 # Note: by default this will attempt to find a 4.x version of OpenCV libraries (e.g.
 # `libopencv-dev`, `opencv-devel`).
-opencv = { version = "0.88.8", default-features = false, features = [
+opencv = { version = "0.88.9", default-features = false, features = [
     "clang-runtime",
     "imgcodecs",
     "imgproc",

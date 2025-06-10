@@ -116,7 +116,7 @@ pub fn find(library_name: &str, kind: Linking) -> Option<PathBuf> {
         env::consts::DLL_SUFFIX
     };
     let file = format!("{}{}{}", env::consts::DLL_PREFIX, library_name, suffix);
-    log::info!("Attempting to find library: {}", file);
+    log::info!("Attempting to find library: {file}");
 
     // Search using the `OPENVINO_BUILD_DIR` environment variable; this may be set by users of the
     // `openvino-rs` library.
