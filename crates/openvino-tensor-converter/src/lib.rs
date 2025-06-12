@@ -17,13 +17,22 @@ use std::{num::ParseIntError, path::Path, str::FromStr};
 /// Convert an image from NHWC format to NCHW format.
 fn nhwc_to_nchw(data: &[u8], dimensions: &Dimensions) -> Vec<u8> {
     let mut nchw_data = vec![0; data.len()];
-    let (height, width, channels) = (dimensions.height as usize, dimensions.width as usize, dimensions.channels as usize);
-    assert_eq!(data.len(), height * width * channels * dimensions.precision.bytes());
+    let (height, width, channels) = (
+        dimensions.height as usize,
+        dimensions.width as usize,
+        dimensions.channels as usize,
+    );
+    assert_eq!(
+        data.len(),
+        height * width * channels * dimensions.precision.bytes()
+    );
     for h in 0..height {
         for w in 0..width {
             for c in 0..channels {
-                let nhwc_index = (h * width * channels + w * channels + c) * dimensions.precision.bytes();
-                let nchw_index = (c * height * width + h * width + w) * dimensions.precision.bytes();
+                let nhwc_index =
+                    (h * width * channels + w * channels + c) * dimensions.precision.bytes();
+                let nchw_index =
+                    (c * height * width + h * width + w) * dimensions.precision.bytes();
                 for b in 0..dimensions.precision.bytes() {
                     nchw_data[nchw_index + b] = data[nhwc_index + b];
                 }

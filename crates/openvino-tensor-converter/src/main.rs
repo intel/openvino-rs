@@ -6,7 +6,8 @@ fn main() {
     env_logger::init();
     let options = Options::from_args();
     let dimensions = Dimensions::from_str(&options.dimensions).expect("Failed to parse dimensions");
-    let tensor_data = convert(options.input, &dimensions, &options.format).expect("Failed to convert image");
+    let tensor_data =
+        convert(options.input, &dimensions, &options.format).expect("Failed to convert image");
     fs::write(options.output, tensor_data).expect("Failed to write tensor")
 }
 
