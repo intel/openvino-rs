@@ -5,9 +5,10 @@ use openvino_tensor_converter::{convert, Dimensions, Precision};
 fn same_result_twice_u8() {
     let input = "tests/test.jpg";
     let dimensions = Dimensions::new(227, 227, 3, Precision::U8);
+    let format = "nchw";
 
-    let first = convert(input, &dimensions).unwrap();
-    let second = convert(input, &dimensions).unwrap();
+    let first = convert(input, &dimensions, &format).unwrap();
+    let second = convert(input, &dimensions, &format).unwrap();
     assert_same_bytes(&first, &second);
 }
 
@@ -16,9 +17,10 @@ fn same_result_twice_fp32() {
     env_logger::init();
     let input = "tests/test.jpg";
     let dimensions = Dimensions::new(227, 227, 3, Precision::FP32);
+    let format = "nhwc";
 
-    let first = convert(input, &dimensions).unwrap();
-    let second = convert(input, &dimensions).unwrap();
+    let first = convert(input, &dimensions, &format).unwrap();
+    let second = convert(input, &dimensions, &format).unwrap();
     assert_same_bytes(&first, &second);
 }
 
