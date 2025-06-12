@@ -6,7 +6,7 @@ fn main() {
     env_logger::init();
     let options = Options::from_args();
     let dimensions = Dimensions::from_str(&options.dimensions).expect("Failed to parse dimensions");
-    let tensor_data = convert(options.input, &dimensions).expect("Failed to convert image");
+    let tensor_data = convert(options.input, &dimensions, &options.format).expect("Failed to convert image");
     fs::write(options.output, tensor_data).expect("Failed to write tensor")
 }
 
@@ -27,4 +27,8 @@ struct Options {
     /// The dimensions of the output file as "[height]x[width]x[channels]x[precision]"; e.g. 300x300x3xfp32.
     #[structopt(name = "OUTPUT DIMENSIONS")]
     dimensions: String,
+
+    /// Format of the output tensor: "nchw" or "nhwc".
+    #[structopt(name = "OUTPUT FORMAT", default_value = "nchw")]
+    format: String,
 }

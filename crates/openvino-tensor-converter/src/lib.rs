@@ -14,6 +14,25 @@ use opencv::core::{MatTraitConst, Scalar_};
 use std::convert::TryInto;
 use std::{num::ParseIntError, path::Path, str::FromStr};
 
+/// Convert an image from NHWC format to NCHW format.
+fn nhwc_to_nchw(data: &[u8], dimensions: &Dimensions) -> Vec<u8> {
+    let mut nchw_data = vec![0; data.len()];
+    let (height, width, channels) = (dimensions.height as usize, dimensions.width as usize, dimensions.channels as usize);
+    assert_eq!(data.len(), height * width * channels * dimensions.precision.bytes());
+    for h in 0..height {
+        for w in 0..width {
+            for c in 0..channels {
+                let nhwc_index = (h * width * channels + w * channels + c) * dimensions.precision.bytes();
+                let nchw_index = (c * height * width + h * width + w) * dimensions.precision.bytes();
+                for b in 0..dimensions.precision.bytes() {
+                    nchw_data[nchw_index + b] = data[nhwc_index + b];
+                }
+            }
+        }
+    }
+    nchw_data
+}
+
 /// Convert an image a path to a resized sequence of bytes.
 ///
 /// # Errors
@@ -23,6 +42,7 @@ use std::{num::ParseIntError, path::Path, str::FromStr};
 pub fn convert<P: AsRef<Path>>(
     path: P,
     dimensions: &Dimensions,
+    format: &str,
 ) -> Result<Vec<u8>, ConversionError> {
     let path = path.as_ref();
     info!("Converting {} to {:?}", path.display(), dimensions);
@@ -77,7 +97,12 @@ pub fn convert<P: AsRef<Path>>(
 
     // Copy the bytes of the Mat out to a Vec<u8>.
     let dst_slice = unsafe { slice::from_raw_parts(dst.data(), dimensions.bytes()) };
-    Ok(dst_slice.to_vec())
+    let nhwc_data = dst_slice.to_vec();
+    match format {
+        "nchw" => Ok(nhwc_to_nchw(&nhwc_data, dimensions)),
+        "nhwc" => Ok(nhwc_data),
+        _ => Err(ConversionError("Invalid format specified.".to_string())),
+    }
 }
 
 /// Container for the reasons a conversion can fail.
