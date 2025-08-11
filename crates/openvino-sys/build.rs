@@ -65,7 +65,7 @@ fn main() {
         record_library_path(path);
     } else {
         println!("cargo:warning=openvino-sys cannot find the `openvino_c` library in any of the library search paths: {:?}", &library_search_paths);
-        println!("cargo:warning=Proceeding with an empty value of {}; users must specify this location at runtime, e.g. `Core::new(Some(...))`.", ENV_OPENVINO_LIB_PATH);
+        println!("cargo:warning=Proceeding with an empty value of {ENV_OPENVINO_LIB_PATH}; users must specify this location at runtime, e.g. `Core::new(Some(...))`.");
         record_library_path(PathBuf::new());
     }
 
@@ -128,7 +128,7 @@ fn add_library_search_path<P: AsRef<Path>>(path: P) {
 
 /// Add a dynamically-linked library.
 fn add_dynamically_linked_library(library: &str) {
-    println!("cargo:rustc-link-lib=dylib={}", library);
+    println!("cargo:rustc-link-lib=dylib={library}");
 }
 
 /// Find all of the necessary libraries to link using the `openvino_finder`. This will return the
@@ -160,10 +160,7 @@ fn find_libraries_in_existing_installation() -> Vec<PathBuf> {
                 dirs.push(dir);
             }
         } else {
-            panic!(
-                "Unable to find an existing installation of library: {}",
-                library
-            );
+            panic!("Unable to find an existing installation of library: {library}");
         }
     }
     dirs
