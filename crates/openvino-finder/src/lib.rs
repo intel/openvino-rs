@@ -241,17 +241,35 @@ cfg_if! {
 const KNOWN_INSTALLATION_SUBDIRECTORIES: &[&str] = &[
     "runtime/lib/intel64/Release",
     "runtime/lib/intel64",
-    "runtime/3rdparty/tbb/lib",
+    "runtime/lib/arm64/Release",
+    "runtime/lib/arm64",
+    "runtime/lib/aarch64/Release",
+    "runtime/lib/aarch64",
+    "runtime/lib/armv7l",
+    "runtime/lib/armv7l/Release",
     "runtime/bin/intel64/Release",
     "runtime/bin/intel64",
+    "runtime/bin/arm64/Release",
+    "runtime/bin/arm64",
     "runtime/3rdparty/tbb/bin",
+    "runtime/3rdparty/tbb/lib",
 ];
 
 const KNOWN_BUILD_SUBDIRECTORIES: &[&str] = &[
     "bin/intel64/Debug/lib",
     "bin/intel64/Debug",
     "bin/intel64/Release/lib",
+    "bin/arm64/Debug/lib",
+    "bin/arm64/Debug",
+    "bin/arm64/Release/lib",
+    "bin/aarch64/Debug/lib",
+    "bin/aarch64/Debug",
+    "bin/aarch64/Release/lib",
+    "bin/armv7l/Debug/lib",
+    "bin/armv7l/Debug",
+    "bin/armv7l/Release/lib",
     "temp/tbb/lib",
+    "temp/tbb/bin",
 ];
 
 /// Find the path to the `plugins.xml` configuration file.
