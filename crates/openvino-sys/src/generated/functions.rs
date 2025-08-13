@@ -165,6 +165,15 @@ unsafe extern "C" {
     pub fn ov_tensor_set_shape(tensor: *mut ov_tensor_t, shape: ov_shape_t) -> ov_status_e;
 }
 unsafe extern "C" {
+    #[doc = " @brief Constructs a new tensor using a string array.\n @ingroup ov_tensor_c_api\n @param string_array An array of strings\n @param array_size The size of the string array\n @param shape Tensor shape\n @param tensor A point to ov_tensor_t\n @return Status code of the operation: OK(0) for success."]
+    pub fn ov_tensor_create_from_string_array(
+        string_array: *mut *const ::std::os::raw::c_char,
+        array_size: usize,
+        shape: ov_shape_t,
+        tensor: *mut *mut ov_tensor_t,
+    ) -> ov_status_e;
+}
+unsafe extern "C" {
     #[doc = " @brief Get shape for tensor.\n @ingroup ov_tensor_c_api\n @param shape Tensor shape\n @param tensor A point to ov_tensor_t\n @return Status code of the operation: OK(0) for success."]
     pub fn ov_tensor_get_shape(tensor: *const ov_tensor_t, shape: *mut ov_shape_t) -> ov_status_e;
 }
@@ -173,6 +182,14 @@ unsafe extern "C" {
     pub fn ov_tensor_get_element_type(
         tensor: *const ov_tensor_t,
         type_: *mut ov_element_type_e,
+    ) -> ov_status_e;
+}
+unsafe extern "C" {
+    #[doc = " @brief Set string data for tensor\n @ingroup ov_tensor_c_api\n @param string_array Array of strings\n @param array_size Size of the array\n @param tensor A point to ov_tensor_t"]
+    pub fn ov_tensor_set_string_data(
+        tensor: *mut ov_tensor_t,
+        string_array: *mut *const ::std::os::raw::c_char,
+        array_size: usize,
     ) -> ov_status_e;
 }
 unsafe extern "C" {
@@ -748,6 +765,13 @@ unsafe extern "C" {
         property_args_size: usize,
         compiled_model: *mut *mut ov_compiled_model_t,
         ...
+    ) -> ov_status_e;
+}
+unsafe extern "C" {
+    #[doc = " @brief Adds an extension to the core.\n @ingroup ov_core_c_api\n @param core A pointer to the ov_core_t instance.\n @param path Path to the extension.\n @return Status code of the operation: OK(0) for success."]
+    pub fn ov_core_add_extension(
+        core: *const ov_core_t,
+        path: *const ::std::os::raw::c_char,
     ) -> ov_status_e;
 }
 unsafe extern "C" {
