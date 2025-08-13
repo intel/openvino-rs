@@ -318,7 +318,7 @@ dependencies = [
 
 [[package]]
 name = "openvino"
-version = "0.9.0"
+version = "0.9.1"
 dependencies = [
  "anyhow",
  "float-cmp",
@@ -328,7 +328,7 @@ dependencies = [
 
 [[package]]
 name = "openvino-finder"
-version = "0.9.0"
+version = "0.9.1"
 dependencies = [
  "cfg-if",
  "env_logger",
@@ -337,7 +337,7 @@ dependencies = [
 
 [[package]]
 name = "openvino-sys"
-version = "0.9.0"
+version = "0.9.1"
 dependencies = [
  "env_logger",
  "libloading",
