@@ -18,6 +18,12 @@ impl Node {
         Self { ptr }
     }
 
+    /// Get the internal pointer to the OpenVINO port.
+    #[inline]
+    pub(crate) fn as_ptr(&self) -> *mut ov_output_const_port_t {
+        self.ptr
+    }
+
     /// Get name of a port.
     pub fn get_name(&self) -> Result<String> {
         let mut c_name = std::ptr::null_mut();

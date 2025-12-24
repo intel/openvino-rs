@@ -10,7 +10,7 @@ use std::convert::TryInto;
 /// See
 /// [`ov_partial_shape_t`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__partial__shape__c__api.html).
 pub struct PartialShape {
-    c_struct: ov_partial_shape_t,
+    pub(crate) c_struct: ov_partial_shape_t,
 }
 
 impl Drop for PartialShape {
