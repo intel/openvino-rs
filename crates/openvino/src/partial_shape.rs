@@ -10,7 +10,7 @@ use std::convert::TryInto;
 /// See
 /// [`ov_partial_shape_t`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__partial__shape__c__api.html).
 pub struct PartialShape {
-    pub(crate) c_struct: ov_partial_shape_t,
+    c_struct: ov_partial_shape_t,
 }
 
 impl Drop for PartialShape {
@@ -26,6 +26,12 @@ impl PartialShape {
     #[inline]
     pub(crate) fn from_c_struct(c_struct: ov_partial_shape_t) -> Self {
         Self { c_struct }
+    }
+
+    /// Get the pointer to the underlying OpenVINO partial shape.
+    #[inline]
+    pub(crate) fn as_c_struct(&self) -> ov_partial_shape_t {
+        self.c_struct
     }
 
     /// Create a new [`PartialShape`] with a static rank and dynamic dimensions.
