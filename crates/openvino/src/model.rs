@@ -4,7 +4,9 @@
 
 use crate::node::Node;
 use crate::request::InferRequest;
-use crate::{cstr, drop_using_function, try_unsafe, util::Result, PropertyKey, RwPropertyKey};
+use crate::{
+    cstr, drop_using_function, try_unsafe, util::Result, PartialShape, PropertyKey, RwPropertyKey,
+};
 use openvino_sys::{
     ov_compiled_model_create_infer_request, ov_compiled_model_free, ov_compiled_model_get_property,
     ov_compiled_model_get_runtime_model, ov_compiled_model_input, ov_compiled_model_input_by_index,
@@ -89,6 +91,91 @@ impl Model {
     /// Returns `true` if the model contains dynamic shapes.
     pub fn is_dynamic(&self) -> bool {
         unsafe { ov_model_is_dynamic(self.ptr) }
+    }
+
+    /// Reshape the model for one node (port 0).
+    pub fn reshape_single_input(&mut self, partial_shape: &PartialShape) -> Result<()> {
+        try_unsafe!(openvino_sys::ov_model_reshape_single_input(
+            self.ptr,
+            partial_shape.as_c_struct()
+        ))
+    }
+
+    /// Reshape the model with a partial shape for a specified input name.
+    pub fn reshape_input_by_name(
+        &mut self,
+        tensor_name: &str,
+        partial_shape: &PartialShape,
+    ) -> Result<()> {
+        let name = cstr!(tensor_name);
+        try_unsafe!(openvino_sys::ov_model_reshape_input_by_name(
+            self.ptr,
+            name.as_ptr(),
+            partial_shape.as_c_struct()
+        ))
+    }
+
+    /// Reshape the model with a list of (name, `partial_shape`) pairs.
+    pub fn reshape(&mut self, partial_shapes: &[(&str, &PartialShape)]) -> Result<()> {
+        let mut c_names = Vec::with_capacity(partial_shapes.len());
+        let mut c_shapes = Vec::with_capacity(partial_shapes.len());
+        // We must keep the CStrings alive until the FFI call is finished
+        let mut names_keep_alive = Vec::with_capacity(partial_shapes.len());
+
+        for (name, partial_shape) in partial_shapes {
+            let c_name = cstr!(*name);
+            c_names.push(c_name.as_ptr());
+            names_keep_alive.push(c_name);
+            c_shapes.push(partial_shape.as_c_struct());
+        }
+
+        try_unsafe!(openvino_sys::ov_model_reshape(
+            self.ptr,
+            c_names.as_mut_ptr(),
+            c_shapes.as_ptr(),
+            partial_shapes.len()
+        ))
+    }
+
+    /// Reshape the model using a list of (`port_index`, `partial_shape`) pairs.
+    pub fn reshape_by_port_indexes(
+        &mut self,
+        partial_shapes: &[(usize, &PartialShape)],
+    ) -> Result<()> {
+        let mut c_indexes = Vec::with_capacity(partial_shapes.len());
+        let mut c_shapes = Vec::with_capacity(partial_shapes.len());
+
+        for (index, partial_shape) in partial_shapes {
+            c_indexes.push(*index);
+            c_shapes.push(partial_shape.as_c_struct());
+        }
+
+        try_unsafe!(openvino_sys::ov_model_reshape_by_port_indexes(
+            self.ptr,
+            c_indexes.as_ptr(),
+            c_shapes.as_ptr(),
+            partial_shapes.len()
+        ))
+    }
+
+    /// Reshape the model using a list of (Node/Port, `partial_shape`) pairs.
+    pub fn reshape_by_ports(&mut self, partial_shapes: &[(&Node, &PartialShape)]) -> Result<()> {
+        let mut c_ports = Vec::with_capacity(partial_shapes.len());
+        let mut c_shapes = Vec::with_capacity(partial_shapes.len());
+
+        for (node, partial_shape) in partial_shapes {
+            // ov_model_reshape_by_ports expects *const *const ov_output_port_t.
+            // Node::as_ptr returns *mut ov_output_const_port_t.
+            c_ports.push(node.as_ptr() as *const openvino_sys::ov_output_port_t);
+            c_shapes.push(partial_shape.as_c_struct());
+        }
+
+        try_unsafe!(openvino_sys::ov_model_reshape_by_ports(
+            self.ptr,
+            c_ports.as_mut_ptr(),
+            c_shapes.as_ptr(),
+            partial_shapes.len()
+        ))
     }
 }
 

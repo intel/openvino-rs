@@ -28,6 +28,12 @@ impl PartialShape {
         Self { c_struct }
     }
 
+    /// Get the pointer to the underlying OpenVINO partial shape.
+    #[inline]
+    pub(crate) fn as_c_struct(&self) -> ov_partial_shape_t {
+        self.c_struct
+    }
+
     /// Create a new [`PartialShape`] with a static rank and dynamic dimensions.
     pub fn new(rank: i64, dimensions: &[Dimension]) -> Result<Self> {
         let mut partial_shape = ov_partial_shape_t {
