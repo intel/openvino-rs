@@ -48,7 +48,9 @@ pub use crate::core::Core;
 pub use device_type::DeviceType;
 pub use dimension::Dimension;
 pub use element_type::ElementType;
-pub use error::{InferenceError, LoadingError, SetupError};
+pub use error::{
+    get_last_error_message, InferenceError, InferenceErrorKind, LoadingError, SetupError,
+};
 pub use layout::Layout;
 pub use model::{CompiledModel, Model};
 pub use node::Node;

@@ -1,13 +1,14 @@
 use openvino_sys::ov_status_e;
 use std::error::Error;
+use std::ffi::CStr;
 use std::fmt;
 
 /// See
 /// [`ov_status_e`](https://docs.openvino.ai/2024/api/c_cpp_api/group__ov__base__c__api.html#_CPPv411ov_status_e);
 /// enumerates errors returned by the OpenVINO implementation.
 #[allow(missing_docs)]
-#[derive(Debug, PartialEq, Eq)]
-pub enum InferenceError {
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum InferenceErrorKind {
     GeneralError,
     NotImplemented,
     NetworkNotLoaded,
@@ -28,37 +29,49 @@ pub enum InferenceError {
     Undefined(i32),
 }
 
+/// An error from OpenVINO operations, including the error kind and optional detailed message
+/// from the C API.
+#[derive(Debug, Clone, PartialEq)]
+pub struct InferenceError {
+    /// The kind of error that occurred
+    pub kind: InferenceErrorKind,
+    /// Detailed error message from OpenVINO C API, if available
+    pub message: Option<String>,
+}
+
 impl InferenceError {
     /// Convert an `openvino_sys` error to a [`Result`]:
     /// - `0` becomes `Ok`
     /// - anything else becomes `Err` containing an [`InferenceError`]
-    pub fn convert(status: ov_status_e) -> Result<(), InferenceError> {
-        match status {
-            ov_status_e::OK => Ok(()),
-            ov_status_e::GENERAL_ERROR => Err(Self::GeneralError),
-            ov_status_e::NOT_IMPLEMENTED => Err(Self::NotImplemented),
-            ov_status_e::NETWORK_NOT_LOADED => Err(Self::NetworkNotLoaded),
-            ov_status_e::PARAMETER_MISMATCH => Err(Self::ParameterMismatch),
-            ov_status_e::NOT_FOUND => Err(Self::NotFound),
-            ov_status_e::OUT_OF_BOUNDS => Err(Self::OutOfBounds),
-            ov_status_e::UNEXPECTED => Err(Self::Unexpected),
-            ov_status_e::REQUEST_BUSY => Err(Self::RequestBusy),
-            ov_status_e::RESULT_NOT_READY => Err(Self::ResultNotReady),
-            ov_status_e::NOT_ALLOCATED => Err(Self::NotAllocated),
-            ov_status_e::INFER_NOT_STARTED => Err(Self::InferNotStarted),
-            ov_status_e::NETWORK_NOT_READ => Err(Self::NetworkNotRead),
-            ov_status_e::INFER_CANCELLED => Err(Self::InferCancelled),
-            ov_status_e::INVALID_C_PARAM => Err(Self::InvalidCParam),
-            ov_status_e::UNKNOWN_C_ERROR => Err(Self::UnknownCError),
-            ov_status_e::NOT_IMPLEMENT_C_METHOD => Err(Self::NotImplementCMethod),
-            ov_status_e::UNKNOW_EXCEPTION => Err(Self::UnknownException),
-        }
+    pub fn convert(status: ov_status_e, message: Option<String>) -> Result<(), InferenceError> {
+        use InferenceErrorKind::*;
+        let kind = match status {
+            ov_status_e::OK => return Ok(()),
+            ov_status_e::GENERAL_ERROR => GeneralError,
+            ov_status_e::NOT_IMPLEMENTED => NotImplemented,
+            ov_status_e::NETWORK_NOT_LOADED => NetworkNotLoaded,
+            ov_status_e::PARAMETER_MISMATCH => ParameterMismatch,
+            ov_status_e::NOT_FOUND => NotFound,
+            ov_status_e::OUT_OF_BOUNDS => OutOfBounds,
+            ov_status_e::UNEXPECTED => Unexpected,
+            ov_status_e::REQUEST_BUSY => RequestBusy,
+            ov_status_e::RESULT_NOT_READY => ResultNotReady,
+            ov_status_e::NOT_ALLOCATED => NotAllocated,
+            ov_status_e::INFER_NOT_STARTED => InferNotStarted,
+            ov_status_e::NETWORK_NOT_READ => NetworkNotRead,
+            ov_status_e::INFER_CANCELLED => InferCancelled,
+            ov_status_e::INVALID_C_PARAM => InvalidCParam,
+            ov_status_e::UNKNOWN_C_ERROR => UnknownCError,
+            ov_status_e::NOT_IMPLEMENT_C_METHOD => NotImplementCMethod,
+            ov_status_e::UNKNOW_EXCEPTION => UnknownException,
+        };
+        Err(InferenceError { kind, message })
     }
 }
 
 impl Error for InferenceError {}
 
-impl fmt::Display for InferenceError {
+impl fmt::Display for InferenceErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::GeneralError => write!(f, "general error"),
@@ -80,6 +93,16 @@ impl fmt::Display for InferenceError {
             Self::UnknownException => write!(f, "unknown exception"),
             Self::Undefined(code) => write!(f, "undefined error code: {code}"),
         }
+    }
+}
+
+impl fmt::Display for InferenceError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.kind)?;
+        if let Some(msg) = &self.message {
+            write!(f, ": {}", msg)?;
+        }
+        Ok(())
     }
 }
 
@@ -136,5 +159,21 @@ impl From<InferenceError> for SetupError {
 impl From<LoadingError> for SetupError {
     fn from(error: LoadingError) -> Self {
         SetupError::Loading(error)
+    }
+}
+
+/// Returns the last error message from the OpenVINO library.
+///
+/// Note: With the current API, error messages are automatically captured and included
+/// in `InferenceError` instances. This function is provided for direct C API access
+/// if needed, but typically you should rely on the message in the error itself.
+pub fn get_last_error_message() -> Result<String, ()> {
+    unsafe {
+        let ptr = openvino_sys::ov_get_last_err_msg();
+        if ptr.is_null() {
+            Err(())
+        } else {
+            Ok(CStr::from_ptr(ptr).to_string_lossy().into_owned())
+        }
     }
 }

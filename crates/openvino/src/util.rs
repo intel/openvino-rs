@@ -17,9 +17,22 @@ macro_rules! cstr {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! try_unsafe {
-    ($e: expr) => {
-        $crate::InferenceError::convert(unsafe { $e })
-    };
+    ($e: expr) => {{
+        let status = unsafe { $e };
+        let message = if status != openvino_sys::ov_status_e::OK {
+            unsafe {
+                let ptr = openvino_sys::ov_get_last_err_msg();
+                if ptr.is_null() {
+                    None
+                } else {
+                    Some(std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned())
+                }
+            }
+        } else {
+            None
+        };
+        $crate::InferenceError::convert(status, message)
+    }};
 }
 
 /// Drop one of the Rust wrapper structures using the provided free function. This relies on all
