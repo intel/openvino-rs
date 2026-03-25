@@ -36,8 +36,11 @@ impl JsonContainer {
     ///
     /// # Example
     ///
-    /// ```ignore
-    /// let msg = JsonContainer::from_json_str(r#"{"role": "user", "content": "Hello"}"#)?;
+    /// ```
+    /// openvino_genai::load().unwrap();
+    /// let msg = openvino_genai::JsonContainer::from_json_str(
+    ///     r#"{"role": "user", "content": "Hello"}"#,
+    /// ).unwrap();
     /// ```
     pub fn from_json_str(json: &str) -> Result<Self> {
         let json = cstr!(json);
