@@ -16,12 +16,12 @@ drop_using_function!(ChatHistory, ov_genai_chat_history_free);
 /// Convert a chat history status code to a Result.
 fn convert_chat_status(status: ov_genai_chat_history_status_e) -> Result<()> {
     match status {
-        ov_genai_chat_history_status_e::OK => Ok(()),
-        ov_genai_chat_history_status_e::INVALID_PARAM => Err(InferenceError::InvalidCParam),
-        ov_genai_chat_history_status_e::OUT_OF_BOUNDS => Err(InferenceError::OutOfBounds),
-        ov_genai_chat_history_status_e::EMPTY => Err(InferenceError::NotFound),
-        ov_genai_chat_history_status_e::INVALID_JSON => Err(InferenceError::ParameterMismatch),
-        ov_genai_chat_history_status_e::ERROR => Err(InferenceError::GeneralError),
+        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_OK => Ok(()),
+        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_INVALID_PARAM => Err(InferenceError::InvalidCParam),
+        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_OUT_OF_BOUNDS => Err(InferenceError::OutOfBounds),
+        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_EMPTY => Err(InferenceError::NotFound),
+        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_INVALID_JSON => Err(InferenceError::ParameterMismatch),
+        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_ERROR => Err(InferenceError::GeneralError),
     }
 }
 

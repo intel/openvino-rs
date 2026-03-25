@@ -18,9 +18,9 @@ pub enum StreamingStatus {
 impl From<StreamingStatus> for ov_genai_streaming_status_e {
     fn from(status: StreamingStatus) -> Self {
         match status {
-            StreamingStatus::Running => ov_genai_streaming_status_e::RUNNING,
-            StreamingStatus::Stop => ov_genai_streaming_status_e::STOP,
-            StreamingStatus::Cancel => ov_genai_streaming_status_e::CANCEL,
+            StreamingStatus::Running => ov_genai_streaming_status_e::OV_GENAI_STREAMING_STATUS_RUNNING,
+            StreamingStatus::Stop => ov_genai_streaming_status_e::OV_GENAI_STREAMING_STATUS_STOP,
+            StreamingStatus::Cancel => ov_genai_streaming_status_e::OV_GENAI_STREAMING_STATUS_CANCEL,
         }
     }
 }

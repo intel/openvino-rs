@@ -23,6 +23,7 @@ links = "openvino_genai_c_api"
 [dependencies]
 libloading = { version = "0.8", optional = true }
 openvino-finder = { workspace = true }
+openvino-sys = { workspace = true }
 
 [build-dependencies]
 openvino-finder = { workspace = true }
@@ -33,7 +34,7 @@ env_logger = { workspace = true }
 # - Will find and bind to an OpenVINO GenAI shared library at compile time.
 dynamic-linking = []
 # - Will bind to an OpenVINO GenAI shared library at runtime using `load`.
-runtime-linking = ["libloading"]
+runtime-linking = ["libloading", "openvino-sys/runtime-linking"]
 
 [package.metadata.docs.rs]
 features = ["runtime-linking"]
