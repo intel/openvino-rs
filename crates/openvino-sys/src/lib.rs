@@ -60,6 +60,27 @@ pub mod library {
     /// [#167]: https://github.com/intel/openvino-rs/issues/167
     pub fn load() -> Result<(), String> {
         super::generated::load()?;
+        check_version()
+    }
+
+    /// Load the OpenVINO shared library from an explicit path.
+    ///
+    /// This is useful when the library is located in a non-standard directory that cannot be
+    /// discovered by the `openvino-finder` search paths or environment variables — for example,
+    /// when the path is read from a configuration file.
+    ///
+    /// The `path` should point to the directory containing the `openvino_c` shared library, or
+    /// directly to the shared library file itself.
+    ///
+    /// # Errors
+    ///
+    /// May fail if the shared library cannot be opened or if the OpenVINO version is too old.
+    pub fn load_from(path: impl Into<std::path::PathBuf>) -> Result<(), String> {
+        super::generated::load_from(path.into())?;
+        check_version()
+    }
+
+    fn check_version() -> Result<(), String> {
         let version = get_version()?;
         if is_pre_2025_1_version(&version) {
             return Err(format!("OpenVINO version is too old (see https://github.com/intel/openvino-rs/issues/167): {version}"));

@@ -68,16 +68,36 @@ macro_rules! link {
 
         /// Load all of the function definitions from a shared library.
         ///
+        /// If the library has already been loaded (e.g., via [`load_from`]), this is a no-op.
+        ///
         /// # Errors
         ///
         /// May fail if the `openvino-finder` cannot discover the library on the current system.
         pub fn load() -> Result<(), String> {
+            if LIBRARY.read().unwrap().is_some() {
+                return Ok(());
+            }
             match $crate::library::find() {
                 None => Err("Unable to find the `openvino_c` library to load".into()),
                 Some(path) => load_from(path),
             }
         }
-        fn load_from(path: PathBuf) -> Result<(), String> {
+
+        /// Load all of the function definitions from a shared library at the given path.
+        ///
+        /// This is useful when the library is not in a standard location and cannot be
+        /// discovered by the `openvino-finder` search paths. The `path` should point to
+        /// the `openvino_c` shared library file (e.g., `libopenvino_c.so`).
+        ///
+        /// If the library has already been loaded (e.g., via [`load`]), this is a no-op.
+        ///
+        /// # Errors
+        ///
+        /// May fail if the shared library cannot be opened or is invalid.
+        pub fn load_from(path: PathBuf) -> Result<(), String> {
+            if LIBRARY.read().unwrap().is_some() {
+                return Ok(());
+            }
             let library = Arc::new(SharedLibrary::load(path)?);
             *LIBRARY.write().unwrap() = Some(library);
             Ok(())
