@@ -1,0 +1,39 @@
+[package]
+name = "openvino-genai-sys"
+description = "Low-level bindings for OpenVINO GenAI (use the `openvino-genai` crate for easier-to-use bindings)."
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+readme = "README.md"
+documentation = "https://docs.rs/openvino-genai-sys"
+keywords = ["openvino", "machine-learning", "genai", "llm"]
+categories = ["external-ffi-bindings", "science"]
+include = [
+    "/Cargo.toml",
+    "/README.md",
+    "/build.rs",
+    "/src",
+    "/upstream/src/c/include",
+]
+links = "openvino_genai_c_api"
+
+[dependencies]
+libloading = { version = "0.8", optional = true }
+openvino-finder = { workspace = true }
+
+[build-dependencies]
+openvino-finder = { workspace = true }
+env_logger = { workspace = true }
+
+[features]
+# Linking features: `build.rs` will default to dynamic linking if none is selected.
+# - Will find and bind to an OpenVINO GenAI shared library at compile time.
+dynamic-linking = []
+# - Will bind to an OpenVINO GenAI shared library at runtime using `load`.
+runtime-linking = ["libloading"]
+
+[package.metadata.docs.rs]
+features = ["runtime-linking"]
