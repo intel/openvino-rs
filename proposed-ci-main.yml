@@ -1,0 +1,146 @@
+name: CI
+permissions: read-all
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron:  '30 7 2,16 * *' # Every 2nd and 16th of the month at 07:30 UTC
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Build and test the bindings using an existing OpenVINO installation.
+  test:
+    name: Build and test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # TODO: macos-latest cannot yet be included in the list because a dependency cannot be
+        # found ("dyld: Library not loaded; '@rpath/libopenvino.2310.dylib'"). See
+        # https://github.com/abrown/openvino-rs/actions/runs/6423141936/job/17441022932#step:7:154
+        os: [ubuntu-22.04, ubuntu-24.04, windows-latest]
+        version: [2025.1.0, 2025.2.0]
+        apt: [false]
+        # We also spot-check that things work when installing from APT by adding to the matrix: see
+        # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#expanding-or-adding-matrix-configurations
+        # APT install and check latest supported version.
+        include:
+          - os: ubuntu-24.04
+            version: 2025.2.0
+            apt: true
+    env:
+      RUST_LOG: debug
+      RUST_BACKTRACE: 1
+    steps:
+    - name: Enable long paths
+      run: git config --global core.longpaths true
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        submodules: true
+    - uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+      with:
+        key: openvino-test-fixtures
+        path: |
+          crates/openvino/tests/fixtures/alexnet
+          crates/openvino/tests/fixtures/inception
+          crates/openvino/tests/fixtures/mobilenet
+          crates/openvino-genai/tests/fixtures/qwen3
+          crates/openvino-genai/tests/fixtures/whisper-tiny
+          crates/openvino-genai/tests/fixtures/internvl2
+    # TODO: Update install-openvino-action (or replace with a new action) to install OpenVINO
+    # GenAI in addition to core OpenVINO. The GenAI packages are available at:
+    # https://storage.openvinotoolkit.org/repositories/openvino_genai/packages/
+    # The GenAI package includes the core OpenVINO runtime, so a single install suffices.
+    - uses: abrown/install-openvino-action@8cee80e3ed53c3afdd60ca1907b2ba677f29af8b # v10
+      with:
+        version: ${{ matrix.version }}
+        apt: ${{ matrix.apt }}
+    - name: List files
+      run: find $OPENVINO_INSTALL_DIR
+      shell: bash
+    # First, check that we can find the OpenVINO libraries; this is a canary to find any library
+    # issues early (even if we duplicate some tests). If we run the tests in order, other tests will
+    # short-circuit the test run and logging may not be turned on (as it is in the "find a library"
+    # tests) for troubleshooting.
+    - name: Check openvino-finder
+      run: cargo test --package openvino-finder
+    # Now, run the dynamic-linking tests: this assumes the OpenVINO and GenAI libraries are
+    # "findable" on the path and Cargo links the binaries to them in the `build.rs` scripts.
+    - name: Check dynamic linking
+      run: cargo test
+    # Finally, run the runtime-linking tests: the bindings do not link at build time, instead
+    # as the tests are run. This includes both openvino-sys and openvino-genai-sys.
+    - name: Check runtime linking
+      run: cargo test --features openvino-sys/runtime-linking,openvino-genai-sys/runtime-linking
+
+  format:
+    name: Check code format
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        submodules: true
+    - run: rustup component add rustfmt
+    - run: cargo fmt --all -- --check
+    # Use the `runtime-linking` feature here to avoid requiring an OpenVINO installation to be
+    # present when building. Both openvino-sys and openvino-genai-sys need this.
+    - run: cargo clippy --features openvino-sys/runtime-linking,openvino-genai-sys/runtime-linking
+    - run: cd crates/openvino-tensor-converter && cargo fmt --all -- --check
+
+  rust_dependencies:
+    name: Check Rust dependencies
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+    - uses: EmbarkStudios/cargo-deny-action@76cd80eb775d7bbbd2d80292136d74d39e1b4918 # v2.0.14
+
+  docs:
+    name: Check documentation
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        submodules: true
+    - name: Build documentation
+      run: cargo doc --no-deps --features openvino-sys/runtime-linking,openvino-genai-sys/runtime-linking
+
+  # Build and test the openvino-tensor-converter tool separately from the regular library builds;
+  # the OpenCV dependency is a bit fragile so the crate is not included by the default workspace
+  # commands.
+  converter:
+    name: Check converter tool
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: crates/openvino-tensor-converter
+    steps:
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        submodules: true
+    - name: Install OpenCV
+      run: sudo apt update && sudo apt install libopencv-dev clang libclang-dev
+    - name: Build
+      run: cargo build -v
+    - name: test
+      run: cargo test -v
+
+  # Re-generate the bindings and check if anything has changed. A failure in this step
+  # indicates that we need to decide whether to commit the changes from `cargo xtask codegen`.
+  codegen:
+    name: Generate bindings
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        submodules: recursive
+    - name: Generate openvino-sys bindings
+      run: cargo xtask codegen
+    - name: Generate openvino-genai-sys bindings
+      run: cargo xtask codegen --crate genai
+    - name: Verify no changes
+      run: git diff --ignore-submodules --no-ext-diff --exit-code
