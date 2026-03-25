@@ -1,6 +1,6 @@
 //! Safe wrapper for [`ov_genai_chat_history`].
 
-use crate::{drop_using_function, util::Result, InferenceError, JsonContainer};
+use crate::{drop_using_function, util::Result, ChatMessage, InferenceError, JsonContainer};
 use openvino_genai_sys::{
     self, ov_genai_chat_history, ov_genai_chat_history_clear, ov_genai_chat_history_create,
     ov_genai_chat_history_free, ov_genai_chat_history_push_back, ov_genai_chat_history_size,
@@ -35,10 +35,26 @@ impl ChatHistory {
         Ok(Self { ptr })
     }
 
-    /// Add a message to the chat history.
+    /// Add a typed [`ChatMessage`] to the chat history.
     ///
-    /// The `message` should be a [`JsonContainer`] representing a message object, e.g.,
-    /// `{"role": "user", "content": "Hello"}`.
+    /// # Example
+    ///
+    /// ```
+    /// openvino_genai::load().unwrap();
+    /// use openvino_genai::{ChatMessage, ChatHistory};
+    ///
+    /// let mut history = ChatHistory::new().unwrap();
+    /// history.push(&ChatMessage::user("Hello")).unwrap();
+    /// ```
+    pub fn push(&mut self, message: &ChatMessage) -> Result<()> {
+        let container = message.to_json_container()?;
+        self.push_back(&container)
+    }
+
+    /// Add a raw [`JsonContainer`] message to the chat history.
+    ///
+    /// Prefer [`push`](Self::push) for most use cases. This method is available as an escape
+    /// hatch for message shapes not covered by [`ChatMessage`].
     pub fn push_back(&mut self, message: &JsonContainer) -> Result<()> {
         convert_chat_status(unsafe {
             ov_genai_chat_history_push_back(self.ptr, message.as_ptr())
