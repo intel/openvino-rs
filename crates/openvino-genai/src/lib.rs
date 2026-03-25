@@ -5,7 +5,7 @@
 //! [README]: https://github.com/intel/openvino-rs
 //!
 //! Most interaction with OpenVINO GenAI begins with instantiating an [`LlmPipeline`]:
-//! ```ignore
+//! ```no_run
 //! let pipeline = openvino_genai::LlmPipeline::new("path/to/model", "CPU")
 //!     .expect("to create an LLM pipeline");
 //! ```
@@ -31,6 +31,7 @@ mod vlm_pipeline;
 mod whisper_pipeline;
 mod whisper_generation_config;
 mod chat_history;
+mod chat_message;
 mod json_container;
 mod streamer;
 mod perf_metrics;
@@ -60,6 +61,7 @@ pub use vlm_pipeline::{VlmPipeline, VlmDecodedResults};
 pub use whisper_pipeline::{WhisperPipeline, WhisperDecodedResults, WhisperDecodedResultChunk};
 pub use whisper_generation_config::WhisperGenerationConfig;
 pub use chat_history::ChatHistory;
+pub use chat_message::{ChatMessage, ToolCall};
 pub use json_container::JsonContainer;
 pub use streamer::{Streamer, StreamingStatus};
 pub use perf_metrics::PerfMetrics;
