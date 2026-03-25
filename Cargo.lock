@@ -336,6 +336,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "openvino-genai"
+version = "0.9.1"
+dependencies = [
+ "anyhow",
+ "openvino-finder",
+ "openvino-genai-sys",
+]
+
+[[package]]
+name = "openvino-genai-sys"
+version = "0.9.1"
+dependencies = [
+ "env_logger",
+ "libloading",
+ "openvino-finder",
+]
+
+[[package]]
 name = "openvino-sys"
 version = "0.9.1"
 dependencies = [
