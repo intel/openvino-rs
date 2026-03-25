@@ -3,11 +3,20 @@
 [![Build Status](https://github.com/intel/openvino-rs/workflows/CI/badge.svg)][ci]
 [![Documentation Status](https://docs.rs/openvino/badge.svg)][docs]
 
-This repository contains the [openvino-sys] crate (low-level, unsafe bindings) and the [openvino]
-crate (high-level, ergonomic bindings) for accessing OpenVINO™ functionality in Rust.
+This repository contains Rust bindings for accessing OpenVINO™ functionality:
+
+| Crate | Description |
+|---|---|
+| [openvino] | High-level, ergonomic bindings for OpenVINO™ inference |
+| [openvino-sys] | Low-level, unsafe FFI bindings for the OpenVINO™ C API |
+| [openvino-genai] | High-level bindings for OpenVINO™ GenAI (LLM, VLM, Whisper pipelines) |
+| [openvino-genai-sys] | Low-level, unsafe FFI bindings for the OpenVINO™ GenAI C API |
+| [openvino-finder] | Shared library discovery logic |
 
 [openvino]: crates/openvino
 [openvino-sys]: crates/openvino-sys
+[openvino-genai]: crates/openvino-genai
+[openvino-genai-sys]: crates/openvino-genai-sys
 [openvino-finder]: crates/openvino-finder
 [upstream]: crates/openvino-sys/upstream
 [docs]: https://docs.rs/openvino
