@@ -4,3 +4,6 @@
 	update = checkout
 	fetchRecurseSubmodules = false
 	shallow = true
+[submodule "crates/openvino-genai-sys/upstream"]
+	path = crates/openvino-genai-sys/upstream
+	url = https://github.com/openvinotoolkit/openvino.genai
