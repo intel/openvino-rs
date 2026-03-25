@@ -30,6 +30,10 @@ mod linking;
 mod generated;
 pub use generated::*;
 
+// Re-export shared types from openvino-sys so that users of both crates share a single definition.
+pub use openvino_sys::ov_status_e;
+pub use openvino_sys::ov_tensor_t;
+
 /// Contains extra utilities for finding and loading the OpenVINO GenAI shared libraries.
 pub mod library {
     use std::path::PathBuf;

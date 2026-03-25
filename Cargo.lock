@@ -351,6 +351,7 @@ dependencies = [
  "env_logger",
  "libloading",
  "openvino-finder",
+ "openvino-sys",
 ]
 
 [[package]]

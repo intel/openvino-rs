@@ -58,9 +58,9 @@ impl VlmPipeline {
         let config_ptr = config.map_or(std::ptr::null(), GenerationConfig::as_ptr);
         let streamer_ptr = streamer.map_or(std::ptr::null(), Streamer::as_raw);
         let images_ptr = if images.is_empty() {
-            std::ptr::null()
+            std::ptr::null_mut()
         } else {
-            images.as_ptr()
+            images.as_ptr().cast_mut()
         };
         let mut results_ptr = std::ptr::null_mut();
         try_unsafe!(ov_genai_vlm_pipeline_generate(
