@@ -20,6 +20,17 @@ macro_rules! link {
             Ok(())
         }
 
+        /// When compiled as a dynamically-linked library, this function does nothing. The library
+        /// is already linked at compile time, so the `path` parameter is ignored. It exists to
+        /// provide a consistent API with the runtime-linked version.
+        ///
+        /// # Errors
+        ///
+        /// This version never fails.
+        pub fn load_from(_path: std::path::PathBuf) -> Result<(), String> {
+            Ok(())
+        }
+
         // Re-export all of the shared functions as-is.
         extern "C" {
             $(
