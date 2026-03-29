@@ -25,15 +25,36 @@ unsafe impl Send for VlmPipeline {}
 impl VlmPipeline {
     /// Create a new VLM pipeline from a model directory and device name.
     pub fn new(models_path: &str, device: &str) -> std::result::Result<Self, SetupError> {
+        Self::with_properties(models_path, device, &[])
+    }
+
+    /// Create a new VLM pipeline with device properties.
+    ///
+    /// Properties are key-value string pairs passed to the underlying OpenVINO runtime.
+    /// Common properties for NPU include:
+    /// - `("CACHE_DIR", "/path/to/cache")` — cache compiled model blobs for faster reload
+    /// - `("MAX_PROMPT_LEN", "128")` — maximum prompt length for NPU static shapes
+    /// - `("MIN_RESPONSE_LEN", "64")` — minimum response length for NPU static shapes
+    pub fn with_properties(
+        models_path: &str,
+        device: &str,
+        properties: &[(&str, &str)],
+    ) -> std::result::Result<Self, SetupError> {
         openvino_genai_sys::library::load().map_err(LoadingError::SystemFailure)?;
         let models_path = cstr!(models_path);
         let device = cstr!(device);
+        let prop_cstrings: Vec<_> = properties
+            .iter()
+            .flat_map(|(k, v)| [cstr!(*k), cstr!(*v)])
+            .collect();
+        let prop_ptrs: Vec<_> = prop_cstrings.iter().map(|s| s.as_ptr()).collect();
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_genai_vlm_pipeline_create(
             models_path.as_ptr(),
             device.as_ptr(),
-            0,
-            std::ptr::addr_of_mut!(ptr)
+            prop_ptrs.len(),
+            std::ptr::addr_of_mut!(ptr),
+            &prop_ptrs
         ))?;
         Ok(Self { ptr })
     }
@@ -56,7 +77,10 @@ impl VlmPipeline {
     ) -> Result<VlmDecodedResults> {
         let prompt = cstr!(prompt);
         let config_ptr = config.map_or(std::ptr::null(), GenerationConfig::as_ptr);
-        let streamer_ptr = streamer.map_or(std::ptr::null(), Streamer::as_raw);
+        let streamer_raw = streamer.map(Streamer::as_raw);
+        let streamer_ptr = streamer_raw
+            .as_ref()
+            .map_or(std::ptr::null(), |s| s as *const _);
         let images_ptr = if images.is_empty() {
             std::ptr::null_mut()
         } else {

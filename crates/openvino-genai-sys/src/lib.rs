@@ -140,12 +140,28 @@ mod runtime_variadic {
     use std::path::Path;
     use std::sync::OnceLock;
 
+    // The C API uses variadic args for property key-value pairs. We define the
+    // function pointer with 16 extra `*const c_char` slots (enough for 8 properties).
+    // The C function only reads `property_args_size * 2` args from the va_list,
+    // so trailing NULLs are harmless.
     type CreateFn = unsafe extern "C" fn(
-        *const ::std::os::raw::c_char,
-        *const ::std::os::raw::c_char,
-        usize,
-        *mut *mut ::std::os::raw::c_void,
+        *const ::std::os::raw::c_char,  // models_path
+        *const ::std::os::raw::c_char,  // device
+        usize,                          // property_args_size (number of key-value pairs)
+        *mut *mut ::std::os::raw::c_void, // pipe
+        // Up to 8 property key-value pairs (16 args):
+        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
     ) -> ov_status_e;
+
+    /// Maximum number of property key-value pairs supported.
+    pub const MAX_PROPERTIES: usize = 8;
 
     static LLM_CREATE: OnceLock<CreateFn> = OnceLock::new();
     static VLM_CREATE: OnceLock<CreateFn> = OnceLock::new();
@@ -180,29 +196,48 @@ mod runtime_variadic {
         Ok(())
     }
 
-    /// Create an LLM pipeline with no additional properties (runtime-linking variant).
+    /// Pad a property args array to 16 entries (8 key-value pairs), filling with null.
+    fn pad_props(props: &[*const ::std::os::raw::c_char]) -> [*const ::std::os::raw::c_char; 16] {
+        let mut out = [std::ptr::null(); 16];
+        let n = props.len().min(16);
+        out[..n].copy_from_slice(&props[..n]);
+        out
+    }
+
+    /// Create an LLM pipeline (runtime-linking variant).
+    ///
+    /// `props` contains flattened key-value pairs as C string pointers: `[k1, v1, k2, v2, ...]`.
+    /// Pass an empty slice for no properties. Up to [`MAX_PROPERTIES`] pairs (16 pointers).
     ///
     /// # Safety
     ///
-    /// The caller must ensure that `models_path` and `device` are valid C strings, and `pipe` is
-    /// a valid pointer to receive the created pipeline.
+    /// The caller must ensure that `models_path`, `device`, and all pointers in `props` are
+    /// valid C strings, and `pipe` is a valid pointer to receive the created pipeline.
     ///
     /// # Panics
     ///
-    /// Panics if `library::load()` or `library::load_from()` has not been called first.
+    /// Panics if `library::load()` or `library::load_from()` has not been called first,
+    /// or if `props` contains more than [`MAX_PROPERTIES`] * 2 entries.
     pub unsafe fn ov_genai_llm_pipeline_create(
         models_path: *const ::std::os::raw::c_char,
         device: *const ::std::os::raw::c_char,
         property_args_size: usize,
         pipe: *mut *mut ov_genai_llm_pipeline,
+        props: &[*const ::std::os::raw::c_char],
     ) -> ov_status_e {
+        assert!(props.len() <= MAX_PROPERTIES * 2, "too many properties (max {})", MAX_PROPERTIES);
+        let p = pad_props(props);
         let f = LLM_CREATE
             .get()
             .expect("`openvino_genai_c` function not loaded: `ov_genai_llm_pipeline_create`; call library::load() or library::load_from() first");
-        f(models_path, device, property_args_size, pipe.cast())
+        f(models_path, device, property_args_size, pipe.cast(),
+          p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
+          p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15])
     }
 
-    /// Create a VLM pipeline with no additional properties (runtime-linking variant).
+    /// Create a VLM pipeline (runtime-linking variant).
+    ///
+    /// See [`ov_genai_llm_pipeline_create`] for details on the `props` parameter.
     ///
     /// # Safety
     ///
@@ -210,20 +245,28 @@ mod runtime_variadic {
     ///
     /// # Panics
     ///
-    /// Panics if `library::load()` or `library::load_from()` has not been called first.
+    /// Panics if `library::load()` or `library::load_from()` has not been called first,
+    /// or if `props` contains more than [`MAX_PROPERTIES`] * 2 entries.
     pub unsafe fn ov_genai_vlm_pipeline_create(
         models_path: *const ::std::os::raw::c_char,
         device: *const ::std::os::raw::c_char,
         property_args_size: usize,
         pipe: *mut *mut ov_genai_vlm_pipeline,
+        props: &[*const ::std::os::raw::c_char],
     ) -> ov_status_e {
+        assert!(props.len() <= MAX_PROPERTIES * 2, "too many properties (max {})", MAX_PROPERTIES);
+        let p = pad_props(props);
         let f = VLM_CREATE
             .get()
             .expect("`openvino_genai_c` function not loaded: `ov_genai_vlm_pipeline_create`; call library::load() or library::load_from() first");
-        f(models_path, device, property_args_size, pipe.cast())
+        f(models_path, device, property_args_size, pipe.cast(),
+          p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
+          p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15])
     }
 
-    /// Create a Whisper pipeline with no additional properties (runtime-linking variant).
+    /// Create a Whisper pipeline (runtime-linking variant).
+    ///
+    /// See [`ov_genai_llm_pipeline_create`] for details on the `props` parameter.
     ///
     /// # Safety
     ///
@@ -231,17 +274,23 @@ mod runtime_variadic {
     ///
     /// # Panics
     ///
-    /// Panics if `library::load()` or `library::load_from()` has not been called first.
+    /// Panics if `library::load()` or `library::load_from()` has not been called first,
+    /// or if `props` contains more than [`MAX_PROPERTIES`] * 2 entries.
     pub unsafe fn ov_genai_whisper_pipeline_create(
         models_path: *const ::std::os::raw::c_char,
         device: *const ::std::os::raw::c_char,
         property_args_size: usize,
         pipeline: *mut *mut ov_genai_whisper_pipeline,
+        props: &[*const ::std::os::raw::c_char],
     ) -> ov_status_e {
+        assert!(props.len() <= MAX_PROPERTIES * 2, "too many properties (max {})", MAX_PROPERTIES);
+        let p = pad_props(props);
         let f = WHISPER_CREATE
             .get()
             .expect("`openvino_genai_c` function not loaded: `ov_genai_whisper_pipeline_create`; call library::load() or library::load_from() first");
-        f(models_path, device, property_args_size, pipeline.cast())
+        f(models_path, device, property_args_size, pipeline.cast(),
+          p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
+          p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15])
     }
 }
 

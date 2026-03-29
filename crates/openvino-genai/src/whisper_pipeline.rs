@@ -40,7 +40,8 @@ impl WhisperPipeline {
             models_path.as_ptr(),
             device.as_ptr(),
             0,
-            std::ptr::addr_of_mut!(ptr)
+            std::ptr::addr_of_mut!(ptr),
+            &[]
         ))?;
         Ok(Self { ptr })
     }
