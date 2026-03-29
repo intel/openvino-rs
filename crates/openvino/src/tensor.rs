@@ -35,6 +35,10 @@ pub struct Tensor {
 }
 drop_using_function!(Tensor, ov_tensor_free);
 
+// SAFETY: The underlying C object is not thread-safe, but callers must ensure
+// exclusive access (e.g., via Mutex) when sharing across threads.
+unsafe impl Send for Tensor {}
+
 impl Tensor {
     /// Create a new [`Tensor`].
     pub fn new(element_type: ElementType, shape: &Shape) -> Result<Self> {
@@ -157,6 +161,16 @@ impl Tensor {
             "raw data is not aligned to `T`'s alignment"
         );
         Ok(slice)
+    }
+
+    /// Get the raw C pointer to the underlying `ov_tensor_t`.
+    ///
+    /// This is useful for passing the tensor to C APIs that accept `*const ov_tensor_t`,
+    /// such as `VlmPipeline::generate()` in the `openvino-genai` crate.
+    ///
+    /// The pointer is valid for the lifetime of this `Tensor`.
+    pub fn as_c_ptr(&self) -> *const ov_tensor_t {
+        self.ptr
     }
 }
 

@@ -81,4 +81,9 @@ impl JsonContainer {
     pub(crate) fn as_ptr(&self) -> *const ov_genai_json_container {
         self.ptr
     }
+
+    /// Construct from a raw pointer. For internal use.
+    pub(crate) fn from_raw_ptr(ptr: *mut ov_genai_json_container) -> Self {
+        Self { ptr }
+    }
 }
