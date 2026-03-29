@@ -116,6 +116,30 @@ impl GenerationConfig {
         Ok(value)
     }
 
+    /// Set stop strings that will cause generation to stop.
+    pub fn set_stop_strings(&mut self, strings: &[&str]) -> Result<()> {
+        let c_strings: Vec<std::ffi::CString> = strings
+            .iter()
+            .map(|s| cstr!(*s))
+            .collect();
+        let mut ptrs: Vec<*const std::os::raw::c_char> =
+            c_strings.iter().map(|s| s.as_ptr()).collect();
+        try_unsafe!(openvino_genai_sys::ov_genai_generation_config_set_stop_strings(
+            self.ptr,
+            ptrs.as_mut_ptr(),
+            ptrs.len()
+        ))
+    }
+
+    /// Set whether stop strings should be included in the output.
+    pub fn set_include_stop_str_in_output(&mut self, value: bool) -> Result<()> {
+        try_unsafe!(
+            openvino_genai_sys::ov_genai_generation_config_set_include_stop_str_in_output(
+                self.ptr, value
+            )
+        )
+    }
+
     /// Validate the configuration for conflicting parameters.
     pub fn validate(&mut self) -> Result<()> {
         try_unsafe!(ov_genai_generation_config_validate(self.ptr))
