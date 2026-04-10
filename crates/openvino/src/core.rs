@@ -52,7 +52,7 @@ impl Core {
     /// # Panics
     ///
     /// This function panics if OpenVINO returns a device name these bindings do not yet recognize.
-    pub fn versions(&self, device_name: &str) -> Result<Vec<(DeviceType, Version)>> {
+    pub fn versions(&self, device_name: &str) -> Result<Vec<(DeviceType<'_>, Version)>> {
         let device_name = cstr!(device_name);
         let mut ov_version_list = openvino_sys::ov_core_version_list_t {
             versions: std::ptr::null_mut(),
@@ -84,7 +84,7 @@ impl Core {
     /// # Panics
     ///
     /// This function panics if OpenVINO returns a device name these bindings do not yet recognize.
-    pub fn available_devices(&self) -> Result<Vec<DeviceType>> {
+    pub fn available_devices(&self) -> Result<Vec<DeviceType<'_>>> {
         let mut ov_available_devices = openvino_sys::ov_available_devices_t {
             devices: std::ptr::null_mut(),
             size: 0,

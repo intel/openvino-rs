@@ -295,7 +295,7 @@ impl CompiledModel {
     }
 
     /// Gets a property for the compiled model.
-    pub fn get_property(&self, key: &PropertyKey) -> Result<Cow<str>> {
+    pub fn get_property(&self, key: &PropertyKey) -> Result<Cow<'_, str>> {
         let ov_prop_key = cstr!(key.as_ref());
         let mut ov_prop_value = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_get_property(
