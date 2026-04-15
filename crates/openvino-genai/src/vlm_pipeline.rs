@@ -80,7 +80,7 @@ impl VlmPipeline {
         let streamer_raw = streamer.map(Streamer::as_raw);
         let streamer_ptr = streamer_raw
             .as_ref()
-            .map_or(std::ptr::null(), |s| s as *const _);
+            .map_or(std::ptr::null(), std::ptr::from_ref);
         let images_ptr = if images.is_empty() {
             std::ptr::null_mut()
         } else {
