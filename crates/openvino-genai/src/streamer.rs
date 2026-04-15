@@ -18,9 +18,13 @@ pub enum StreamingStatus {
 impl From<StreamingStatus> for ov_genai_streaming_status_e {
     fn from(status: StreamingStatus) -> Self {
         match status {
-            StreamingStatus::Running => ov_genai_streaming_status_e::OV_GENAI_STREAMING_STATUS_RUNNING,
+            StreamingStatus::Running => {
+                ov_genai_streaming_status_e::OV_GENAI_STREAMING_STATUS_RUNNING
+            }
             StreamingStatus::Stop => ov_genai_streaming_status_e::OV_GENAI_STREAMING_STATUS_STOP,
-            StreamingStatus::Cancel => ov_genai_streaming_status_e::OV_GENAI_STREAMING_STATUS_CANCEL,
+            StreamingStatus::Cancel => {
+                ov_genai_streaming_status_e::OV_GENAI_STREAMING_STATUS_CANCEL
+            }
         }
     }
 }
@@ -39,7 +43,10 @@ pub struct Streamer {
 }
 
 /// The extern "C" trampoline that bridges the C callback to the Rust closure.
-unsafe extern "C" fn trampoline(str_: *const c_char, args: *mut c_void) -> ov_genai_streaming_status_e {
+unsafe extern "C" fn trampoline(
+    str_: *const c_char,
+    args: *mut c_void,
+) -> ov_genai_streaming_status_e {
     let callback = &mut *(args.cast::<Box<dyn FnMut(&str) -> StreamingStatus>>());
     let c_str = CStr::from_ptr(str_);
     let s = c_str.to_string_lossy();
@@ -49,7 +56,9 @@ unsafe extern "C" fn trampoline(str_: *const c_char, args: *mut c_void) -> ov_ge
 impl Drop for Streamer {
     fn drop(&mut self) {
         // Reclaim the leaked outer Box.
-        unsafe { drop(Box::from_raw(self.callback_ptr)); }
+        unsafe {
+            drop(Box::from_raw(self.callback_ptr));
+        }
     }
 }
 

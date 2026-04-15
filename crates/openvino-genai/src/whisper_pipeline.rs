@@ -161,10 +161,7 @@ impl WhisperDecodedResults {
     pub fn get_perf_metrics(&self) -> Result<PerfMetrics> {
         let mut ptr = std::ptr::null_mut();
         crate::InferenceError::convert(unsafe {
-            ov_genai_whisper_decoded_results_get_perf_metrics(
-                self.ptr,
-                std::ptr::addr_of_mut!(ptr),
-            )
+            ov_genai_whisper_decoded_results_get_perf_metrics(self.ptr, std::ptr::addr_of_mut!(ptr))
         })?;
         Ok(PerfMetrics::from_whisper_decoded_results(ptr))
     }

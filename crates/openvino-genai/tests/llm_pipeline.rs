@@ -29,9 +29,7 @@ fn test_generate_with_chat_history() {
     history
         .push(&ChatMessage::system("You are a helpful assistant."))
         .unwrap();
-    history
-        .push(&ChatMessage::user("What is 2+2?"))
-        .unwrap();
+    history.push(&ChatMessage::user("What is 2+2?")).unwrap();
 
     let results = pipeline
         .generate_with_history(&history, None, None)

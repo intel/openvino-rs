@@ -95,45 +95,210 @@ pub mod library {
     }
 }
 
-// The variadic pipeline creation functions cannot go through the link! macro. We provide them as
-// direct extern declarations (only available with dynamic linking) or as helper functions.
+// The C API exposes variadic pipeline constructors for device property key-value pairs. We provide
+// fixed-signature helpers in both linking modes so higher-level crates can pass a slice of property
+// pointers instead of manually expanding a C varargs list.
+
+const MAX_PROPERTIES: usize = 8;
+
+fn pad_props(
+    props: &[*const ::std::os::raw::c_char],
+) -> [*const ::std::os::raw::c_char; MAX_PROPERTIES * 2] {
+    let mut out = [std::ptr::null(); MAX_PROPERTIES * 2];
+    let n = props.len().min(MAX_PROPERTIES * 2);
+    out[..n].copy_from_slice(&props[..n]);
+    out
+}
 
 #[cfg(feature = "dynamic-linking")]
-extern "C" {
-    /// Construct ov_genai_llm_pipeline with no additional properties.
+mod dynamic_variadic {
+    use super::*;
+
+    unsafe extern "C" {
+        #[link_name = "ov_genai_llm_pipeline_create"]
+        fn ov_genai_llm_pipeline_create_raw(
+            models_path: *const ::std::os::raw::c_char,
+            device: *const ::std::os::raw::c_char,
+            property_args_size: usize,
+            pipe: *mut *mut ov_genai_llm_pipeline,
+            ...
+        ) -> ov_status_e;
+
+        #[link_name = "ov_genai_vlm_pipeline_create"]
+        fn ov_genai_vlm_pipeline_create_raw(
+            models_path: *const ::std::os::raw::c_char,
+            device: *const ::std::os::raw::c_char,
+            property_args_size: usize,
+            pipe: *mut *mut ov_genai_vlm_pipeline,
+            ...
+        ) -> ov_status_e;
+
+        #[link_name = "ov_genai_whisper_pipeline_create"]
+        fn ov_genai_whisper_pipeline_create_raw(
+            models_path: *const ::std::os::raw::c_char,
+            device: *const ::std::os::raw::c_char,
+            property_args_size: usize,
+            pipeline: *mut *mut ov_genai_whisper_pipeline,
+            ...
+        ) -> ov_status_e;
+    }
+
+    /// Create an LLM pipeline (dynamic-linking variant).
     ///
-    /// This is the variadic C function; call with `property_args_size = 0` and no trailing args.
-    pub fn ov_genai_llm_pipeline_create(
+    /// `props` contains flattened key-value pairs as C string pointers: `[k1, v1, k2, v2, ...]`.
+    /// Pass an empty slice for no properties. Up to [`MAX_PROPERTIES`] pairs (16 pointers).
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that `models_path`, `device`, and all pointers in `props` are
+    /// valid C strings, and `pipe` is a valid pointer to receive the created pipeline.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `props` contains more than [`MAX_PROPERTIES`] * 2 entries.
+    pub unsafe fn ov_genai_llm_pipeline_create(
         models_path: *const ::std::os::raw::c_char,
         device: *const ::std::os::raw::c_char,
         property_args_size: usize,
         pipe: *mut *mut ov_genai_llm_pipeline,
-        ...
-    ) -> ov_status_e;
+        props: &[*const ::std::os::raw::c_char],
+    ) -> ov_status_e {
+        assert!(
+            props.len() <= MAX_PROPERTIES * 2,
+            "too many properties (max {})",
+            MAX_PROPERTIES
+        );
+        let p = pad_props(props);
+        ov_genai_llm_pipeline_create_raw(
+            models_path,
+            device,
+            property_args_size,
+            pipe,
+            p[0],
+            p[1],
+            p[2],
+            p[3],
+            p[4],
+            p[5],
+            p[6],
+            p[7],
+            p[8],
+            p[9],
+            p[10],
+            p[11],
+            p[12],
+            p[13],
+            p[14],
+            p[15],
+        )
+    }
 
-    /// Construct ov_genai_vlm_pipeline with no additional properties.
-    pub fn ov_genai_vlm_pipeline_create(
+    /// Create a VLM pipeline (dynamic-linking variant).
+    ///
+    /// See [`ov_genai_llm_pipeline_create`] for details on the `props` parameter.
+    ///
+    /// # Safety
+    ///
+    /// Same safety requirements as [`ov_genai_llm_pipeline_create`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if `props` contains more than [`MAX_PROPERTIES`] * 2 entries.
+    pub unsafe fn ov_genai_vlm_pipeline_create(
         models_path: *const ::std::os::raw::c_char,
         device: *const ::std::os::raw::c_char,
         property_args_size: usize,
         pipe: *mut *mut ov_genai_vlm_pipeline,
-        ...
-    ) -> ov_status_e;
+        props: &[*const ::std::os::raw::c_char],
+    ) -> ov_status_e {
+        assert!(
+            props.len() <= MAX_PROPERTIES * 2,
+            "too many properties (max {})",
+            MAX_PROPERTIES
+        );
+        let p = pad_props(props);
+        ov_genai_vlm_pipeline_create_raw(
+            models_path,
+            device,
+            property_args_size,
+            pipe,
+            p[0],
+            p[1],
+            p[2],
+            p[3],
+            p[4],
+            p[5],
+            p[6],
+            p[7],
+            p[8],
+            p[9],
+            p[10],
+            p[11],
+            p[12],
+            p[13],
+            p[14],
+            p[15],
+        )
+    }
 
-    /// Construct ov_genai_whisper_pipeline with no additional properties.
-    pub fn ov_genai_whisper_pipeline_create(
+    /// Create a Whisper pipeline (dynamic-linking variant).
+    ///
+    /// See [`ov_genai_llm_pipeline_create`] for details on the `props` parameter.
+    ///
+    /// # Safety
+    ///
+    /// Same safety requirements as [`ov_genai_llm_pipeline_create`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if `props` contains more than [`MAX_PROPERTIES`] * 2 entries.
+    pub unsafe fn ov_genai_whisper_pipeline_create(
         models_path: *const ::std::os::raw::c_char,
         device: *const ::std::os::raw::c_char,
         property_args_size: usize,
         pipeline: *mut *mut ov_genai_whisper_pipeline,
-        ...
-    ) -> ov_status_e;
+        props: &[*const ::std::os::raw::c_char],
+    ) -> ov_status_e {
+        assert!(
+            props.len() <= MAX_PROPERTIES * 2,
+            "too many properties (max {})",
+            MAX_PROPERTIES
+        );
+        let p = pad_props(props);
+        ov_genai_whisper_pipeline_create_raw(
+            models_path,
+            device,
+            property_args_size,
+            pipeline,
+            p[0],
+            p[1],
+            p[2],
+            p[3],
+            p[4],
+            p[5],
+            p[6],
+            p[7],
+            p[8],
+            p[9],
+            p[10],
+            p[11],
+            p[12],
+            p[13],
+            p[14],
+            p[15],
+        )
+    }
 }
 
-// For runtime linking, we load these functions manually since the link! macro can't handle variadics.
-// These use OnceLock so they can be initialized either lazily (from `find()`) or explicitly (from
-// `load_from`). The `library::load()` and `library::load_from()` functions call
-// `init_variadic_fns` to populate them.
+#[cfg(feature = "dynamic-linking")]
+pub use dynamic_variadic::{
+    ov_genai_llm_pipeline_create, ov_genai_vlm_pipeline_create, ov_genai_whisper_pipeline_create,
+};
+
+// For runtime linking, we load these functions manually and expose the same fixed-signature
+// helpers as the dynamic-linking path. These use OnceLock so they can be initialized either lazily
+// (from `find()`) or explicitly (from `load_from`). The `library::load()` and
+// `library::load_from()` functions call `init_variadic_fns` to populate them.
 #[cfg(feature = "runtime-linking")]
 mod runtime_variadic {
     use super::*;
@@ -145,23 +310,28 @@ mod runtime_variadic {
     // The C function only reads `property_args_size * 2` args from the va_list,
     // so trailing NULLs are harmless.
     type CreateFn = unsafe extern "C" fn(
-        *const ::std::os::raw::c_char,  // models_path
-        *const ::std::os::raw::c_char,  // device
-        usize,                          // property_args_size (number of key-value pairs)
+        *const ::std::os::raw::c_char,    // models_path
+        *const ::std::os::raw::c_char,    // device
+        usize,                            // property_args_size (number of key-value pairs)
         *mut *mut ::std::os::raw::c_void, // pipe
         // Up to 8 property key-value pairs (16 args):
-        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
-        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
-        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
-        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
-        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
-        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
-        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
-        *const ::std::os::raw::c_char, *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
+        *const ::std::os::raw::c_char,
     ) -> ov_status_e;
-
-    /// Maximum number of property key-value pairs supported.
-    pub const MAX_PROPERTIES: usize = 8;
 
     static LLM_CREATE: OnceLock<CreateFn> = OnceLock::new();
     static VLM_CREATE: OnceLock<CreateFn> = OnceLock::new();
@@ -196,14 +366,6 @@ mod runtime_variadic {
         Ok(())
     }
 
-    /// Pad a property args array to 16 entries (8 key-value pairs), filling with null.
-    fn pad_props(props: &[*const ::std::os::raw::c_char]) -> [*const ::std::os::raw::c_char; 16] {
-        let mut out = [std::ptr::null(); 16];
-        let n = props.len().min(16);
-        out[..n].copy_from_slice(&props[..n]);
-        out
-    }
-
     /// Create an LLM pipeline (runtime-linking variant).
     ///
     /// `props` contains flattened key-value pairs as C string pointers: `[k1, v1, k2, v2, ...]`.
@@ -225,14 +387,37 @@ mod runtime_variadic {
         pipe: *mut *mut ov_genai_llm_pipeline,
         props: &[*const ::std::os::raw::c_char],
     ) -> ov_status_e {
-        assert!(props.len() <= MAX_PROPERTIES * 2, "too many properties (max {})", MAX_PROPERTIES);
+        assert!(
+            props.len() <= MAX_PROPERTIES * 2,
+            "too many properties (max {})",
+            MAX_PROPERTIES
+        );
         let p = pad_props(props);
         let f = LLM_CREATE
             .get()
             .expect("`openvino_genai_c` function not loaded: `ov_genai_llm_pipeline_create`; call library::load() or library::load_from() first");
-        f(models_path, device, property_args_size, pipe.cast(),
-          p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
-          p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15])
+        f(
+            models_path,
+            device,
+            property_args_size,
+            pipe.cast(),
+            p[0],
+            p[1],
+            p[2],
+            p[3],
+            p[4],
+            p[5],
+            p[6],
+            p[7],
+            p[8],
+            p[9],
+            p[10],
+            p[11],
+            p[12],
+            p[13],
+            p[14],
+            p[15],
+        )
     }
 
     /// Create a VLM pipeline (runtime-linking variant).
@@ -254,14 +439,37 @@ mod runtime_variadic {
         pipe: *mut *mut ov_genai_vlm_pipeline,
         props: &[*const ::std::os::raw::c_char],
     ) -> ov_status_e {
-        assert!(props.len() <= MAX_PROPERTIES * 2, "too many properties (max {})", MAX_PROPERTIES);
+        assert!(
+            props.len() <= MAX_PROPERTIES * 2,
+            "too many properties (max {})",
+            MAX_PROPERTIES
+        );
         let p = pad_props(props);
         let f = VLM_CREATE
             .get()
             .expect("`openvino_genai_c` function not loaded: `ov_genai_vlm_pipeline_create`; call library::load() or library::load_from() first");
-        f(models_path, device, property_args_size, pipe.cast(),
-          p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
-          p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15])
+        f(
+            models_path,
+            device,
+            property_args_size,
+            pipe.cast(),
+            p[0],
+            p[1],
+            p[2],
+            p[3],
+            p[4],
+            p[5],
+            p[6],
+            p[7],
+            p[8],
+            p[9],
+            p[10],
+            p[11],
+            p[12],
+            p[13],
+            p[14],
+            p[15],
+        )
     }
 
     /// Create a Whisper pipeline (runtime-linking variant).
@@ -283,19 +491,41 @@ mod runtime_variadic {
         pipeline: *mut *mut ov_genai_whisper_pipeline,
         props: &[*const ::std::os::raw::c_char],
     ) -> ov_status_e {
-        assert!(props.len() <= MAX_PROPERTIES * 2, "too many properties (max {})", MAX_PROPERTIES);
+        assert!(
+            props.len() <= MAX_PROPERTIES * 2,
+            "too many properties (max {})",
+            MAX_PROPERTIES
+        );
         let p = pad_props(props);
         let f = WHISPER_CREATE
             .get()
             .expect("`openvino_genai_c` function not loaded: `ov_genai_whisper_pipeline_create`; call library::load() or library::load_from() first");
-        f(models_path, device, property_args_size, pipeline.cast(),
-          p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
-          p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15])
+        f(
+            models_path,
+            device,
+            property_args_size,
+            pipeline.cast(),
+            p[0],
+            p[1],
+            p[2],
+            p[3],
+            p[4],
+            p[5],
+            p[6],
+            p[7],
+            p[8],
+            p[9],
+            p[10],
+            p[11],
+            p[12],
+            p[13],
+            p[14],
+            p[15],
+        )
     }
 }
 
 #[cfg(feature = "runtime-linking")]
 pub use runtime_variadic::{
-    ov_genai_llm_pipeline_create, ov_genai_vlm_pipeline_create,
-    ov_genai_whisper_pipeline_create,
+    ov_genai_llm_pipeline_create, ov_genai_vlm_pipeline_create, ov_genai_whisper_pipeline_create,
 };

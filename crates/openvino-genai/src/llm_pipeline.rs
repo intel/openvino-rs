@@ -72,8 +72,7 @@ impl LlmPipeline {
         streamer: Option<&Streamer>,
     ) -> Result<DecodedResults> {
         let prompt = cstr!(prompt);
-        let config_ptr = config
-            .map_or(std::ptr::null(), GenerationConfig::as_ptr);
+        let config_ptr = config.map_or(std::ptr::null(), GenerationConfig::as_ptr);
         let streamer_raw = streamer.map(Streamer::as_raw);
         let streamer_ptr = streamer_raw
             .as_ref()
@@ -98,8 +97,7 @@ impl LlmPipeline {
         config: Option<&GenerationConfig>,
         streamer: Option<&Streamer>,
     ) -> Result<DecodedResults> {
-        let config_ptr = config
-            .map_or(std::ptr::null(), GenerationConfig::as_ptr);
+        let config_ptr = config.map_or(std::ptr::null(), GenerationConfig::as_ptr);
         let streamer_raw = streamer.map(Streamer::as_raw);
         let streamer_ptr = streamer_raw
             .as_ref()
@@ -138,8 +136,7 @@ impl LlmPipeline {
     /// Set the generation config for this pipeline.
     pub fn set_generation_config(&mut self, config: &mut GenerationConfig) -> Result<()> {
         try_unsafe!(ov_genai_llm_pipeline_set_generation_config(
-            self.ptr,
-            config.ptr
+            self.ptr, config.ptr
         ))
     }
 }

@@ -22,19 +22,19 @@
     clippy::doc_markdown
 )]
 
-mod error;
-mod util;
-mod generation_config;
-mod decoded_results;
-mod llm_pipeline;
-mod vlm_pipeline;
-mod whisper_pipeline;
-mod whisper_generation_config;
 mod chat_history;
 mod chat_message;
+mod decoded_results;
+mod error;
+mod generation_config;
 mod json_container;
-mod streamer;
+mod llm_pipeline;
 mod perf_metrics;
+mod streamer;
+mod util;
+mod vlm_pipeline;
+mod whisper_generation_config;
+mod whisper_pipeline;
 
 pub use error::{InferenceError, LoadingError, SetupError};
 
@@ -54,14 +54,14 @@ pub fn load() -> Result<(), String> {
 pub fn load_from(path: impl Into<std::path::PathBuf>) -> Result<(), String> {
     openvino_genai_sys::library::load_from(path)
 }
-pub use generation_config::GenerationConfig;
-pub use decoded_results::DecodedResults;
-pub use llm_pipeline::LlmPipeline;
-pub use vlm_pipeline::{VlmPipeline, VlmDecodedResults};
-pub use whisper_pipeline::{WhisperPipeline, WhisperDecodedResults, WhisperDecodedResultChunk};
-pub use whisper_generation_config::WhisperGenerationConfig;
 pub use chat_history::ChatHistory;
 pub use chat_message::{ChatMessage, ToolCall};
+pub use decoded_results::DecodedResults;
+pub use generation_config::GenerationConfig;
 pub use json_container::JsonContainer;
-pub use streamer::{Streamer, StreamingStatus};
+pub use llm_pipeline::LlmPipeline;
 pub use perf_metrics::PerfMetrics;
+pub use streamer::{Streamer, StreamingStatus};
+pub use vlm_pipeline::{VlmDecodedResults, VlmPipeline};
+pub use whisper_generation_config::WhisperGenerationConfig;
+pub use whisper_pipeline::{WhisperDecodedResultChunk, WhisperDecodedResults, WhisperPipeline};

@@ -14,7 +14,9 @@ fn test_push_typed_and_size() {
     openvino_genai::load().unwrap();
     let mut history = ChatHistory::new().unwrap();
 
-    history.push(&ChatMessage::system("You are helpful")).unwrap();
+    history
+        .push(&ChatMessage::system("You are helpful"))
+        .unwrap();
     assert_eq!(history.size().unwrap(), 1);
 
     history.push(&ChatMessage::user("Hello")).unwrap();

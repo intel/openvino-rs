@@ -2,16 +2,16 @@
 
 use crate::error::LoadingError;
 use crate::{
-    cstr, drop_using_function, try_unsafe, util::Result, GenerationConfig, PerfMetrics,
-    SetupError, Streamer,
+    cstr, drop_using_function, try_unsafe, util::Result, GenerationConfig, PerfMetrics, SetupError,
+    Streamer,
 };
 use openvino_genai_sys::{
     self, ov_genai_vlm_decoded_results, ov_genai_vlm_decoded_results_free,
     ov_genai_vlm_decoded_results_get_perf_metrics, ov_genai_vlm_decoded_results_get_string,
-    ov_genai_vlm_pipeline,
-    ov_genai_vlm_pipeline_create, ov_genai_vlm_pipeline_finish_chat, ov_genai_vlm_pipeline_free,
-    ov_genai_vlm_pipeline_generate, ov_genai_vlm_pipeline_get_generation_config,
-    ov_genai_vlm_pipeline_set_generation_config, ov_genai_vlm_pipeline_start_chat, ov_tensor_t,
+    ov_genai_vlm_pipeline, ov_genai_vlm_pipeline_create, ov_genai_vlm_pipeline_finish_chat,
+    ov_genai_vlm_pipeline_free, ov_genai_vlm_pipeline_generate,
+    ov_genai_vlm_pipeline_get_generation_config, ov_genai_vlm_pipeline_set_generation_config,
+    ov_genai_vlm_pipeline_start_chat, ov_tensor_t,
 };
 
 /// A pipeline for generating text from text+image inputs using Vision-Language Models.
@@ -122,8 +122,7 @@ impl VlmPipeline {
     /// Set the generation config for this pipeline.
     pub fn set_generation_config(&mut self, config: &mut GenerationConfig) -> Result<()> {
         try_unsafe!(ov_genai_vlm_pipeline_set_generation_config(
-            self.ptr,
-            config.ptr
+            self.ptr, config.ptr
         ))
     }
 }
