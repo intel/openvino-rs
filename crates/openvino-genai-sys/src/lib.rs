@@ -146,7 +146,7 @@ mod dynamic_variadic {
     /// Create an LLM pipeline (dynamic-linking variant).
     ///
     /// `props` contains flattened key-value pairs as C string pointers: `[k1, v1, k2, v2, ...]`.
-    /// Pass an empty slice for no properties. Up to [`MAX_PROPERTIES`] pairs (16 pointers).
+    /// Pass an empty slice for no properties. Up to `MAX_PROPERTIES` pairs (16 pointers).
     ///
     /// # Safety
     ///
@@ -155,7 +155,7 @@ mod dynamic_variadic {
     ///
     /// # Panics
     ///
-    /// Panics if `props` contains more than [`MAX_PROPERTIES`] * 2 entries.
+    /// Panics if `props` contains more than `MAX_PROPERTIES * 2` entries.
     pub unsafe fn ov_genai_llm_pipeline_create(
         models_path: *const ::std::os::raw::c_char,
         device: *const ::std::os::raw::c_char,
@@ -203,7 +203,7 @@ mod dynamic_variadic {
     ///
     /// # Panics
     ///
-    /// Panics if `props` contains more than [`MAX_PROPERTIES`] * 2 entries.
+    /// Panics if `props` contains more than `MAX_PROPERTIES * 2` entries.
     pub unsafe fn ov_genai_vlm_pipeline_create(
         models_path: *const ::std::os::raw::c_char,
         device: *const ::std::os::raw::c_char,
@@ -251,7 +251,7 @@ mod dynamic_variadic {
     ///
     /// # Panics
     ///
-    /// Panics if `props` contains more than [`MAX_PROPERTIES`] * 2 entries.
+    /// Panics if `props` contains more than `MAX_PROPERTIES * 2` entries.
     pub unsafe fn ov_genai_whisper_pipeline_create(
         models_path: *const ::std::os::raw::c_char,
         device: *const ::std::os::raw::c_char,
@@ -369,7 +369,7 @@ mod runtime_variadic {
     /// Create an LLM pipeline (runtime-linking variant).
     ///
     /// `props` contains flattened key-value pairs as C string pointers: `[k1, v1, k2, v2, ...]`.
-    /// Pass an empty slice for no properties. Up to [`MAX_PROPERTIES`] pairs (16 pointers).
+    /// Pass an empty slice for no properties. Up to `MAX_PROPERTIES` pairs (16 pointers).
     ///
     /// # Safety
     ///
@@ -379,7 +379,7 @@ mod runtime_variadic {
     /// # Panics
     ///
     /// Panics if `library::load()` or `library::load_from()` has not been called first,
-    /// or if `props` contains more than [`MAX_PROPERTIES`] * 2 entries.
+    /// or if `props` contains more than `MAX_PROPERTIES * 2` entries.
     pub unsafe fn ov_genai_llm_pipeline_create(
         models_path: *const ::std::os::raw::c_char,
         device: *const ::std::os::raw::c_char,
@@ -389,8 +389,7 @@ mod runtime_variadic {
     ) -> ov_status_e {
         assert!(
             props.len() <= MAX_PROPERTIES * 2,
-            "too many properties (max {})",
-            MAX_PROPERTIES
+            "too many properties (max {MAX_PROPERTIES})"
         );
         let p = pad_props(props);
         let f = LLM_CREATE
@@ -431,7 +430,7 @@ mod runtime_variadic {
     /// # Panics
     ///
     /// Panics if `library::load()` or `library::load_from()` has not been called first,
-    /// or if `props` contains more than [`MAX_PROPERTIES`] * 2 entries.
+    /// or if `props` contains more than `MAX_PROPERTIES * 2` entries.
     pub unsafe fn ov_genai_vlm_pipeline_create(
         models_path: *const ::std::os::raw::c_char,
         device: *const ::std::os::raw::c_char,
@@ -441,8 +440,7 @@ mod runtime_variadic {
     ) -> ov_status_e {
         assert!(
             props.len() <= MAX_PROPERTIES * 2,
-            "too many properties (max {})",
-            MAX_PROPERTIES
+            "too many properties (max {MAX_PROPERTIES})"
         );
         let p = pad_props(props);
         let f = VLM_CREATE
@@ -483,7 +481,7 @@ mod runtime_variadic {
     /// # Panics
     ///
     /// Panics if `library::load()` or `library::load_from()` has not been called first,
-    /// or if `props` contains more than [`MAX_PROPERTIES`] * 2 entries.
+    /// or if `props` contains more than `MAX_PROPERTIES * 2` entries.
     pub unsafe fn ov_genai_whisper_pipeline_create(
         models_path: *const ::std::os::raw::c_char,
         device: *const ::std::os::raw::c_char,
@@ -493,8 +491,7 @@ mod runtime_variadic {
     ) -> ov_status_e {
         assert!(
             props.len() <= MAX_PROPERTIES * 2,
-            "too many properties (max {})",
-            MAX_PROPERTIES
+            "too many properties (max {MAX_PROPERTIES})"
         );
         let p = pad_props(props);
         let f = WHISPER_CREATE

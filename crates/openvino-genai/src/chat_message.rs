@@ -1,5 +1,7 @@
 //! Typed chat message types for use with [`ChatHistory`](crate::ChatHistory).
 
+use std::fmt::Write as _;
+
 use crate::{util::Result, JsonContainer};
 
 /// A single tool call requested by the model.
@@ -164,7 +166,7 @@ fn json_escape(s: &str) -> String {
             c if c < '\x20' => {
                 // Control characters as \u00XX
                 for byte in c.encode_utf8(&mut [0; 4]).bytes() {
-                    out.push_str(&format!(r"\u{byte:04x}"));
+                    let _ = write!(out, r"\u{byte:04x}");
                 }
             }
             c => out.push(c),
