@@ -76,7 +76,7 @@ impl LlmPipeline {
         let streamer_raw = streamer.map(Streamer::as_raw);
         let streamer_ptr = streamer_raw
             .as_ref()
-            .map_or(std::ptr::null(), |s| s as *const _);
+            .map_or(std::ptr::null(), std::ptr::from_ref);
         let mut results_ptr = std::ptr::null_mut();
         try_unsafe!(ov_genai_llm_pipeline_generate(
             self.ptr,
@@ -101,7 +101,7 @@ impl LlmPipeline {
         let streamer_raw = streamer.map(Streamer::as_raw);
         let streamer_ptr = streamer_raw
             .as_ref()
-            .map_or(std::ptr::null(), |s| s as *const _);
+            .map_or(std::ptr::null(), std::ptr::from_ref);
         let mut results_ptr = std::ptr::null_mut();
         try_unsafe!(ov_genai_llm_pipeline_generate_with_history(
             self.ptr,
