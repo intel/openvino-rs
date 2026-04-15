@@ -86,9 +86,7 @@ impl WhisperGenerationConfig {
     pub fn get_task(&self) -> Result<String> {
         unsafe {
             crate::util::get_c_string_two_call(|buf, size| {
-                openvino_genai_sys::ov_genai_whisper_generation_config_get_task(
-                    self.ptr, buf, size,
-                )
+                openvino_genai_sys::ov_genai_whisper_generation_config_get_task(self.ptr, buf, size)
             })
         }
     }

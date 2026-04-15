@@ -24,10 +24,18 @@ impl Drop for JsonContainer {
 fn convert_json_status(status: ov_genai_json_container_status_e) -> Result<()> {
     match status {
         ov_genai_json_container_status_e::OV_GENAI_JSON_CONTAINER_OK => Ok(()),
-        ov_genai_json_container_status_e::OV_GENAI_JSON_CONTAINER_INVALID_PARAM => Err(InferenceError::InvalidCParam),
-        ov_genai_json_container_status_e::OV_GENAI_JSON_CONTAINER_INVALID_JSON => Err(InferenceError::ParameterMismatch),
-        ov_genai_json_container_status_e::OV_GENAI_JSON_CONTAINER_OUT_OF_BOUNDS => Err(InferenceError::OutOfBounds),
-        ov_genai_json_container_status_e::OV_GENAI_JSON_CONTAINER_ERROR => Err(InferenceError::GeneralError),
+        ov_genai_json_container_status_e::OV_GENAI_JSON_CONTAINER_INVALID_PARAM => {
+            Err(InferenceError::InvalidCParam)
+        }
+        ov_genai_json_container_status_e::OV_GENAI_JSON_CONTAINER_INVALID_JSON => {
+            Err(InferenceError::ParameterMismatch)
+        }
+        ov_genai_json_container_status_e::OV_GENAI_JSON_CONTAINER_OUT_OF_BOUNDS => {
+            Err(InferenceError::OutOfBounds)
+        }
+        ov_genai_json_container_status_e::OV_GENAI_JSON_CONTAINER_ERROR => {
+            Err(InferenceError::GeneralError)
+        }
     }
 }
 

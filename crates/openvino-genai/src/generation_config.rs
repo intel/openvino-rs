@@ -26,9 +26,9 @@ impl GenerationConfig {
     /// Create a new default generation config.
     pub fn new() -> Result<Self> {
         let mut ptr = std::ptr::null_mut();
-        try_unsafe!(ov_genai_generation_config_create(
-            std::ptr::addr_of_mut!(ptr)
-        ))?;
+        try_unsafe!(ov_genai_generation_config_create(std::ptr::addr_of_mut!(
+            ptr
+        )))?;
         Ok(Self { ptr })
     }
 
@@ -110,25 +110,23 @@ impl GenerationConfig {
     pub fn get_max_new_tokens(&self) -> Result<usize> {
         let mut value: usize = 0;
         try_unsafe!(ov_genai_generation_config_get_max_new_tokens(
-            self.ptr,
-            &mut value
+            self.ptr, &mut value
         ))?;
         Ok(value)
     }
 
     /// Set stop strings that will cause generation to stop.
     pub fn set_stop_strings(&mut self, strings: &[&str]) -> Result<()> {
-        let c_strings: Vec<std::ffi::CString> = strings
-            .iter()
-            .map(|s| cstr!(*s))
-            .collect();
+        let c_strings: Vec<std::ffi::CString> = strings.iter().map(|s| cstr!(*s)).collect();
         let mut ptrs: Vec<*const std::os::raw::c_char> =
             c_strings.iter().map(|s| s.as_ptr()).collect();
-        try_unsafe!(openvino_genai_sys::ov_genai_generation_config_set_stop_strings(
-            self.ptr,
-            ptrs.as_mut_ptr(),
-            ptrs.len()
-        ))
+        try_unsafe!(
+            openvino_genai_sys::ov_genai_generation_config_set_stop_strings(
+                self.ptr,
+                ptrs.as_mut_ptr(),
+                ptrs.len()
+            )
+        )
     }
 
     /// Set whether stop strings should be included in the output.

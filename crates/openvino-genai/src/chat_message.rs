@@ -98,16 +98,10 @@ impl ChatMessage {
     pub(crate) fn to_json_string(&self) -> String {
         match self {
             Self::System { content } => {
-                format!(
-                    r#"{{"role":"system","content":{}}}"#,
-                    json_escape(content)
-                )
+                format!(r#"{{"role":"system","content":{}}}"#, json_escape(content))
             }
             Self::User { content } => {
-                format!(
-                    r#"{{"role":"user","content":{}}}"#,
-                    json_escape(content)
-                )
+                format!(r#"{{"role":"user","content":{}}}"#, json_escape(content))
             }
             Self::Assistant {
                 content,
@@ -208,10 +202,7 @@ mod tests {
     #[test]
     fn user_message_json() {
         let msg = ChatMessage::user("Hello");
-        assert_eq!(
-            msg.to_json_string(),
-            r#"{"role":"user","content":"Hello"}"#
-        );
+        assert_eq!(msg.to_json_string(), r#"{"role":"user","content":"Hello"}"#);
     }
 
     #[test]

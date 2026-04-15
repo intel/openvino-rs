@@ -23,11 +23,21 @@ unsafe impl Send for ChatHistory {}
 fn convert_chat_status(status: ov_genai_chat_history_status_e) -> Result<()> {
     match status {
         ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_OK => Ok(()),
-        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_INVALID_PARAM => Err(InferenceError::InvalidCParam),
-        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_OUT_OF_BOUNDS => Err(InferenceError::OutOfBounds),
-        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_EMPTY => Err(InferenceError::NotFound),
-        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_INVALID_JSON => Err(InferenceError::ParameterMismatch),
-        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_ERROR => Err(InferenceError::GeneralError),
+        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_INVALID_PARAM => {
+            Err(InferenceError::InvalidCParam)
+        }
+        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_OUT_OF_BOUNDS => {
+            Err(InferenceError::OutOfBounds)
+        }
+        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_EMPTY => {
+            Err(InferenceError::NotFound)
+        }
+        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_INVALID_JSON => {
+            Err(InferenceError::ParameterMismatch)
+        }
+        ov_genai_chat_history_status_e::OV_GENAI_CHAT_HISTORY_ERROR => {
+            Err(InferenceError::GeneralError)
+        }
     }
 }
 
@@ -35,9 +45,7 @@ impl ChatHistory {
     /// Create a new empty chat history.
     pub fn new() -> Result<Self> {
         let mut ptr = std::ptr::null_mut();
-        convert_chat_status(unsafe {
-            ov_genai_chat_history_create(std::ptr::addr_of_mut!(ptr))
-        })?;
+        convert_chat_status(unsafe { ov_genai_chat_history_create(std::ptr::addr_of_mut!(ptr)) })?;
         Ok(Self { ptr })
     }
 
@@ -62,9 +70,7 @@ impl ChatHistory {
     /// Prefer [`push`](Self::push) for most use cases. This method is available as an escape
     /// hatch for message shapes not covered by [`ChatMessage`].
     pub fn push_back(&mut self, message: &JsonContainer) -> Result<()> {
-        convert_chat_status(unsafe {
-            ov_genai_chat_history_push_back(self.ptr, message.as_ptr())
-        })
+        convert_chat_status(unsafe { ov_genai_chat_history_push_back(self.ptr, message.as_ptr()) })
     }
 
     /// Get the number of messages in the history.
@@ -106,9 +112,7 @@ impl ChatHistory {
     /// history.set_tools(&tools).unwrap();
     /// ```
     pub fn set_tools(&mut self, tools: &JsonContainer) -> Result<()> {
-        convert_chat_status(unsafe {
-            ov_genai_chat_history_set_tools(self.ptr, tools.as_ptr())
-        })
+        convert_chat_status(unsafe { ov_genai_chat_history_set_tools(self.ptr, tools.as_ptr()) })
     }
 
     /// Get the current tool definitions.

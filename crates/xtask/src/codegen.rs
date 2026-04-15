@@ -1,6 +1,7 @@
 use crate::util::path_to_crates;
 use anyhow::{anyhow, ensure, Context, Result};
 use clap::{Args, ValueEnum};
+use openvino_finder::Linking;
 use regex::Regex;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
@@ -45,9 +46,11 @@ impl CodegenCommand {
     fn execute_sys(&self) -> Result<()> {
         let header_file = self.resolve_path(OV_SYS_HEADER)?;
         let output_directory = self.resolve_output(OV_SYS_OUTPUT)?;
+        let include_directory =
+            Self::resolve_include_dir(OV_SYS_INCLUDE, "openvino_c", "openvino/c/openvino.h")?;
 
         // Generate the type bindings into `.../types.rs`.
-        let type_bindings = Self::generate_sys_type_bindings(&header_file)?;
+        let type_bindings = Self::generate_sys_type_bindings(&header_file, &include_directory)?;
         let type_bindings_path = output_directory.join(TYPES_FILE);
         type_bindings
             .write_to_file(&type_bindings_path)
@@ -56,7 +59,8 @@ impl CodegenCommand {
             })?;
 
         // Generate the function bindings into `.../functions.rs`, with a prefix and suffix.
-        let function_bindings = Self::generate_sys_function_bindings(&header_file)?;
+        let function_bindings =
+            Self::generate_sys_function_bindings(&header_file, &include_directory)?;
 
         // Runtime linking doesn't work yet with variadic args (...), so we need to convert them
         // to a fixed pair of args (property_key, property_value) for a few select functions.
@@ -84,9 +88,20 @@ impl CodegenCommand {
     fn execute_genai(&self) -> Result<()> {
         let header_file = self.resolve_path(GENAI_HEADER)?;
         let output_directory = self.resolve_output(GENAI_OUTPUT)?;
+        let genai_include_directory = Self::resolve_include_dir(
+            GENAI_INCLUDE,
+            "openvino_genai_c",
+            "openvino/genai/c/llm_pipeline.h",
+        )?;
+        let openvino_include_directory =
+            Self::resolve_include_dir(OV_SYS_INCLUDE, "openvino_c", "openvino/c/openvino.h")?;
 
         // Generate the type bindings — only GenAI-specific types, blocklisting core OV types.
-        let type_bindings = Self::generate_genai_type_bindings(&header_file)?;
+        let type_bindings = Self::generate_genai_type_bindings(
+            &header_file,
+            &genai_include_directory,
+            &openvino_include_directory,
+        )?;
         let type_bindings_path = output_directory.join(TYPES_FILE);
         type_bindings
             .write_to_file(&type_bindings_path)
@@ -95,7 +110,11 @@ impl CodegenCommand {
             })?;
 
         // Generate the function bindings.
-        let function_bindings = Self::generate_genai_function_bindings(&header_file)?;
+        let function_bindings = Self::generate_genai_function_bindings(
+            &header_file,
+            &genai_include_directory,
+            &openvino_include_directory,
+        )?;
         let function_bindings_string = function_bindings.to_string();
 
         Self::write_functions_file(
@@ -124,7 +143,10 @@ impl CodegenCommand {
     fn resolve_path(&self, default: &str) -> Result<PathBuf> {
         Ok(match self.header_file.clone() {
             Some(path) => {
-                ensure!(path.is_file(), "The input header file must be an actual file.");
+                ensure!(
+                    path.is_file(),
+                    "The input header file must be an actual file."
+                );
                 path
             }
             None => path_to_crates()?.join(default),
@@ -134,19 +156,53 @@ impl CodegenCommand {
     fn resolve_output(&self, default: &str) -> Result<PathBuf> {
         Ok(match self.output_directory.clone() {
             Some(path) => {
-                ensure!(path.is_dir(), "The output directory must be an actual directory.");
+                ensure!(
+                    path.is_dir(),
+                    "The output directory must be an actual directory."
+                );
                 path
             }
             None => path_to_crates()?.join(default),
         })
     }
 
+    fn resolve_include_dir(default: &str, library_name: &str, header: &str) -> Result<PathBuf> {
+        let include_dir = path_to_crates()?.join(default);
+        if include_dir.join(header).is_file() {
+            return Ok(include_dir);
+        }
+
+        let library_path = openvino_finder::find(library_name, Linking::Dynamic)
+            .with_context(|| format!("Unable to find installed library for {library_name}"))?;
+        Self::find_include_dir_from_library(&library_path, header).with_context(|| {
+            format!(
+                "Unable to derive include directory for {library_name} from {}",
+                library_path.display()
+            )
+        })
+    }
+
+    fn find_include_dir_from_library(library_path: &Path, header: &str) -> Option<PathBuf> {
+        let mut current = library_path.parent();
+        while let Some(dir) = current {
+            let include_dir = dir.join("include");
+            if include_dir.join(header).is_file() {
+                return Some(include_dir);
+            }
+            current = dir.parent();
+        }
+        None
+    }
+
     // --- openvino-sys bindgen ---
 
-    fn generate_sys_type_bindings<P: AsRef<Path>>(header_file: P) -> Result<bindgen::Bindings> {
+    fn generate_sys_type_bindings<P: AsRef<Path>>(
+        header_file: P,
+        include_directory: &Path,
+    ) -> Result<bindgen::Bindings> {
         bindgen::Builder::default()
             .header(header_file.as_ref().to_string_lossy())
-            .clang_arg("-I./crates/openvino-sys/upstream/src/bindings/c/include")
+            .clang_arg(format!("-I{}", include_directory.display()))
             .allowlist_type("ov_.*")
             .size_t_is_usize(true)
             .default_enum_style(bindgen::EnumVariation::Rust {
@@ -159,10 +215,11 @@ impl CodegenCommand {
 
     fn generate_sys_function_bindings<P: AsRef<Path>>(
         header_file: P,
+        include_directory: &Path,
     ) -> Result<bindgen::Bindings> {
         bindgen::Builder::default()
             .header(header_file.as_ref().to_string_lossy())
-            .clang_arg("-I./crates/openvino-sys/upstream/src/bindings/c/include")
+            .clang_arg(format!("-I{}", include_directory.display()))
             .allowlist_function("ov_.*")
             .blocklist_type("__uint8_t")
             .blocklist_type("__int64_t")
@@ -174,11 +231,15 @@ impl CodegenCommand {
 
     // --- openvino-genai-sys bindgen ---
 
-    fn generate_genai_type_bindings<P: AsRef<Path>>(header_file: P) -> Result<bindgen::Bindings> {
+    fn generate_genai_type_bindings<P: AsRef<Path>>(
+        header_file: P,
+        genai_include_directory: &Path,
+        openvino_include_directory: &Path,
+    ) -> Result<bindgen::Bindings> {
         bindgen::Builder::default()
             .header(header_file.as_ref().to_string_lossy())
-            .clang_arg("-I./crates/openvino-genai-sys/upstream/src/c/include")
-            .clang_arg("-I./crates/openvino-sys/upstream/src/bindings/c/include")
+            .clang_arg(format!("-I{}", genai_include_directory.display()))
+            .clang_arg(format!("-I{}", openvino_include_directory.display()))
             .allowlist_type("ov_genai_.*|streamer_callback|StopCriteria")
             // Core OV types are provided by openvino-sys.
             .blocklist_type("ov_status_e")
@@ -194,12 +255,15 @@ impl CodegenCommand {
 
     fn generate_genai_function_bindings<P: AsRef<Path>>(
         header_file: P,
+        genai_include_directory: &Path,
+        openvino_include_directory: &Path,
     ) -> Result<bindgen::Bindings> {
         bindgen::Builder::default()
             .header(header_file.as_ref().to_string_lossy())
-            .clang_arg("-I./crates/openvino-genai-sys/upstream/src/c/include")
-            .clang_arg("-I./crates/openvino-sys/upstream/src/bindings/c/include")
+            .clang_arg(format!("-I{}", genai_include_directory.display()))
+            .clang_arg(format!("-I{}", openvino_include_directory.display()))
             .allowlist_function("ov_genai_.*")
+            .blocklist_function("ov_genai_(llm|vlm|whisper)_pipeline_create")
             // Core OV types are provided by openvino-sys.
             .blocklist_type("ov_status_e")
             .blocklist_type("ov_tensor_t")
@@ -216,8 +280,9 @@ const TYPES_FILE: &str = "types.rs";
 const FUNCTIONS_FILE: &str = "functions.rs";
 
 const OV_SYS_OUTPUT: &str = "openvino-sys/src/generated";
-const OV_SYS_HEADER: &str =
-    "openvino-sys/upstream/src/bindings/c/include/openvino/c/openvino.h";
+const OV_SYS_INCLUDE: &str = "openvino-sys/upstream/src/bindings/c/include";
+const OV_SYS_HEADER: &str = "openvino-sys/upstream/src/bindings/c/include/openvino/c/openvino.h";
 
 const GENAI_OUTPUT: &str = "openvino-genai-sys/src/generated";
+const GENAI_INCLUDE: &str = "openvino-genai-sys/upstream/src/c/include";
 const GENAI_HEADER: &str = "openvino-genai-sys/genai_all.h";

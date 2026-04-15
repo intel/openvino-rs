@@ -462,16 +462,6 @@ unsafe extern "C" {
     ) -> ov_status_e;
 }
 unsafe extern "C" {
-    #[doc = " @brief Construct ov_genai_llm_pipeline.\n\n Initializes a ov_genai_llm_pipeline instance from the specified model directory and device. Optional property\n parameters can be passed as key-value pairs.\n\n @param models_path Path to the directory containing the model files.\n @param device Name of a device to load a model to.\n @param property_args_size How many properties args will be passed, each property contains 2 args: key and value.\n @param ov_genai_llm_pipeline A pointer to the newly created ov_genai_llm_pipeline.\n @param ... property parameter: Optional pack of pairs: <char* property_key, char* property_value> relevant only\n @return ov_status_e A status code, return OK(0) if successful.\n\n @example\n Example with no properties:\n ov_genai_llm_pipeline_create(model_path, \"CPU\", 0, &pipe);\n\n Example with properties:\n ov_genai_llm_pipeline_create(model_path, \"GPU\", 2, &pipe,\n                             \"CACHE_DIR\", \"cache_dir\");\n Note: If the property value is not a string, please pass it as a string\n Example:\n ov_genai_llm_pipeline_create(model_path, \"NPU\", 6, &pipeline, \"MAX_PROMPT_LEN\", \"128\", \"MIN_RESPONSE_LEN\",\n\"64\", \"CACHE_DIR\", \"cache_dir\")"]
-    pub fn ov_genai_llm_pipeline_create(
-        models_path: *const ::std::os::raw::c_char,
-        device: *const ::std::os::raw::c_char,
-        property_args_size: usize,
-        pipe: *mut *mut ov_genai_llm_pipeline,
-        ...
-    ) -> ov_status_e;
-}
-unsafe extern "C" {
     #[doc = " @brief Release the memory allocated by ov_genai_llm_pipeline.\n @param model A pointer to the ov_genai_llm_pipeline to free memory."]
     pub fn ov_genai_llm_pipeline_free(pipe: *mut ov_genai_llm_pipeline);
 }
@@ -544,16 +534,6 @@ unsafe extern "C" {
         results: *const ov_genai_vlm_decoded_results,
         output: *mut ::std::os::raw::c_char,
         output_size: *mut usize,
-    ) -> ov_status_e;
-}
-unsafe extern "C" {
-    #[doc = " @brief Construct ov_genai_vlm_pipeline.\n\n Initializes a ov_genai_vlm_pipeline instance from the specified model directory and device. Optional property\n parameters can be passed as key-value pairs.\n\n @param models_path Path to the directory containing the model files.\n @param device Name of a device to load a model to.\n @param property_args_size How many properties args will be passed, each property contains 2 args: key and value.\n @param pipe A pointer to the newly created ov_genai_vlm_pipeline.\n @param ... property parameter: Optional pack of pairs: <char* property_key, char* property_value> relevant only\n @return ov_status_e A status code, return OK(0) if successful.\n\n @example\n Example with no properties:\n ov_genai_vlm_pipeline_create(model_path, \"CPU\", 0, &pipe);\n\n Example with properties:\n ov_genai_vlm_pipeline_create(model_path, \"GPU\", 2, &pipe,\n                             \"CACHE_DIR\", \"cache_dir\");\n Note: If the property value is not a string, please pass it as a string\n Example:\n ov_genai_vlm_pipeline_create(model_path, \"NPU\", 6, &pipeline, \"MAX_PROMPT_LEN\", \"128\", \"MIN_RESPONSE_LEN\",\n                             \"64\", \"CACHE_DIR\", \"cache_dir\")"]
-    pub fn ov_genai_vlm_pipeline_create(
-        models_path: *const ::std::os::raw::c_char,
-        device: *const ::std::os::raw::c_char,
-        property_args_size: usize,
-        pipe: *mut *mut ov_genai_vlm_pipeline,
-        ...
     ) -> ov_status_e;
 }
 unsafe extern "C" {
@@ -959,16 +939,6 @@ unsafe extern "C" {
         results: *const ov_genai_whisper_decoded_results,
         output: *mut ::std::os::raw::c_char,
         output_size: *mut usize,
-    ) -> ov_status_e;
-}
-unsafe extern "C" {
-    #[doc = " @brief Construct ov_genai_whisper_pipeline.\n\n Initializes a ov_genai_whisper_pipeline instance from the specified model directory and device. Optional property\n parameters can be passed as key-value pairs.\n\n @param models_path Path to the directory containing the model files.\n @param device Name of a device to load a model to.\n @param property_args_size How many properties args will be passed, each property contains 2 args: key and value.\n @param pipeline A pointer to the newly created ov_genai_whisper_pipeline.\n @param ... property parameter: Optional pack of pairs: <char* property_key, char* property_value> relevant only\n @return ov_status_e A status code, return OK(0) if successful.\n\n @example\n Example with no properties:\n ov_genai_whisper_pipeline_create(model_path, \"CPU\", 0, &pipeline);\n\n Example with properties:\n ov_genai_whisper_pipeline_create(model_path, \"GPU\", 2, &pipeline,\n                                  \"CACHE_DIR\", \"cache_dir\");"]
-    pub fn ov_genai_whisper_pipeline_create(
-        models_path: *const ::std::os::raw::c_char,
-        device: *const ::std::os::raw::c_char,
-        property_args_size: usize,
-        pipeline: *mut *mut ov_genai_whisper_pipeline,
-        ...
     ) -> ov_status_e;
 }
 unsafe extern "C" {
