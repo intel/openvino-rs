@@ -49,6 +49,9 @@ jobs:
           crates/openvino/tests/fixtures/alexnet
           crates/openvino/tests/fixtures/inception
           crates/openvino/tests/fixtures/mobilenet
+          crates/openvino-genai/tests/fixtures/qwen3
+          crates/openvino-genai/tests/fixtures/whisper-tiny
+          crates/openvino-genai/tests/fixtures/internvl2
     - uses: abrown/install-openvino-action@8cee80e3ed53c3afdd60ca1907b2ba677f29af8b # v10
       with:
         version: ${{ matrix.version }}
@@ -65,11 +68,11 @@ jobs:
     # Now, run the dynamic-linking tests: this assumes the OpenVINO library is "findable" on the
     # path and Cargo links the binary to it in the `build.rs` script.
     - name: Check dynamic linking
-      run: cargo test
+      run: cargo test --workspace --exclude openvino-genai --exclude openvino-genai-sys
     # Finally, run the runtime-linking tests: the binddings do not link at build time, instead
     # as the tests are run.
     - name: Check runtime linking
-      run: cargo test --features openvino-sys/runtime-linking
+      run: cargo test --features openvino-sys/runtime-linking,openvino-genai-sys/runtime-linking
 
   format:
     name: Check code format
@@ -82,7 +85,7 @@ jobs:
     - run: cargo fmt --all -- --check
     # Use the `runtime-linking` feature here to avoid requiring an OpenVINO installation to be
     # present when building.
-    - run: cargo clippy --features runtime-linking
+    - run: cargo clippy --features openvino-sys/runtime-linking,openvino-genai-sys/runtime-linking
     - run: cd crates/openvino-tensor-converter && cargo fmt --all -- --check
 
   rust_dependencies:
@@ -100,7 +103,7 @@ jobs:
       with:
         submodules: true
     - name: Build documentation
-      run: cargo doc --no-deps --features openvino-sys/runtime-linking
+      run: cargo doc --no-deps --features openvino-sys/runtime-linking,openvino-genai-sys/runtime-linking
 
   # Build and test the openvino-tensor-converter tool separately from the regular library builds;
   # the OpenCV dependency is a bit fragile so the crate is not included by the default workspace
@@ -131,7 +134,9 @@ jobs:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         submodules: recursive
-    - name: Generate bindings
+    - name: Generate openvino-sys bindings
       run: cargo xtask codegen
+    - name: Generate openvino-genai-sys bindings
+      run: cargo xtask codegen --crate genai
     - name: Verify no changes
       run: git diff --ignore-submodules --no-ext-diff --exit-code
