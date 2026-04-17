@@ -44,7 +44,7 @@ impl JsonContainer {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```no_run
     /// openvino_genai::load().unwrap();
     /// let msg = openvino_genai::JsonContainer::from_json_str(
     ///     r#"{"role": "user", "content": "Hello"}"#,

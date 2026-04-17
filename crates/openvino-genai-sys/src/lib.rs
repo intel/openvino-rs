@@ -9,7 +9,7 @@
 //! [README]: https://github.com/intel/openvino-rs/tree/main/crates/openvino-genai-sys
 //!
 //! An example interaction with raw [openvino-genai-sys]:
-//! ```
+//! ```no_run
 //! openvino_genai_sys::library::load().expect("to have an OpenVINO GenAI library available");
 //! ```
 
