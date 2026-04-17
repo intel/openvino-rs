@@ -2,15 +2,22 @@
 
 use openvino_genai::{ChatHistory, ChatMessage, JsonContainer};
 
+mod common;
+
 #[test]
 fn test_create_and_size() {
-    openvino_genai::load().unwrap();
+    if !common::genai_available() {
+        return;
+    }
     let history = ChatHistory::new().unwrap();
     assert_eq!(history.size().unwrap(), 0);
 }
 
 #[test]
 fn test_push_typed_and_size() {
+    if !common::genai_available() {
+        return;
+    }
     openvino_genai::load().unwrap();
     let mut history = ChatHistory::new().unwrap();
 
@@ -28,7 +35,9 @@ fn test_push_typed_and_size() {
 
 #[test]
 fn test_push_raw_and_size() {
-    openvino_genai::load().unwrap();
+    if !common::genai_available() {
+        return;
+    }
     let mut history = ChatHistory::new().unwrap();
 
     let msg = JsonContainer::from_json_str(r#"{"role": "user", "content": "Hello"}"#).unwrap();
@@ -38,7 +47,9 @@ fn test_push_raw_and_size() {
 
 #[test]
 fn test_clear() {
-    openvino_genai::load().unwrap();
+    if !common::genai_available() {
+        return;
+    }
     let mut history = ChatHistory::new().unwrap();
 
     history.push(&ChatMessage::user("Hello")).unwrap();
