@@ -53,7 +53,7 @@ impl ChatHistory {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```no_run
     /// openvino_genai::load().unwrap();
     /// use openvino_genai::{ChatMessage, ChatHistory};
     ///
