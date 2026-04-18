@@ -2,11 +2,19 @@
 
 use openvino_genai::{ChatHistory, ChatMessage, JsonContainer};
 
-mod common;
+pub fn genai_available() -> bool {
+    match openvino_genai::load() {
+        Ok(()) => true,
+        Err(e) => {
+            eprintln!("Skipping test: OpenVINO GenAI runtime not available: {e:?}");
+            false
+        }
+    }
+}
 
 #[test]
 fn test_create_and_size() {
-    if !common::genai_available() {
+    if !genai_available() {
         return;
     }
     let history = ChatHistory::new().unwrap();
@@ -15,10 +23,9 @@ fn test_create_and_size() {
 
 #[test]
 fn test_push_typed_and_size() {
-    if !common::genai_available() {
+    if !genai_available() {
         return;
     }
-    openvino_genai::load().unwrap();
     let mut history = ChatHistory::new().unwrap();
 
     history
@@ -35,7 +42,7 @@ fn test_push_typed_and_size() {
 
 #[test]
 fn test_push_raw_and_size() {
-    if !common::genai_available() {
+    if !genai_available() {
         return;
     }
     let mut history = ChatHistory::new().unwrap();
@@ -47,7 +54,7 @@ fn test_push_raw_and_size() {
 
 #[test]
 fn test_clear() {
-    if !common::genai_available() {
+    if !genai_available() {
         return;
     }
     let mut history = ChatHistory::new().unwrap();
