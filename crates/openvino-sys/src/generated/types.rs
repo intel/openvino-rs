@@ -41,15 +41,12 @@ pub enum ov_status_e {
     #[doc = "!< UNKNOW_EXCEPTION"]
     UNKNOW_EXCEPTION = -17,
 }
-impl ov_element_type_e {
-    pub const DYNAMIC: ov_element_type_e = ov_element_type_e::UNDEFINED;
-}
 #[repr(u32)]
 #[doc = " @enum ov_element_type_e\n @ingroup ov_base_c_api\n @brief This enum contains codes for element type, which is aligned with ov::element::Type_t in\n src/core/include/openvino/core/type/element_type.hpp"]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum ov_element_type_e {
-    #[doc = "!< Undefined element type"]
-    UNDEFINED = 0,
+    #[doc = "!< Dynamic element type"]
+    DYNAMIC = 0,
     #[doc = "!< boolean element type"]
     OV_BOOLEAN = 1,
     #[doc = "!< bf16 element type"]
@@ -500,3 +497,6 @@ pub enum ov_padding_mode_e {
     #[doc = "!<  Pads similar like `REFLECT` but values on the edges are duplicated."]
     SYMMETRIC = 3,
 }
+#[doc = " @brief Callback function type for logging messages.\n @param message The log message as a null-terminated C string."]
+pub type ov_util_log_callback_func =
+    ::std::option::Option<unsafe extern "C" fn(message: *const ::std::os::raw::c_char)>;

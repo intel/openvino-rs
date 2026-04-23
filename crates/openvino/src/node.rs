@@ -43,7 +43,7 @@ impl Node {
     ///
     /// This function panics in the unlikely case OpenVINO returns an unknown element type.
     pub fn get_element_type(&self) -> Result<ElementType> {
-        let mut element_type = ov_element_type_e::UNDEFINED;
+        let mut element_type = ov_element_type_e::DYNAMIC;
         try_unsafe!(ov_port_get_element_type(
             self.ptr,
             std::ptr::addr_of_mut!(element_type),

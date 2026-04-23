@@ -1145,5 +1145,13 @@ unsafe extern "C" {
         mode: ov_padding_mode_e,
     ) -> ov_status_e;
 }
+unsafe extern "C" {
+    #[doc = " @brief Sets user log message handling callback.\n @param [in] func The function pointer to user-defined message logging callback.\n                  Null pointer is accepted (no logging)."]
+    pub fn ov_util_set_log_callback(func: ov_util_log_callback_func);
+}
+unsafe extern "C" {
+    #[doc = " @brief Resets log message handling callback to its default (standard output)."]
+    pub fn ov_util_reset_log_callback();
+}
 
 }
