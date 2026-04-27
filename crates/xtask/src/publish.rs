@@ -64,4 +64,4 @@ impl PublishCommand {
     }
 }
 
-const PUBLICATION_ORDER: &[&str] = &["openvino-finder", "openvino-sys", "openvino"];
+const PUBLICATION_ORDER: &[&str] = &["openvino-finder", "openvino-sys", "openvino", "openvino-genai-sys", "openvino-genai"];
