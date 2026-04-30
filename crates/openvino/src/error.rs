@@ -44,7 +44,12 @@ impl InferenceError {
     /// - `0` becomes `Ok`
     /// - anything else becomes `Err` containing an [`InferenceError`]
     pub fn convert(status: ov_status_e, message: Option<String>) -> Result<(), InferenceError> {
-        use InferenceErrorKind::*;
+        use InferenceErrorKind::{
+            GeneralError, InferCancelled, InferNotStarted, InvalidCParam, NetworkNotLoaded,
+            NetworkNotRead, NotAllocated, NotFound, NotImplementCMethod, NotImplemented,
+            OutOfBounds, ParameterMismatch, RequestBusy, ResultNotReady, Unexpected, UnknownCError,
+            UnknownException,
+        };
         let kind = match status {
             ov_status_e::OK => return Ok(()),
             ov_status_e::GENERAL_ERROR => GeneralError,
@@ -100,7 +105,7 @@ impl fmt::Display for InferenceError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.kind)?;
         if let Some(msg) = &self.message {
-            write!(f, ": {}", msg)?;
+            write!(f, ": {msg}")?;
         }
         Ok(())
     }
@@ -167,13 +172,13 @@ impl From<LoadingError> for SetupError {
 /// Note: With the current API, error messages are automatically captured and included
 /// in `InferenceError` instances. This function is provided for direct C API access
 /// if needed, but typically you should rely on the message in the error itself.
-pub fn get_last_error_message() -> Result<String, ()> {
+pub fn get_last_error_message() -> Option<String> {
     unsafe {
         let ptr = openvino_sys::ov_get_last_err_msg();
         if ptr.is_null() {
-            Err(())
+            None
         } else {
-            Ok(CStr::from_ptr(ptr).to_string_lossy().into_owned())
+            Some(CStr::from_ptr(ptr).to_string_lossy().into_owned())
         }
     }
 }
