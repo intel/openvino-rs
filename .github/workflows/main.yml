@@ -52,7 +52,7 @@ jobs:
           crates/openvino-genai/tests/fixtures/qwen3
           crates/openvino-genai/tests/fixtures/whisper-tiny
           crates/openvino-genai/tests/fixtures/internvl2
-    - uses: abrown/install-openvino-action@8cee80e3ed53c3afdd60ca1907b2ba677f29af8b # v10
+    - uses: abrown/install-openvino-action@3e67f04636745c3a9110bd19f8c8cf7699e59b1d # v11
       with:
         version: ${{ matrix.version }}
         apt: ${{ matrix.apt }}
