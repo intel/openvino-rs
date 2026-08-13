@@ -137,3 +137,50 @@ macro_rules! link {
         )+
     )
 }
+
+/// Bind C-variadic functions, which [`link!`] cannot handle.
+///
+/// [`link!`] proxies every symbol through a generated Rust `fn` that forwards its arguments. That
+/// is impossible for a variadic function: Rust can *declare* a C-variadic function but cannot
+/// *define* one on stable (see [`c_variadic`](https://doc.rust-lang.org/beta/unstable-book/language-features/c-variadic.html)),
+/// so there is no way to write a wrapper that forwards the varargs.
+///
+/// Instead of a proxy, each symbol is bound to a `LazyLock` holding the loaded function *pointer*.
+/// `LazyLock` derefs to the pointer, so call sites keep the usual `name(args...)` syntax while the
+/// call goes straight to the shared library with the correct variadic calling convention.
+///
+/// This must be invoked in the same module as [`link!`] — it uses the `LIBRARY` static that macro
+/// defines.
+#[doc(hidden)]
+#[macro_export]
+macro_rules! link_variadic {
+    (
+        $(
+            unsafe extern "C" {
+                $(#[doc=$doc:expr])*
+                $(#[cfg($cfg:meta)])*
+                pub fn $name:ident($($pname:ident: $pty:ty),* , ...) $(-> $ret:ty)*;
+            }
+        )+
+    ) => (
+        $(
+            $(#[doc=$doc])* $(#[cfg($cfg)])*
+            #[allow(non_upper_case_globals)] // Keep the C symbol name so call sites are unchanged.
+            pub static $name: LazyLock<unsafe extern "C" fn($($pty),* , ...) $(-> $ret)*> =
+                LazyLock::new(|| unsafe {
+                    let library = LIBRARY.read().unwrap();
+                    let library = library
+                        .as_ref()
+                        .expect("an `openvino_c` shared library is not loaded on this thread");
+                    *library
+                        .library
+                        .get(stringify!($name).as_bytes())
+                        .expect(concat!(
+                            "`openvino_c` function not loaded: `",
+                            stringify!($name),
+                            "`"
+                        ))
+                });
+        )+
+    )
+}
