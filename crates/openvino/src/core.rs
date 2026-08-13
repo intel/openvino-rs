@@ -306,4 +306,25 @@ mod core_tests {
             );
         }
     }
+
+    /// `ov_core_set_property` is a C-variadic function. It used to be declared with a fixed arity
+    /// in `openvino-sys`, which is an ABI mismatch: on targets where the variadic calling
+    /// convention differs from the fixed one (AArch64 macOS passes varargs on the stack rather
+    /// than in registers) the callee read the key/value pointers from stack slots that were never
+    /// written, and every call to this function segfaulted.
+    ///
+    /// Reading the value back matters: a corrupted call can still return `OK`, so asserting only on
+    /// the returned status would not catch a regression here.
+    #[test]
+    fn test_set_core_property_roundtrip() {
+        let mut core = Core::new().unwrap();
+        for value in ["LATENCY", "THROUGHPUT"] {
+            core.set_property(&DeviceType::CPU, &HintPerformanceMode, value)
+                .unwrap_or_else(|err| panic!("failed to set PERFORMANCE_HINT={value}: {err}"));
+            let read_back = core
+                .get_property(&DeviceType::CPU, &HintPerformanceMode.into())
+                .unwrap_or_else(|err| panic!("failed to read back PERFORMANCE_HINT: {err}"));
+            assert_eq!(read_back, value, "PERFORMANCE_HINT did not round-trip");
+        }
+    }
 }
