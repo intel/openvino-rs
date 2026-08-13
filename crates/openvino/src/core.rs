@@ -144,11 +144,15 @@ impl Core {
         let ov_device_name = cstr!(device_name.as_ref());
         let ov_prop_key = cstr!(key.as_ref());
         let ov_prop_value = cstr!(value);
+        // `ov_core_set_property` is variadic. It reads exactly one `<char* key, char* value>`
+        // pair, so this call passes exactly one; the trailing null terminates the argument list,
+        // which is what the upstream C tests and samples do.
         try_unsafe!(ov_core_set_property(
             self.ptr,
             ov_device_name.as_ptr(),
             ov_prop_key.as_ptr(),
             ov_prop_value.as_ptr(),
+            std::ptr::null::<c_char>(),
         ))?;
         Ok(())
     }
