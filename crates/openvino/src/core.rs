@@ -144,11 +144,14 @@ impl Core {
         let ov_device_name = cstr!(device_name.as_ref());
         let ov_prop_key = cstr!(key.as_ref());
         let ov_prop_value = cstr!(value);
+        // `ov_core_set_property` is variadic and reads `<char* key, char* value>` pairs until it
+        // hits a null pointer, so the argument list must be null-terminated.
         try_unsafe!(ov_core_set_property(
             self.ptr,
             ov_device_name.as_ptr(),
             ov_prop_key.as_ptr(),
             ov_prop_value.as_ptr(),
+            std::ptr::null::<c_char>(),
         ))?;
         Ok(())
     }
