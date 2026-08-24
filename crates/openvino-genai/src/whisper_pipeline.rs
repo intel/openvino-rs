@@ -32,16 +32,34 @@ unsafe impl Send for WhisperPipeline {}
 impl WhisperPipeline {
     /// Create a new Whisper pipeline from a model directory and device name.
     pub fn new(models_path: &str, device: &str) -> std::result::Result<Self, SetupError> {
+        Self::with_properties(models_path, device, &[])
+    }
+
+    /// Create a new Whisper pipeline with device properties.
+    ///
+    /// Properties are key-value string pairs passed to the underlying OpenVINO runtime.
+    /// Common properties for NPU/GPU include:
+    /// - `("CACHE_DIR", "/path/to/cache")` — cache compiled model blobs for faster reload
+    pub fn with_properties(
+        models_path: &str,
+        device: &str,
+        properties: &[(&str, &str)],
+    ) -> std::result::Result<Self, SetupError> {
         openvino_genai_sys::library::load().map_err(LoadingError::SystemFailure)?;
         let models_path = cstr!(models_path);
         let device = cstr!(device);
+        let prop_cstrings: Vec<_> = properties
+            .iter()
+            .flat_map(|(k, v)| [cstr!(*k), cstr!(*v)])
+            .collect();
+        let prop_ptrs: Vec<_> = prop_cstrings.iter().map(|s| s.as_ptr()).collect();
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_genai_whisper_pipeline_create(
             models_path.as_ptr(),
             device.as_ptr(),
-            0,
+            prop_ptrs.len(),
             std::ptr::addr_of_mut!(ptr),
-            &[]
+            &prop_ptrs
         ))?;
         Ok(Self { ptr })
     }
