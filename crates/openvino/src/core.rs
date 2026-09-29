@@ -144,11 +144,14 @@ impl Core {
         let ov_device_name = cstr!(device_name.as_ref());
         let ov_prop_key = cstr!(key.as_ref());
         let ov_prop_value = cstr!(value);
+        // `ov_core_set_property` is variadic and reads `<char* key, char* value>` pairs until it
+        // hits a null pointer, so the argument list must be null-terminated.
         try_unsafe!(ov_core_set_property(
             self.ptr,
             ov_device_name.as_ptr(),
             ov_prop_key.as_ptr(),
             ov_prop_value.as_ptr(),
+            std::ptr::null::<c_char>(),
         ))?;
         Ok(())
     }
@@ -301,6 +304,27 @@ mod core_tests {
                 "Failed on unsupported key: {:?}",
                 &key_clone
             );
+        }
+    }
+
+    /// `ov_core_set_property` is a C-variadic function. It used to be declared with a fixed arity
+    /// in `openvino-sys`, which is an ABI mismatch: on targets where the variadic calling
+    /// convention differs from the fixed one (AArch64 macOS passes varargs on the stack rather
+    /// than in registers) the callee read the key/value pointers from stack slots that were never
+    /// written, and every call to this function segfaulted.
+    ///
+    /// Reading the value back matters: a corrupted call can still return `OK`, so asserting only on
+    /// the returned status would not catch a regression here.
+    #[test]
+    fn test_set_core_property_roundtrip() {
+        let mut core = Core::new().unwrap();
+        for value in ["LATENCY", "THROUGHPUT"] {
+            core.set_property(&DeviceType::CPU, &HintPerformanceMode, value)
+                .unwrap_or_else(|err| panic!("failed to set PERFORMANCE_HINT={value}: {err}"));
+            let read_back = core
+                .get_property(&DeviceType::CPU, &HintPerformanceMode.into())
+                .unwrap_or_else(|err| panic!("failed to read back PERFORMANCE_HINT: {err}"));
+            assert_eq!(read_back, value, "PERFORMANCE_HINT did not round-trip");
         }
     }
 }

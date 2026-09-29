@@ -311,10 +311,13 @@ impl CompiledModel {
     pub fn set_property(&mut self, key: &RwPropertyKey, value: &str) -> Result<()> {
         let ov_prop_key = cstr!(key.as_ref());
         let ov_prop_value = cstr!(value);
+        // `ov_compiled_model_set_property` is variadic and reads `<char* key, char* value>` pairs
+        // until it hits a null pointer, so the argument list must be null-terminated.
         try_unsafe!(ov_compiled_model_set_property(
             self.ptr,
             ov_prop_key.as_ptr(),
             ov_prop_value.as_ptr(),
+            std::ptr::null::<std::os::raw::c_char>(),
         ))?;
         Ok(())
     }

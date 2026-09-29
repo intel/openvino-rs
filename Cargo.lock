@@ -627,7 +627,6 @@ dependencies = [
  "bindgen",
  "clap",
  "openvino-finder",
- "regex",
  "semver",
  "toml",
 ]

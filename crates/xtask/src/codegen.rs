@@ -2,8 +2,7 @@ use crate::util::path_to_crates;
 use anyhow::{anyhow, ensure, Context, Result};
 use clap::{Args, ValueEnum};
 use openvino_finder::Linking;
-use regex::Regex;
-use std::fs::{File, OpenOptions};
+use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
@@ -62,24 +61,12 @@ impl CodegenCommand {
         let function_bindings =
             Self::generate_sys_function_bindings(&header_file, &include_directory)?;
 
-        // Runtime linking doesn't work yet with variadic args (...), so we need to convert them
-        // to a fixed pair of args (property_key, property_value) for a few select functions.
-        // This is a workaround until the runtime linking is updated to support variadic args.
-        let functions_to_modify = vec!["ov_core_set_property", "ov_compiled_model_set_property"];
-        let mut function_bindings_string = function_bindings.to_string();
-        for function in &functions_to_modify {
-            let re = Regex::new(&format!(r"(?s){function}.*?\.\.\.")).unwrap();
-            if re.is_match(&function_bindings_string) {
-                function_bindings_string = re.replace(&function_bindings_string, |caps: &regex::Captures| {
-                    caps[0].replace("...", "property_key: *const ::std::os::raw::c_char,\n        property_value: *const ::std::os::raw::c_char")
-                }).to_string();
-            }
-        }
+        let function_bindings_string = function_bindings.to_string();
 
         Self::write_functions_file(
             &output_directory.join(FUNCTIONS_FILE),
             &function_bindings_string,
-            b"use super::types::*;\nuse crate::link;\ntype wchar_t = ::std::os::raw::c_char;\n",
+            "use super::types::*;\ntype wchar_t = ::std::os::raw::c_char;\n",
         )?;
 
         Ok(())
@@ -120,24 +107,83 @@ impl CodegenCommand {
         Self::write_functions_file(
             &output_directory.join(FUNCTIONS_FILE),
             &function_bindings_string,
-            b"use super::types::*;\nuse crate::link;\nuse openvino_sys::{ov_status_e, ov_tensor_t};\n",
+            "use super::types::*;\nuse openvino_sys::{ov_status_e, ov_tensor_t};\n",
         )?;
 
         Ok(())
     }
 
-    /// Write a functions.rs file wrapped in the `link! { }` macro.
-    fn write_functions_file(path: &Path, functions: &str, prefix: &[u8]) -> Result<()> {
-        {
-            let mut f = Box::new(File::create(path)?);
-            f.write_all(prefix)?;
-            f.write_all(b"link! {\n\n")?;
-            f.write_all(functions.as_bytes())
-                .context(format!("Failed to write functions to: {}", path.display()))?;
-        }
-        let mut f = OpenOptions::new().append(true).open(path)?;
+    /// Write a functions.rs file, splitting the bindings between the `link! { }` and
+    /// `link_variadic! { }` macros.
+    ///
+    /// The two macros exist because a C-variadic function cannot be proxied through a generated
+    /// Rust `fn`: Rust can *declare* a C-variadic function but cannot *define* one on stable,
+    /// so there is no way to forward the varargs. `link!` generates such proxies and would silently
+    /// drop the `...`, leaving the function declared with the wrong arity. This is an ABI mismatch that
+    /// crashes at run time on targets where the variadic calling convention differs from the fixed
+    /// one. That's the case for macOS aarch64, which passes varargs on the stack rather than in registers.
+    /// `link_variadic!` binds those symbols to function pointers instead, preserving the `...`.
+    ///
+    /// `macro_rules!` cannot dispatch on the presence of `...` within a single macro (a `ty`
+    /// fragment may not be followed by a `tt`), hence the split here rather than in the macro.
+    fn write_functions_file(path: &Path, functions: &str, prefix: &str) -> Result<()> {
+        let (fixed, variadic) = Self::partition_variadic_declarations(functions);
+
+        let mut f = File::create(path)?;
+        f.write_all(prefix.as_bytes())?;
+
+        // The macros are invoked by path rather than imported, so that a crate whose C API has no
+        // variadic functions (currently `openvino-genai-sys`, which does not define
+        // `link_variadic!`) never names a macro it does not have.
+        f.write_all(b"crate::link! {\n\n")?;
+        f.write_all(fixed.as_bytes())
+            .context(format!("Failed to write functions to: {}", path.display()))?;
         f.write_all(b"\n}\n")?;
+
+        if !variadic.trim().is_empty() {
+            f.write_all(b"\ncrate::link_variadic! {\n\n")?;
+            f.write_all(variadic.as_bytes()).context(format!(
+                "Failed to write variadic functions to: {}",
+                path.display()
+            ))?;
+            f.write_all(b"\n}\n")?;
+        }
+
         Ok(())
+    }
+
+    /// Split bindgen's output into the `extern "C" { … }` blocks that declare only fixed-arity
+    /// functions and those that declare a C-variadic one (a `...` parameter).
+    ///
+    /// Blocks that contain no function declaration at all (bindgen's leading comment, for example)
+    /// stay with the fixed-arity output so nothing is lost.
+    fn partition_variadic_declarations(functions: &str) -> (String, String) {
+        let mut fixed = String::with_capacity(functions.len());
+        let mut variadic = String::new();
+
+        let mut rest = functions;
+        while let Some(start) = rest.find("unsafe extern \"C\" {") {
+            // Everything before this block (comments, blank lines) belongs with the fixed output.
+            fixed.push_str(&rest[..start]);
+            rest = &rest[start..];
+
+            // `extern` blocks are not nested, so the first closing brace at the start of a line
+            // ends this one.
+            let end = rest
+                .find("\n}\n")
+                .map_or(rest.len(), |offset| offset + "\n}\n".len());
+            let (block, remainder) = rest.split_at(end);
+            rest = remainder;
+
+            if block.contains("...") {
+                variadic.push_str(block);
+            } else {
+                fixed.push_str(block);
+            }
+        }
+        fixed.push_str(rest);
+
+        (fixed, variadic)
     }
 
     fn resolve_path(&self, default: &str) -> Result<PathBuf> {
