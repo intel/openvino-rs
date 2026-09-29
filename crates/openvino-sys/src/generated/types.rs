@@ -303,6 +303,23 @@ pub struct ov_model {
 }
 #[doc = " @struct ov_model_t\n @ingroup ov_model_c_api\n @brief type define ov_model_t from ov_model"]
 pub type ov_model_t = ov_model;
+#[doc = " @struct ov_property_t\n @ingroup ov_property_c_api\n @brief A key/value property pair for use with the non-variadic @c _props API.\n\n The @c value field is a @c const void* that holds any property value. The library\n interprets the value based on the @c key — string-valued properties pass a @c const char*,\n GPU/OCL handle properties pass the raw handle pointer, and cache-encryption callbacks pass\n a pointer to an @c ov_encryption_callbacks struct. This mirrors the existing variadic API where\n the key determines the expected argument type. The struct size is exactly two pointers (16 bytes\n on 64-bit) and will never change, making it fully ABI-stable across library versions.\n\n In C all pointer types implicitly convert to @c const void*, so no casts are needed:\n @code\n   ov_encryption_callbacks cb = {my_encrypt, my_decrypt};\n   ov_property_t props[] = {\n       {ov_property_key_hint_performance_mode, \"LATENCY\"},          // const char* → const void*\n       {ov_property_key_num_streams,           \"4\"},\n       {ov_property_key_cache_encryption_callbacks, &cb},           // struct pointer → const void*\n   };\n   ov_core_compile_model_from_file_props(core, \"model.xml\", \"CPU\", 3, props, &cm);\n\n   // GPU context with a raw OCL handle (any pointer → const void*):\n   ov_property_t ctx_props[] = {\n       {ov_property_key_intel_gpu_context_type, \"OCL\"},\n       {ov_property_key_intel_gpu_ocl_context,  ocl_context_ptr},\n   };\n   ov_core_create_context_props(core, \"GPU\", 2, ctx_props, &ctx);\n @endcode"]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ov_property_t {
+    #[doc = "< Property key string (see @c ov_property_key_xxx constants)."]
+    pub key: *const ::std::os::raw::c_char,
+    #[doc = "< Property value: @c const char* string, GPU/OCL handle, or @c ov_encryption_callbacks*."]
+    pub value: *const ::std::os::raw::c_void,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of ov_property_t"][::std::mem::size_of::<ov_property_t>() - 16usize];
+    ["Alignment of ov_property_t"][::std::mem::align_of::<ov_property_t>() - 8usize];
+    ["Offset of field: ov_property_t::key"][::std::mem::offset_of!(ov_property_t, key) - 0usize];
+    ["Offset of field: ov_property_t::value"]
+        [::std::mem::offset_of!(ov_property_t, value) - 8usize];
+};
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ov_remote_context {
