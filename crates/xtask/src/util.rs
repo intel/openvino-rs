@@ -6,12 +6,12 @@ use toml::Value;
 
 /// Convenience wrapper for executing commands.
 pub fn exec(command: &mut Command) -> Result<()> {
-    eprintln!("+ executing: {:?}", &command);
+    eprintln!("+ executing: {command:?}");
     let status = command.status()?;
     if status.success() {
         Ok(())
     } else {
-        Err(anyhow!("failed to execute: {:?}", &command))
+        Err(anyhow!("failed to execute: {command:?}"))
     }
 }
 
@@ -44,7 +44,7 @@ pub fn get_top_level_version() -> Result<Version> {
     let contents = fs::read_to_string(&path)?;
     let toml: Value = contents
         .parse()
-        .with_context(|| format!("unable to parse TOML of {}", &path.display()))?;
+        .with_context(|| format!("unable to parse TOML of {}", path.display()))?;
 
     let version = toml["workspace"]["package"]["version"]
         .as_str()
@@ -64,7 +64,7 @@ pub fn get_crates() -> Result<Vec<Crate>> {
         let contents = fs::read_to_string(&path)?;
         let toml: Value = contents
             .parse()
-            .with_context(|| format!("unable to parse TOML of {}", &path.display()))?;
+            .with_context(|| format!("unable to parse TOML of {}", path.display()))?;
         let name = toml["package"]["name"]
             .as_str()
             .with_context(|| "Every Cargo.toml should have a package name")?
