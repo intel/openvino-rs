@@ -122,7 +122,7 @@ impl ChatMessage {
                                 r#"{{"name":{},"arguments":{}}}"#,
                                 json_escape(&tc.name),
                                 // arguments is already a JSON string, embed it directly
-                                &tc.arguments
+                                tc.arguments
                             )
                         })
                         .collect();

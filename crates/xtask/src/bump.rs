@@ -68,7 +68,7 @@ impl BumpCommand {
         // Add a Git commit.
         let commit_message = format!("Release v{next_version_str}");
         if self.git {
-            println!("> add Git commit: {}", &commit_message);
+            println!("> add Git commit: {}", commit_message);
             if !self.dry_run && self.git {
                 assert!(Command::new("git")
                     .arg("commit")

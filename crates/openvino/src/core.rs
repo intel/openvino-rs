@@ -250,7 +250,7 @@ mod core_tests {
             assert!(
                 supported_properties.is_ok(),
                 "Failed on supported key: {:?}",
-                &key
+                key
             );
         }
     }
@@ -277,7 +277,7 @@ mod core_tests {
             assert!(
                 supported_properties.is_ok(),
                 "Failed on rw key: {:?}",
-                &PropertyKey::Rw(key_clone)
+                PropertyKey::Rw(key_clone)
             );
         }
     }
@@ -299,7 +299,7 @@ mod core_tests {
             assert!(
                 supported_properties.is_err(),
                 "Failed on unsupported key: {:?}",
-                &key_clone
+                key_clone
             );
         }
     }
