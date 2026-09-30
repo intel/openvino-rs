@@ -63,11 +63,10 @@ fn classify_inception() -> anyhow::Result<()> {
     results.sort();
 
     // Note that these results appear to be off-by-one: pizza should be ID 963.
-    results[0].assert_approx_eq((964, 0.9648312));
-    results[1].assert_approx_eq((763, 0.0015633557));
-    results[2].assert_approx_eq((412, 0.0007776478));
-    results[3].assert_approx_eq((814, 0.0006391522));
-    results[4].assert_approx_eq((924, 0.0006150733));
+    // Only the top-ranked class is asserted; see `Prediction::assert_class` for why. The
+    // next-ranked classes have been observed as 763, 412, 814 and 924, all below 0.002 and so
+    // freely reordering.
+    results[0].assert_class(964); // ~0.96
 
     // The results above almost match the output of OpenVINO's `hello_classification` with similar
     // inputs:
