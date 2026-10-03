@@ -16,6 +16,7 @@ include = [
     "/README.md",
     "/build.rs",
     "/src",
+    "/shim",
     "/upstream/src/c/include",
 ]
 links = "openvino_genai_c_api"
@@ -28,6 +29,7 @@ openvino-sys = { workspace = true }
 [build-dependencies]
 openvino-finder = { workspace = true }
 env_logger = { workspace = true }
+cc = { workspace = true, optional = true }
 
 [features]
 # Linking features: `build.rs` will default to dynamic linking if none is selected.
@@ -35,6 +37,12 @@ env_logger = { workspace = true }
 dynamic-linking = []
 # - Will bind to an OpenVINO GenAI shared library at runtime using `load`.
 runtime-linking = ["libloading", "openvino-sys/runtime-linking"]
+# - Compile a C++ shim that exposes draft-model speculative-decoding from the
+#   OpenVINO GenAI C++ API (the public C API does not). Forces `dynamic-linking`
+#   because the shim is linked statically into this crate but calls C++ symbols
+#   from `libopenvino_genai`, which must be available at link time.
+speculative-decoding = ["dep:cc", "dynamic-linking"]
 
 [package.metadata.docs.rs]
+no-default-features = true
 features = ["runtime-linking"]

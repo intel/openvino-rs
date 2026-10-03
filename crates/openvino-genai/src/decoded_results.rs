@@ -31,6 +31,23 @@ impl DecodedResults {
         Ok(PerfMetrics::from_decoded_results(ptr))
     }
 
+    /// Get speculative-decoding performance metrics, if these results come from a pipeline
+    /// constructed with [`LlmPipeline::with_draft`](crate::LlmPipeline::with_draft).
+    ///
+    /// Returns `Ok(None)` if the pipeline was not run with a draft model.
+    #[cfg(feature = "speculative-decoding")]
+    pub fn sd_perf_metrics(&self) -> Result<Option<crate::SdPerfMetrics>> {
+        let mut ptr = std::ptr::null_mut();
+        crate::try_unsafe!(openvino_genai_sys::ov_genai_sd_get_perf_metrics(
+            self.ptr,
+            std::ptr::addr_of_mut!(ptr)
+        ))?;
+        if ptr.is_null() {
+            return Ok(None);
+        }
+        Ok(Some(crate::SdPerfMetrics::from_ptr(ptr)))
+    }
+
     /// Construct from a raw pointer. For internal use.
     pub(crate) fn from_ptr(ptr: *mut ov_genai_decoded_results) -> Self {
         Self { ptr }

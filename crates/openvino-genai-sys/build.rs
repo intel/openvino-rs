@@ -23,6 +23,8 @@ fn main() {
     // Trigger rebuild on changes to build.rs and Cargo.toml and every source file.
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=Cargo.toml");
+    println!("cargo:rerun-if-changed=shim/sd_pipeline.h");
+    println!("cargo:rerun-if-changed=shim/sd_pipeline.cpp");
     let cb = |p: PathBuf| println!("cargo:rerun-if-changed={}", p.display());
     visit_dirs(Path::new("src"), &cb).expect("to visit source files");
 
@@ -78,6 +80,90 @@ fn main() {
             .cloned()
             .for_each(add_dynamically_linked_library)
     }
+
+    // Compile the speculative-decoding shim when the feature is enabled. The shim links
+    // statically into the crate and calls C++ symbols from `libopenvino_genai`, which is
+    // already required by the dynamic-linking branch above. We skip it under runtime-linking
+    // — the `compile_error!` in `src/sd.rs` will surface the conflict at compile time. We also
+    // skip it when linking is disabled (`OPENVINO_SKIP_LINKING`, e.g. doc builds): compiling
+    // the shim needs the C++ headers and emits a link directive, neither of which is wanted
+    // when the caller has opted out of linking.
+    #[cfg(all(feature = "speculative-decoding", not(feature = "runtime-linking")))]
+    if linking == Linking::Dynamic {
+        compile_speculative_decoding_shim(&library_search_paths);
+    }
+}
+
+/// Walk up from any of the candidate library directories looking for an OpenVINO include
+/// tree that contains both the C-API header (`openvino/c/ov_common.h`) and the C++ GenAI
+/// header the shim actually `#include`s (`openvino/genai/llm_pipeline.hpp`). Falls back to
+/// the `OpenVINO_DIR` / `OPENVINO_GENAI_DIR` env vars to support custom install layouts.
+#[cfg(all(feature = "speculative-decoding", not(feature = "runtime-linking")))]
+fn find_openvino_include_dir(library_search_paths: &[PathBuf]) -> Option<PathBuf> {
+    fn probe(root: &Path) -> Option<PathBuf> {
+        for candidate in ["include", "runtime/include"] {
+            let inc = root.join(candidate);
+            if inc.join("openvino/c/ov_common.h").is_file()
+                && inc.join("openvino/genai/llm_pipeline.hpp").is_file()
+            {
+                return Some(inc);
+            }
+        }
+        None
+    }
+
+    for var in ["OPENVINO_GENAI_DIR", "OpenVINO_DIR", "OPENVINO_DIR"] {
+        if let Some(p) = env::var_os(var).map(PathBuf::from) {
+            if let Some(inc) = probe(&p) {
+                return Some(inc);
+            }
+        }
+    }
+    for lib_dir in library_search_paths {
+        let mut cur: &Path = lib_dir;
+        for _ in 0..4 {
+            if let Some(inc) = probe(cur) {
+                return Some(inc);
+            }
+            cur = match cur.parent() {
+                Some(p) => p,
+                None => break,
+            };
+        }
+    }
+    None
+}
+
+#[cfg(all(feature = "speculative-decoding", not(feature = "runtime-linking")))]
+fn compile_speculative_decoding_shim(library_search_paths: &[PathBuf]) {
+    let include_dir = find_openvino_include_dir(library_search_paths).unwrap_or_else(|| {
+        panic!(
+            "Cannot locate OpenVINO C++ headers (looked for `openvino/genai/llm_pipeline.hpp` \
+             alongside `openvino/c/ov_common.h`). Set `OPENVINO_GENAI_DIR` to the OpenVINO \
+             GenAI install root, or disable the `speculative-decoding` feature."
+        )
+    });
+
+    cc::Build::new()
+        .cpp(true)
+        .std("c++17")
+        .file("shim/sd_pipeline.cpp")
+        .include(&include_dir)
+        .flag_if_supported("-fexceptions")
+        .flag_if_supported("-frtti")
+        .compile("ov_genai_sd_shim");
+
+    // The shim instantiates `ov::AnyMap` to build the property bag for `LLMPipeline`. That
+    // emits a vtable for `ov::Any::Impl<std::string>` whose base virtuals (`as_runtime_attribute`,
+    // `is_copyable`, `init`, `merge`, `to_string`, `visit_attributes`, plus `typeinfo for
+    // ov::Any::Base`) live in `libopenvino.so` — not `libopenvino_genai.so`. Emit the link
+    // directive *after* `cc::Build::compile` so it lands on the linker command line *after*
+    // `libov_genai_sd_shim.a`, allowing the static archive's undefined refs to resolve.
+    //
+    // `openvino-sys` already links `libopenvino`, but its directives are emitted earlier in
+    // the link order (because this crate depends on it), so the references coming out of our
+    // static archive would otherwise stay unresolved under linkers that don't re-scan.
+    println!("cargo:rustc-link-lib=dylib=openvino");
 }
 
 /// Enumerate the possible linking states for this build script:

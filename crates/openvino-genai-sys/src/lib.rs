@@ -30,6 +30,11 @@ mod linking;
 mod generated;
 pub use generated::*;
 
+#[cfg(feature = "speculative-decoding")]
+mod sd;
+#[cfg(feature = "speculative-decoding")]
+pub use sd::*;
+
 // Re-export shared types from openvino-sys so that users of both crates share a single definition.
 pub use openvino_sys::ov_status_e;
 pub use openvino_sys::ov_tensor_t;

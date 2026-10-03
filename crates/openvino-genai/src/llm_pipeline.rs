@@ -62,6 +62,65 @@ impl LlmPipeline {
         Ok(Self { ptr })
     }
 
+    /// Create a new LLM pipeline with a draft (assistant) model for speculative decoding.
+    ///
+    /// Speculative decoding runs the small draft model to propose candidate tokens which the
+    /// main model then validates in a single forward pass, accepting a prefix when its
+    /// distribution agrees. Configure the strategy via
+    /// [`GenerationConfig::set_num_assistant_tokens`] or
+    /// [`GenerationConfig::set_assistant_confidence_threshold`].
+    ///
+    /// The returned pipeline supports all the regular [`generate`](Self::generate),
+    /// [`start_chat`](Self::start_chat), [`finish_chat`](Self::finish_chat),
+    /// [`get_generation_config`](Self::get_generation_config), and
+    /// [`set_generation_config`](Self::set_generation_config) methods.
+    ///
+    /// To extract speculative-decoding–specific perf metrics from the results, call
+    /// [`DecodedResults::sd_perf_metrics`](crate::DecodedResults::sd_perf_metrics).
+    #[cfg(feature = "speculative-decoding")]
+    pub fn with_draft(
+        main_path: &str,
+        main_device: &str,
+        draft_path: &str,
+        draft_device: &str,
+    ) -> std::result::Result<Self, SetupError> {
+        Self::with_draft_and_properties(main_path, main_device, &[], draft_path, draft_device, &[])
+    }
+
+    /// Same as [`with_draft`](Self::with_draft) but with device properties for each model.
+    #[cfg(feature = "speculative-decoding")]
+    pub fn with_draft_and_properties(
+        main_path: &str,
+        main_device: &str,
+        main_properties: &[(&str, &str)],
+        draft_path: &str,
+        draft_device: &str,
+        draft_properties: &[(&str, &str)],
+    ) -> std::result::Result<Self, SetupError> {
+        openvino_genai_sys::library::load().map_err(LoadingError::SystemFailure)?;
+        let main_path_c = cstr!(main_path);
+        let main_device_c = cstr!(main_device);
+        let draft_path_c = cstr!(draft_path);
+        let draft_device_c = cstr!(draft_device);
+        let main_kv = flatten_properties(main_properties);
+        let draft_kv = flatten_properties(draft_properties);
+        let main_ptrs = pointer_slice(&main_kv);
+        let draft_ptrs = pointer_slice(&draft_kv);
+        let mut ptr = std::ptr::null_mut();
+        try_unsafe!(openvino_genai_sys::ov_genai_sd_create_with_draft(
+            main_path_c.as_ptr(),
+            main_device_c.as_ptr(),
+            main_properties.len(),
+            main_ptrs.as_ptr(),
+            draft_path_c.as_ptr(),
+            draft_device_c.as_ptr(),
+            draft_properties.len(),
+            draft_ptrs.as_ptr(),
+            std::ptr::addr_of_mut!(ptr)
+        ))?;
+        Ok(Self { ptr })
+    }
+
     /// Generate text from a prompt.
     ///
     /// Optionally pass a [`GenerationConfig`] and/or a [`Streamer`] callback.
@@ -139,4 +198,17 @@ impl LlmPipeline {
             self.ptr, config.ptr
         ))
     }
+}
+
+#[cfg(feature = "speculative-decoding")]
+fn flatten_properties(properties: &[(&str, &str)]) -> Vec<std::ffi::CString> {
+    properties
+        .iter()
+        .flat_map(|(k, v)| [cstr!(*k), cstr!(*v)])
+        .collect()
+}
+
+#[cfg(feature = "speculative-decoding")]
+fn pointer_slice(properties: &[std::ffi::CString]) -> Vec<*const std::os::raw::c_char> {
+    properties.iter().map(|s| s.as_ptr()).collect()
 }

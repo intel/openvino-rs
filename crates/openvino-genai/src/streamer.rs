@@ -43,14 +43,25 @@ pub struct Streamer {
 }
 
 /// The extern "C" trampoline that bridges the C callback to the Rust closure.
+///
+/// User closures are wrapped in `catch_unwind`: a panic in user code would otherwise
+/// unwind across the C++ frames that invoke this callback, which is undefined behaviour.
+/// On panic we return `STOP` so generation halts cleanly with whatever has been produced
+/// so far.
 unsafe extern "C" fn trampoline(
     str_: *const c_char,
     args: *mut c_void,
 ) -> ov_genai_streaming_status_e {
-    let callback = &mut *(args.cast::<Box<dyn FnMut(&str) -> StreamingStatus>>());
-    let c_str = CStr::from_ptr(str_);
-    let s = c_str.to_string_lossy();
-    callback(&s).into()
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let callback = &mut *(args.cast::<Box<dyn FnMut(&str) -> StreamingStatus>>());
+        let c_str = CStr::from_ptr(str_);
+        let s = c_str.to_string_lossy();
+        callback(&s)
+    }));
+    match result {
+        Ok(status) => status.into(),
+        Err(_) => ov_genai_streaming_status_e::OV_GENAI_STREAMING_STATUS_STOP,
+    }
 }
 
 impl Drop for Streamer {

@@ -14,7 +14,7 @@ categories = ["api-bindings", "science"]
 exclude = ["/tests"]
 
 [dependencies]
-openvino-genai-sys = { workspace = true }
+openvino-genai-sys = { workspace = true, default-features = false }
 openvino-finder = { workspace = true }
 
 [dev-dependencies]
@@ -22,6 +22,8 @@ anyhow = "1.0"
 
 [features]
 runtime-linking = ["openvino-genai-sys/runtime-linking"]
+speculative-decoding = ["openvino-genai-sys/speculative-decoding"]
 
 [package.metadata.docs.rs]
+no-default-features = true
 features = ["runtime-linking"]
