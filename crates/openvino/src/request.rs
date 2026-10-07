@@ -2,8 +2,9 @@ use crate::tensor::Tensor;
 use crate::{cstr, drop_using_function, try_unsafe, util::Result};
 use openvino_sys::{
     ov_infer_request_cancel, ov_infer_request_free, ov_infer_request_get_input_tensor,
-    ov_infer_request_get_output_tensor, ov_infer_request_get_output_tensor_by_index,
-    ov_infer_request_get_tensor, ov_infer_request_infer, ov_infer_request_set_input_tensor,
+    ov_infer_request_get_input_tensor_by_index, ov_infer_request_get_output_tensor,
+    ov_infer_request_get_output_tensor_by_index, ov_infer_request_get_tensor,
+    ov_infer_request_infer, ov_infer_request_set_input_tensor,
     ov_infer_request_set_input_tensor_by_index, ov_infer_request_set_output_tensor,
     ov_infer_request_set_output_tensor_by_index, ov_infer_request_set_tensor,
     ov_infer_request_start_async, ov_infer_request_t, ov_infer_request_wait_for,
@@ -24,6 +25,26 @@ impl InferRequest {
     #[inline]
     pub(crate) fn from_ptr(ptr: *mut ov_infer_request_t) -> Self {
         Self { ptr }
+    }
+
+    pub(crate) fn initialize_tensors(
+        &mut self,
+        input_count: usize,
+        output_count: usize,
+    ) -> Result<()> {
+        for index in 0..input_count {
+            let mut tensor = std::ptr::null_mut();
+            try_unsafe!(ov_infer_request_get_input_tensor_by_index(
+                self.ptr,
+                index,
+                std::ptr::addr_of_mut!(tensor)
+            ))?;
+            Tensor::from_ptr(tensor).initialize_data()?;
+        }
+        for index in 0..output_count {
+            self.get_output_tensor_by_index(index)?.initialize_data()?;
+        }
+        Ok(())
     }
 
     /// Assign a [`Tensor`] to the input on the model.

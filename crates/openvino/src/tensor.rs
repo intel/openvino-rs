@@ -40,7 +40,7 @@ drop_using_function!(Tensor, ov_tensor_free);
 unsafe impl Send for Tensor {}
 
 impl Tensor {
-    /// Create a new [`Tensor`].
+    /// Create a new [`Tensor`] with zero-initialized numeric storage.
     pub fn new(element_type: ElementType, shape: &Shape) -> Result<Self> {
         let mut ptr = std::ptr::null_mut();
         try_unsafe!(ov_tensor_create(
@@ -48,7 +48,22 @@ impl Tensor {
             shape.as_c_struct(),
             std::ptr::addr_of_mut!(ptr),
         ))?;
-        Ok(Self { ptr })
+        let mut tensor = Self { ptr };
+        tensor.initialize_data()?;
+        Ok(tensor)
+    }
+
+    /// Zero numeric storage without modifying constructed C++ string objects.
+    pub(crate) fn initialize_data(&mut self) -> Result<()> {
+        if self.get_element_type()? != ElementType::String {
+            let size = self.get_byte_size()?;
+            if size > 0 {
+                let mut buffer = std::ptr::null_mut();
+                try_unsafe!(ov_tensor_data(self.ptr, std::ptr::addr_of_mut!(buffer)))?;
+                unsafe { std::ptr::write_bytes(buffer.cast::<u8>(), 0, size) };
+            }
+        }
+        Ok(())
     }
 
     /// Create a new [`Tensor`] from a pointer.
@@ -184,6 +199,27 @@ mod tests {
         let shape = Shape::new(&[1, 3, 227, 227]).unwrap();
         let tensor = Tensor::new(ElementType::F32, &shape).unwrap();
         assert!(!tensor.ptr.is_null());
+        assert!(tensor.get_raw_data().unwrap().iter().all(|byte| *byte == 0));
+    }
+
+    #[test]
+    fn test_initialize_data() {
+        openvino_sys::library::load().unwrap();
+        let shape = Shape::new(&[3]).unwrap();
+        for element_type in [ElementType::F32, ElementType::U8, ElementType::U1] {
+            let mut tensor = Tensor::new(element_type, &shape).unwrap();
+            tensor.get_raw_data_mut().unwrap().fill(0xff);
+            tensor.initialize_data().unwrap();
+            assert!(tensor.get_raw_data().unwrap().iter().all(|byte| *byte == 0));
+        }
+    }
+
+    #[test]
+    fn test_create_empty_tensor() {
+        openvino_sys::library::load().unwrap();
+        let shape = Shape::new(&[0]).unwrap();
+        let tensor = Tensor::new(ElementType::F32, &shape).unwrap();
+        assert_eq!(tensor.get_byte_size().unwrap(), 0);
     }
 
     #[test]

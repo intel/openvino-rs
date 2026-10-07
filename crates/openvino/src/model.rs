@@ -194,14 +194,16 @@ impl CompiledModel {
         Self { ptr }
     }
 
-    /// Create an [`InferRequest`].
+    /// Create an [`InferRequest`] and zero-initialize its numeric input and output tensors.
     pub fn create_infer_request(&mut self) -> Result<InferRequest> {
         let mut infer_request = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_create_infer_request(
             self.ptr,
             std::ptr::addr_of_mut!(infer_request)
         ))?;
-        Ok(InferRequest::from_ptr(infer_request))
+        let mut infer_request = InferRequest::from_ptr(infer_request);
+        infer_request.initialize_tensors(self.get_input_size()?, self.get_output_size()?)?;
+        Ok(infer_request)
     }
 
     /// Get the number of inputs of the compiled model.
