@@ -13,7 +13,6 @@ fn test_create_pipeline() {
     // Skip if GenAI runtime isn't available in this environment.
     if WhisperPipeline::new(&model_dir, "CPU").is_err() {
         eprintln!("SKIP: WhisperPipeline unavailable (GenAI runtime missing?)");
-        return;
     }
 }
 
@@ -29,7 +28,6 @@ fn test_create_pipeline_with_properties() {
         .is_err()
     {
         eprintln!("SKIP: WhisperPipeline unavailable (GenAI runtime missing?)");
-        return;
     }
 
     // CACHE_DIR is a no-op on CPU in terms of correctness (there's nothing

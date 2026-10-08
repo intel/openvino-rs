@@ -40,7 +40,7 @@ pub fn download(from: &str) -> anyhow::Result<PathBuf> {
     let url = format!("{BASE_FIXTURES_URL}/{from}");
     let mut curl = Command::new("curl");
     curl.arg("--location").arg(url).arg("--output").arg(&to);
-    println!("> downloading: {:?}", &curl);
+    println!("> downloading: {:?}", curl);
     let result = curl.output().unwrap();
     if !result.status.success() {
         panic!(
