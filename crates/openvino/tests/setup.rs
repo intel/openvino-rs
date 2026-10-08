@@ -24,9 +24,9 @@ fn read_network() {
 #[test]
 fn read_network_from_buffers() {
     let mut core = Core::new().unwrap();
-    let graph = fs::read(&fixture::graph()).unwrap();
+    let graph = fs::read(fixture::graph()).unwrap();
     let weights = {
-        let weights = fs::read(&fixture::weights()).unwrap();
+        let weights = fs::read(fixture::weights()).unwrap();
         let shape = Shape::new(&[1, weights.len() as i64]).unwrap();
         let mut tensor = Tensor::new(ElementType::U8, &shape).unwrap();
         let buffer = tensor.get_raw_data_mut().unwrap();

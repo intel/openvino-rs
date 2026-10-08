@@ -270,11 +270,11 @@ mod tests {
     #[test]
     #[should_panic(expected = "raw data is not aligned to `T`'s alignment")]
     fn casting_check() {
+        #[allow(dead_code)]
+        struct LargeOddType([u8; 1061]);
         openvino_sys::library::load().unwrap();
         let shape = Shape::new(&[10, 10, 10]).unwrap();
         let tensor = Tensor::new(ElementType::F32, &shape).unwrap();
-        #[allow(dead_code)]
-        struct LargeOddType([u8; 1061]);
         tensor.get_data::<LargeOddType>().unwrap();
     }
 }

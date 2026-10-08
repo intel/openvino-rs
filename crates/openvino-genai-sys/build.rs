@@ -63,7 +63,7 @@ fn main() {
     if let Some(path) = c_api_library_path {
         record_library_path(path);
     } else {
-        println!("cargo:warning=openvino-genai-sys cannot find the `openvino_genai_c` library in any of the library search paths: {:?}", &library_search_paths);
+        println!("cargo:warning=openvino-genai-sys cannot find the `openvino_genai_c` library in any of the library search paths: {:?}", library_search_paths);
         println!("cargo:warning=Proceeding with an empty value of {ENV_OPENVINO_GENAI_LIB_PATH}.");
         record_library_path(PathBuf::new());
     }

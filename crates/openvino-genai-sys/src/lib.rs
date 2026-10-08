@@ -70,7 +70,10 @@ pub mod library {
     }
 
     /// Initialize the variadic pipeline creation functions from the loaded library.
+    // Without `runtime-linking` the body is compiled out and this always returns `Ok`; with the
+    // feature enabled it can genuinely fail, so the `Result` is not redundant.
     #[allow(unused_variables)]
+    #[cfg_attr(not(feature = "runtime-linking"), allow(clippy::unnecessary_wraps))]
     fn init_variadic(path: Option<&std::path::Path>) -> Result<(), String> {
         #[cfg(feature = "runtime-linking")]
         if let Some(path) = path {
@@ -165,8 +168,7 @@ mod dynamic_variadic {
     ) -> ov_status_e {
         assert!(
             props.len() <= MAX_PROPERTIES * 2,
-            "too many properties (max {})",
-            MAX_PROPERTIES
+            "too many properties (max {MAX_PROPERTIES})"
         );
         let p = pad_props(props);
         ov_genai_llm_pipeline_create_raw(
@@ -213,8 +215,7 @@ mod dynamic_variadic {
     ) -> ov_status_e {
         assert!(
             props.len() <= MAX_PROPERTIES * 2,
-            "too many properties (max {})",
-            MAX_PROPERTIES
+            "too many properties (max {MAX_PROPERTIES})"
         );
         let p = pad_props(props);
         ov_genai_vlm_pipeline_create_raw(
@@ -261,8 +262,7 @@ mod dynamic_variadic {
     ) -> ov_status_e {
         assert!(
             props.len() <= MAX_PROPERTIES * 2,
-            "too many properties (max {})",
-            MAX_PROPERTIES
+            "too many properties (max {MAX_PROPERTIES})"
         );
         let p = pad_props(props);
         ov_genai_whisper_pipeline_create_raw(

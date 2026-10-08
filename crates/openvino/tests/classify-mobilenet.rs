@@ -14,7 +14,7 @@ use util::{Prediction, Predictions};
 #[test]
 fn classify_mobilenet() -> anyhow::Result<()> {
     let mut core = Core::new()?;
-    let mut model = core.read_model_from_file(
+    let model = core.read_model_from_file(
         &fixture::graph().to_string_lossy(),
         &fixture::weights().to_string_lossy(),
     )?;
@@ -34,7 +34,7 @@ fn classify_mobilenet() -> anyhow::Result<()> {
     // Pre-process the input by:
     // - converting NHWC to NCHW
     // - resizing the input image
-    let pre_post_process = prepostprocess::Pipeline::new(&mut model)?;
+    let pre_post_process = prepostprocess::Pipeline::new(&model)?;
     let input_info = pre_post_process.get_input_info_by_name("input")?;
     let mut input_tensor_info = input_info.get_tensor_info()?;
     input_tensor_info.set_from(&tensor)?;

@@ -249,8 +249,7 @@ mod core_tests {
             let supported_properties = core.get_property(&DeviceType::CPU, &key);
             assert!(
                 supported_properties.is_ok(),
-                "Failed on supported key: {:?}",
-                key
+                "Failed on supported key: {key:?}"
             );
         }
     }
@@ -298,8 +297,7 @@ mod core_tests {
             let supported_properties = core.get_property(&DeviceType::CPU, &key.into());
             assert!(
                 supported_properties.is_err(),
-                "Failed on unsupported key: {:?}",
-                key_clone
+                "Failed on unsupported key: {key_clone:?}"
             );
         }
     }

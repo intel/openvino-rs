@@ -64,7 +64,7 @@ fn main() {
     if let Some(path) = c_api_library_path {
         record_library_path(path);
     } else {
-        println!("cargo:warning=openvino-sys cannot find the `openvino_c` library in any of the library search paths: {:?}", &library_search_paths);
+        println!("cargo:warning=openvino-sys cannot find the `openvino_c` library in any of the library search paths: {:?}", library_search_paths);
         println!("cargo:warning=Proceeding with an empty value of {ENV_OPENVINO_LIB_PATH}; users must specify this location at runtime, e.g. `Core::new(Some(...))`.");
         record_library_path(PathBuf::new());
     }
