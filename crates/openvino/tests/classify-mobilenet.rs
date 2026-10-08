@@ -67,13 +67,11 @@ fn classify_mobilenet() -> anyhow::Result<()> {
         .collect();
     results.sort();
 
-    // Compare results using approximate FP comparisons; annotated with classification tags from
-    // https://gist.github.com/yrevar/942d3a0ac09ec9e5eb3a.
-    results[0].assert_approx_eq((963, 0.7134405)); // pizza
-    results[1].assert_approx_eq((762, 0.0715866)); // restaurant
-    results[2].assert_approx_eq((909, 0.0360171)); // wok
-    results[3].assert_approx_eq((926, 0.0160412)); // hot pot
-    results[4].assert_approx_eq((567, 0.0152781)); // frying pan
+    // Only the top-ranked class is asserted; see `Prediction::assert_class` for why. Tags from
+    // https://gist.github.com/yrevar/942d3a0ac09ec9e5eb3a. The next-ranked classes have been
+    // observed as 762 restaurant, 909 wok, 926 hot pot, 923 plate and 567 frying pan, all
+    // clustered between roughly 0.015 and 0.09 and so freely reordering.
+    results[0].assert_class(963); // pizza, ~0.63 to 0.71
 
     // This above results almost match (see "off by one" comment above) the output of running
     // OpenVINO's `hello_classification` with the same inputs:

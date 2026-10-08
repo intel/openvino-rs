@@ -1,5 +1,4 @@
 use core::cmp::Ordering;
-use float_cmp::{ApproxEq, F32Margin};
 
 /// A structure for holding the `(category, probability)` pair extracted from the output tensor of
 /// the OpenVINO classification.
@@ -14,19 +13,19 @@ impl Prediction {
         Self { id, prob }
     }
 
-    /// Reduce the boilerplate to assert that two predictions are approximately the same.
-    pub fn assert_approx_eq<P: Into<Self>>(&self, expected: P) {
-        let expected = expected.into();
+    /// Assert that this prediction is for the expected class.
+    ///
+    /// Only the class ID is checked, and in practice this is only worth calling on `results[0]`.
+    /// Neither the probabilities nor the ranking below the top result are stable: they shift with
+    /// the OpenVINO release and with the machine the test runs on, because the selected kernels
+    /// and the order they accumulate in both differ. The lower-ranked classes for these fixtures
+    /// sit within a few thousandths of each other, so they reorder and even swap membership. Only
+    /// the top-ranked class has held across every observed version and host.
+    pub fn assert_class(&self, expected_id: usize) {
         assert_eq!(
-            self.id, expected.id,
-            "Expected class ID {} but found {}",
-            expected.id, self.id
-        );
-        let approx_matches = self.approx_eq(&expected, DEFAULT_MARGIN);
-        assert!(
-            approx_matches,
-            "Expected probability {} but found {} (outside of default margin of error)",
-            expected.prob, self.prob
+            self.id, expected_id,
+            "Expected class ID {} but found {} (probability {})",
+            expected_id, self.id, self.prob
         );
     }
 }
@@ -62,20 +61,6 @@ impl PartialEq for Prediction {
 }
 
 impl Eq for Prediction {}
-
-impl ApproxEq for &Prediction {
-    type Margin = F32Margin;
-    fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
-        let margin = margin.into();
-        self.prob.approx_eq(other.prob, margin)
-    }
-}
-
-/// The default margin for error allowed for comparing classification results.
-pub const DEFAULT_MARGIN: F32Margin = F32Margin {
-    epsilon: 0.01,
-    ulps: 2,
-};
 
 /// A helper type for manipulating lists of results.
 pub type Predictions = Vec<Prediction>;

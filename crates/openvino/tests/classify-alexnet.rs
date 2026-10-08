@@ -67,11 +67,11 @@ fn classify_alexnet() -> anyhow::Result<()> {
 
     // Compare results using approximate FP comparisons; annotated with classification tags from
     // https://gist.github.com/yrevar/942d3a0ac09ec9e5eb3a.
-    results[0].assert_approx_eq((963, 0.5321184)); // pizza
-    results[1].assert_approx_eq((923, 0.1050855)); // plate
-    results[2].assert_approx_eq((926, 0.1022315)); // hot pot
-    results[3].assert_approx_eq((909, 0.0614674)); // wok
-    results[4].assert_approx_eq((762, 0.0549604)); // restaurant
+    // Only the top-ranked class is asserted; see `Prediction::assert_class` for why. Tags from
+    // https://gist.github.com/yrevar/942d3a0ac09ec9e5eb3a. The next-ranked classes have been
+    // observed as 923 plate, 926 hot pot, 909 wok and 762 restaurant, all clustered between
+    // roughly 0.05 and 0.11 and so freely reordering.
+    results[0].assert_class(963); // pizza, ~0.53
 
     // This above results match the output of running OpenVINO's `hello_classification` with the same inputs:
     // $ bin/intel64/Debug/hello_classification /tmp/alexnet/bvlc_alexnet.xml /tmp/alexnet/val2017/000000062808.jpg CPU
