@@ -158,6 +158,13 @@ unsafe extern "C" {
     ) -> ov_status_e;
 }
 unsafe extern "C" {
+    #[doc = " @brief Set the min_p value. Minimum probability threshold relative to the most likely token.\n Tokens with probability < min_p * p_max are removed from the candidate set.\n Set to 0.0 (default) to disable. Typical values: 0.05–0.1.\n @param handle A pointer to the ov_genai_generation_config instance.\n @param value The value of min_p.\n @return ov_status_e A status code, return OK(0) if successful."]
+    pub fn ov_genai_generation_config_set_min_p(
+        config: *mut ov_genai_generation_config,
+        value: f32,
+    ) -> ov_status_e;
+}
+unsafe extern "C" {
     #[doc = " @brief Set whether or not to use multinomial random sampling that add up to `top_p` or higher are kept.\n @param handle A pointer to the ov_genai_generation_config instance.\n @param value If set to true, multinomial random sampling will be used.\n @return ov_status_e A status code, return OK(0) if successful."]
     pub fn ov_genai_generation_config_set_do_sample(
         config: *mut ov_genai_generation_config,
@@ -313,6 +320,14 @@ unsafe extern "C" {
 unsafe extern "C" {
     #[doc = " @brief Get detokenization duration (in ms) from ov_genai_perf_metrics.\n @param metrics A pointer to the ov_genai_perf_metrics instance.\n @param mean Mean of detokenization duration.\n @param std Standard deviation of detokenization duration.\n @return ov_status_e A status code, return OK(0) if successful."]
     pub fn ov_genai_perf_metrics_get_detokenization_duration(
+        metrics: *const ov_genai_perf_metrics,
+        mean: *mut f32,
+        std: *mut f32,
+    ) -> ov_status_e;
+}
+unsafe extern "C" {
+    #[doc = " @brief Get chat template application duration (in ms) from ov_genai_perf_metrics.\n @param metrics A pointer to the ov_genai_perf_metrics instance.\n @param mean Mean of chat template application duration.\n @param std Standard deviation of chat template application duration.\n @return ov_status_e A status code, return OK(0) if successful."]
+    pub fn ov_genai_perf_metrics_get_chat_template_duration(
         metrics: *const ov_genai_perf_metrics,
         mean: *mut f32,
         std: *mut f32,
@@ -541,10 +556,22 @@ unsafe extern "C" {
     pub fn ov_genai_vlm_pipeline_free(pipe: *mut ov_genai_vlm_pipeline);
 }
 unsafe extern "C" {
-    #[doc = " @brief Generate results by ov_genai_vlm_pipeline with text and image inputs\n @param pipe A pointer to the ov_genai_vlm_pipeline instance.\n @param text_inputs A pointer to the input text string.\n @param rgbs A pointer to the array of ov_tensor_t containing image data.\n @param num_images Number of images in the rgbs array.\n @param config A pointer to the ov_genai_generation_config, the pointer can be NULL.\n @param streamer A pointer to the stream callback. Set to NULL if no callback is needed. Either this or results must\n be non-NULL.\n @param results A pointer to the ov_genai_vlm_decoded_results, which retrieves the results of the generation. Either this\n or streamer must be non-NULL.\n @return Status code of the operation: OK(0) for success."]
+    #[doc = " @brief Generate results by ov_genai_vlm_pipeline with text and image inputs\n @param pipe A pointer to the ov_genai_vlm_pipeline instance.\n @param text_inputs A pointer to the input text string.\n @param rgbs A pointer to the array of ov_tensor_t containing image data. May be NULL only when num_images == 0.\n When num_images > 0, rgbs must be non-NULL and each rgbs[i] must be non-NULL.\n @param num_images Number of images in the rgbs array.\n @param config A pointer to the ov_genai_generation_config, the pointer can be NULL.\n @param streamer A pointer to the stream callback. Set to NULL if no callback is needed. Either this or results must\n be non-NULL.\n @param results A pointer to the ov_genai_vlm_decoded_results, which retrieves the results of the generation. Either this\n or streamer must be non-NULL.\n @return Status code of the operation: OK(0) for success."]
     pub fn ov_genai_vlm_pipeline_generate(
         pipe: *mut ov_genai_vlm_pipeline,
         text_inputs: *const ::std::os::raw::c_char,
+        rgbs: *mut *const ov_tensor_t,
+        num_images: usize,
+        config: *const ov_genai_generation_config,
+        streamer: *const streamer_callback,
+        results: *mut *mut ov_genai_vlm_decoded_results,
+    ) -> ov_status_e;
+}
+unsafe extern "C" {
+    #[doc = " @brief Generate results by ov_genai_vlm_pipeline with chat history and optional image inputs.\n @param pipe A pointer to the ov_genai_vlm_pipeline instance.\n @param history A pointer to the ov_genai_chat_history instance.\n @param rgbs A pointer to the array of ov_tensor_t containing image data associated with the last user message.\n May be NULL only when num_images == 0. When num_images > 0, rgbs must be non-NULL and each rgbs[i] must be non-NULL.\n @param num_images Number of images in the rgbs array.\n @param config A pointer to the ov_genai_generation_config, the pointer can be NULL.\n @param streamer A pointer to the stream callback. Set to NULL if no callback is needed. Either this or results must\n be non-NULL.\n @param results A pointer to the ov_genai_vlm_decoded_results, which retrieves the results of the generation. Either this\n or streamer must be non-NULL.\n @return Status code of the operation: OK(0) for success."]
+    pub fn ov_genai_vlm_pipeline_generate_with_history(
+        pipe: *mut ov_genai_vlm_pipeline,
+        history: *const ov_genai_chat_history,
         rgbs: *mut *const ov_tensor_t,
         num_images: usize,
         config: *const ov_genai_generation_config,
