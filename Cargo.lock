@@ -294,7 +294,7 @@ dependencies = [
 
 [[package]]
 name = "openvino"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "anyhow",
  "openvino-finder",
@@ -303,7 +303,7 @@ dependencies = [
 
 [[package]]
 name = "openvino-finder"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "cfg-if",
  "env_logger",
@@ -312,7 +312,7 @@ dependencies = [
 
 [[package]]
 name = "openvino-genai"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "anyhow",
  "openvino-finder",
@@ -321,7 +321,7 @@ dependencies = [
 
 [[package]]
 name = "openvino-genai-sys"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "env_logger",
  "libloading",
@@ -331,7 +331,7 @@ dependencies = [
 
 [[package]]
 name = "openvino-sys"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "env_logger",
  "libloading",
