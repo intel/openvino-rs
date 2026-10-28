@@ -1,6 +1,6 @@
 mod fixtures;
 
-use fixtures::alexnet as fixture;
+use fixtures::mobilenet as fixture;
 use openvino::{Core, Dimension, PartialShape};
 
 #[test]
@@ -14,7 +14,7 @@ fn test_reshape_single_input() -> anyhow::Result<()> {
     let input_node = model.get_input_by_index(0)?;
     let initial_shape = input_node.get_shape()?;
     let dims = initial_shape.get_dimensions().to_vec();
-    assert_eq!(initial_shape.get_dimensions(), &[1, 3, 227, 227]);
+    assert_eq!(initial_shape.get_dimensions(), &[1, 3, 224, 224]);
 
     let mut new_dims = dims.clone();
     new_dims[0] = 2; // Change batch size
@@ -24,7 +24,7 @@ fn test_reshape_single_input() -> anyhow::Result<()> {
 
     let updated_node = model.get_input_by_index(0)?;
     let final_shape = updated_node.get_shape()?;
-    assert_eq!(final_shape.get_dimensions(), &[2, 3, 227, 227]);
+    assert_eq!(final_shape.get_dimensions(), &[2, 3, 224, 224]);
 
     assert!(
         !model.is_dynamic(),
@@ -72,7 +72,7 @@ fn test_reshape_input_by_name() -> anyhow::Result<()> {
 
     let updated_node = model.get_input_by_index(0)?;
     let final_shape = updated_node.get_shape()?;
-    assert_eq!(final_shape.get_dimensions(), &[2, 3, 227, 227]);
+    assert_eq!(final_shape.get_dimensions(), &[2, 3, 224, 224]);
 
     assert!(
         !model.is_dynamic(),

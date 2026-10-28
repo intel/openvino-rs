@@ -46,7 +46,6 @@ jobs:
       with:
         key: openvino-test-fixtures
         path: |
-          crates/openvino/tests/fixtures/alexnet
           crates/openvino/tests/fixtures/inception
           crates/openvino/tests/fixtures/mobilenet
           crates/openvino-genai/tests/fixtures/qwen3

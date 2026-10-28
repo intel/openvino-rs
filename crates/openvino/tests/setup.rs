@@ -2,7 +2,7 @@
 
 mod fixtures;
 
-use fixtures::alexnet as fixture;
+use fixtures::mobilenet as fixture;
 use openvino::{Core, ElementType, Shape, Tensor};
 use std::fs;
 

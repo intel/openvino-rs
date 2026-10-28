@@ -4,7 +4,7 @@
 //! The [`download`] function does all the work, relying on `curl` being installed to download the
 //! files. Files are retrieved as they are used by `Fixture` structures inside each sub-module and
 //! are saved in the same directory structure as on the remote server. This means each fixture
-//! directory (e.g., the `alexnet` target directory) must be present in the Git tree to avoid
+//! directory (e.g., the `mobilenet` target directory) must be present in the Git tree to avoid
 //! errors.
 //!
 //! The reason for this retrieval process is to avoid bandwidth costs: the files are large and the
@@ -51,26 +51,6 @@ pub fn download(from: &str) -> anyhow::Result<PathBuf> {
     }
 
     Ok(to)
-}
-
-/// Retrieve the files necessary for running the `alexnet` classification example.
-///
-/// The artifacts, stored remotely, were built using the remote `build.sh` script (with the right
-/// system dependencies). The artifacts include:
-/// - the AlexNet inference model, converted to OpenVINO IR format (`*.bin`, `*.mapping`, `*.xml`)
-/// - an image from the COCO dataset transformed into the correct tensor format (`tensor-*.bgr`)
-pub mod alexnet {
-    use super::download;
-    use std::path::PathBuf;
-    pub fn graph() -> PathBuf {
-        download("alexnet/alexnet.xml").unwrap()
-    }
-    pub fn weights() -> PathBuf {
-        download("alexnet/alexnet.bin").unwrap()
-    }
-    pub fn tensor() -> PathBuf {
-        download("alexnet/tensor-1x3x227x227-f32.bgr").unwrap()
-    }
 }
 
 /// Retrieve the files necessary for running the `inception` classification example.
