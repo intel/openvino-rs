@@ -80,7 +80,7 @@ fn assert_zeroed(tensor: Tensor) -> anyhow::Result<()> {
 fn request_tensors_are_initialized() -> anyhow::Result<()> {
     let mut core = Core::new()?;
     for port_count in [1, 2] {
-        let mut model = relu_model(&mut core, port_count)?;
+        let model = relu_model(&mut core, port_count)?;
         assert_eq!(model.get_input_size()?, port_count);
         assert_eq!(model.get_output_size()?, port_count);
         let mut request = model.create_infer_request()?;

@@ -49,7 +49,7 @@ fn classify_mobilenet() -> anyhow::Result<()> {
     let new_model = pre_post_process.build_new_model()?;
 
     // Compile the model and infer the results.
-    let mut executable_model = core.compile_model(&new_model, DeviceType::CPU)?;
+    let executable_model = core.compile_model(&new_model, DeviceType::CPU)?;
     let mut infer_request = executable_model.create_infer_request()?;
     infer_request.set_tensor("input", &tensor)?;
     infer_request.infer()?;
