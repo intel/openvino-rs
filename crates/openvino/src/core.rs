@@ -6,10 +6,10 @@ use crate::{cstr, drop_using_function, try_unsafe, util::Result};
 use crate::{model::CompiledModel, Model};
 use crate::{DeviceType, PropertyKey, RwPropertyKey, SetupError, Tensor, Version};
 use openvino_sys::{
-    self, ov_available_devices_free, ov_core_compile_model, ov_core_create,
-    ov_core_create_with_config, ov_core_free, ov_core_get_available_devices, ov_core_get_property,
-    ov_core_get_versions_by_device_name, ov_core_read_model, ov_core_read_model_from_memory_buffer,
-    ov_core_set_property, ov_core_t, ov_core_versions_free,
+    self, ov_available_devices_free, ov_core_compile_model, ov_core_compile_model_from_file,
+    ov_core_create, ov_core_create_with_config, ov_core_free, ov_core_get_available_devices,
+    ov_core_get_property, ov_core_get_versions_by_device_name, ov_core_read_model,
+    ov_core_read_model_from_memory_buffer, ov_core_set_property, ov_core_t, ov_core_versions_free,
 };
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
@@ -205,6 +205,32 @@ impl Core {
         try_unsafe!(ov_core_compile_model(
             self.ptr,
             model.as_ptr(),
+            device.as_ptr(),
+            num_property_args,
+            std::ptr::addr_of_mut!(compiled_model)
+        ))?;
+        Ok(CompiledModel::from_ptr(compiled_model))
+    }
+
+    /// Read a model from `model_path` and compile it for `device` in one step. For an IR model,
+    /// the weights are expected next to the XML file with the same name and a `.bin` extension.
+    ///
+    /// This can be more efficient than [`Core::read_model_from_file`] followed by
+    /// [`Core::compile_model`], especially when model caching is enabled (see
+    /// [`RwPropertyKey::CacheDir`]) and a compiled model is already cached: OpenVINO can then load
+    /// the cached blob without reading the model at all.
+    pub fn compile_model_from_file(
+        &mut self,
+        model_path: &str,
+        device: DeviceType,
+    ) -> Result<CompiledModel> {
+        let model_path = cstr!(model_path);
+        let device: CString = device.into();
+        let mut compiled_model = std::ptr::null_mut();
+        let num_property_args = 0;
+        try_unsafe!(ov_core_compile_model_from_file(
+            self.ptr,
+            model_path.as_ptr(),
             device.as_ptr(),
             num_property_args,
             std::ptr::addr_of_mut!(compiled_model)
