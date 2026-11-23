@@ -1,17 +1,30 @@
 //! Safe wrapper for [`ov_genai_whisper_generation_config`].
 
-use crate::{cstr, drop_using_function, try_unsafe, util::Result, GenerationConfig};
+use crate::{
+    cstr, drop_using_function, try_unsafe, util::Result, GenerationConfig, InferenceError,
+};
 use openvino_genai_sys::{
     self, ov_genai_whisper_generation_config, ov_genai_whisper_generation_config_create,
     ov_genai_whisper_generation_config_create_from_json, ov_genai_whisper_generation_config_free,
     ov_genai_whisper_generation_config_get_generation_config,
     ov_genai_whisper_generation_config_get_is_multilingual,
     ov_genai_whisper_generation_config_get_return_timestamps,
+    ov_genai_whisper_generation_config_set_hotwords,
+    ov_genai_whisper_generation_config_set_initial_prompt,
     ov_genai_whisper_generation_config_set_is_multilingual,
     ov_genai_whisper_generation_config_set_language,
     ov_genai_whisper_generation_config_set_return_timestamps,
     ov_genai_whisper_generation_config_set_task, ov_genai_whisper_generation_config_validate,
 };
+
+/// The C API reports an unset optional string as `NOT_FOUND`.
+fn not_found_as_none(value: Result<String>) -> Result<Option<String>> {
+    match value {
+        Ok(value) => Ok(Some(value)),
+        Err(InferenceError::NotFound) => Ok(None),
+        Err(e) => Err(e),
+    }
+}
 
 /// Configuration for Whisper speech recognition.
 pub struct WhisperGenerationConfig {
@@ -89,6 +102,48 @@ impl WhisperGenerationConfig {
                 openvino_genai_sys::ov_genai_whisper_generation_config_get_task(self.ptr, buf, size)
             })
         }
+    }
+
+    /// Set the initial prompt: text fed to the decoder as previous context,
+    /// typically used to steer spelling of names and domain terms.
+    pub fn set_initial_prompt(&mut self, initial_prompt: &str) -> Result<()> {
+        let initial_prompt = cstr!(initial_prompt);
+        try_unsafe!(ov_genai_whisper_generation_config_set_initial_prompt(
+            self.ptr,
+            initial_prompt.as_ptr()
+        ))
+    }
+
+    /// Get the initial prompt, or `None` if it is not set.
+    pub fn get_initial_prompt(&self) -> Result<Option<String>> {
+        not_found_as_none(unsafe {
+            crate::util::get_c_string_two_call(|buf, size| {
+                openvino_genai_sys::ov_genai_whisper_generation_config_get_initial_prompt(
+                    self.ptr, buf, size,
+                )
+            })
+        })
+    }
+
+    /// Set the hotwords: like the initial prompt, but kept in the decoder
+    /// context for every 30-second chunk instead of only the first.
+    pub fn set_hotwords(&mut self, hotwords: &str) -> Result<()> {
+        let hotwords = cstr!(hotwords);
+        try_unsafe!(ov_genai_whisper_generation_config_set_hotwords(
+            self.ptr,
+            hotwords.as_ptr()
+        ))
+    }
+
+    /// Get the hotwords, or `None` if they are not set.
+    pub fn get_hotwords(&self) -> Result<Option<String>> {
+        not_found_as_none(unsafe {
+            crate::util::get_c_string_two_call(|buf, size| {
+                openvino_genai_sys::ov_genai_whisper_generation_config_get_hotwords(
+                    self.ptr, buf, size,
+                )
+            })
+        })
     }
 
     /// Set whether the model is multilingual.
