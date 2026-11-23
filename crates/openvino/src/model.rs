@@ -195,7 +195,7 @@ impl CompiledModel {
     }
 
     /// Create an [`InferRequest`] and zero-initialize its numeric input and output tensors.
-    pub fn create_infer_request(&mut self) -> Result<InferRequest> {
+    pub fn create_infer_request(&self) -> Result<InferRequest> {
         let mut infer_request = std::ptr::null_mut();
         try_unsafe!(ov_compiled_model_create_infer_request(
             self.ptr,
