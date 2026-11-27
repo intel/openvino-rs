@@ -2,8 +2,7 @@ use crate::util::path_to_crates;
 use anyhow::{anyhow, ensure, Context, Result};
 use clap::{Args, ValueEnum};
 use openvino_finder::Linking;
-use regex::Regex;
-use std::fs::{File, OpenOptions};
+use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
@@ -62,24 +61,12 @@ impl CodegenCommand {
         let function_bindings =
             Self::generate_sys_function_bindings(&header_file, &include_directory)?;
 
-        // Runtime linking doesn't work yet with variadic args (...), so we need to convert them
-        // to a fixed pair of args (property_key, property_value) for a few select functions.
-        // This is a workaround until the runtime linking is updated to support variadic args.
-        let functions_to_modify = vec!["ov_core_set_property", "ov_compiled_model_set_property"];
-        let mut function_bindings_string = function_bindings.to_string();
-        for function in &functions_to_modify {
-            let re = Regex::new(&format!(r"(?s){function}.*?\.\.\.")).unwrap();
-            if re.is_match(&function_bindings_string) {
-                function_bindings_string = re.replace(&function_bindings_string, |caps: &regex::Captures| {
-                    caps[0].replace("...", "property_key: *const ::std::os::raw::c_char,\n        property_value: *const ::std::os::raw::c_char")
-                }).to_string();
-            }
-        }
+        let function_bindings_string = function_bindings.to_string();
 
         Self::write_functions_file(
             &output_directory.join(FUNCTIONS_FILE),
             &function_bindings_string,
-            b"use super::types::*;\nuse crate::link;\ntype wchar_t = ::std::os::raw::c_char;\n",
+            "use super::types::*;\ntype wchar_t = ::std::os::raw::c_char;\n",
         )?;
 
         Ok(())
@@ -120,24 +107,92 @@ impl CodegenCommand {
         Self::write_functions_file(
             &output_directory.join(FUNCTIONS_FILE),
             &function_bindings_string,
-            b"use super::types::*;\nuse crate::link;\nuse openvino_sys::{ov_status_e, ov_tensor_t};\n",
+            "use super::types::*;\nuse openvino_sys::{ov_status_e, ov_tensor_t};\n",
         )?;
 
         Ok(())
     }
 
-    /// Write a functions.rs file wrapped in the `link! { }` macro.
-    fn write_functions_file(path: &Path, functions: &str, prefix: &[u8]) -> Result<()> {
-        {
-            let mut f = Box::new(File::create(path)?);
-            f.write_all(prefix)?;
-            f.write_all(b"link! {\n\n")?;
-            f.write_all(functions.as_bytes())
-                .context(format!("Failed to write functions to: {}", path.display()))?;
-        }
-        let mut f = OpenOptions::new().append(true).open(path)?;
+    /// Write a functions.rs file, splitting the bindings between the `link! { }` and
+    /// `link_variadic! { }` macros.
+    ///
+    /// The two macros exist because a C-variadic function cannot be proxied through a generated
+    /// Rust `fn`: Rust can *declare* a C-variadic function but cannot *define* one on stable,
+    /// so there is no way to forward the varargs. `link!` generates such proxies and would silently
+    /// drop the `...`, leaving the function declared with the wrong arity. This is an ABI mismatch that
+    /// crashes at run time on targets where the variadic calling convention differs from the fixed
+    /// one. That's the case for macOS aarch64, which passes varargs on the stack rather than in registers.
+    /// `link_variadic!` binds those symbols to function pointers instead, preserving the `...`.
+    ///
+    /// `macro_rules!` cannot dispatch on the presence of `...` within a single macro (a `ty`
+    /// fragment may not be followed by a `tt`), hence the split here rather than in the macro.
+    fn write_functions_file(path: &Path, functions: &str, prefix: &str) -> Result<()> {
+        let (fixed, variadic) = Self::partition_variadic_declarations(functions);
+
+        let mut f = File::create(path)?;
+        f.write_all(prefix.as_bytes())?;
+
+        // The macros are invoked by path rather than imported, so that a crate whose C API has no
+        // variadic functions (currently `openvino-genai-sys`, which does not define
+        // `link_variadic!`) never names a macro it does not have.
+        f.write_all(b"crate::link! {\n\n")?;
+        f.write_all(fixed.as_bytes())
+            .context(format!("Failed to write functions to: {}", path.display()))?;
         f.write_all(b"\n}\n")?;
+
+        if !variadic.trim().is_empty() {
+            f.write_all(b"\ncrate::link_variadic! {\n\n")?;
+            f.write_all(variadic.as_bytes()).context(format!(
+                "Failed to write variadic functions to: {}",
+                path.display()
+            ))?;
+            f.write_all(b"\n}\n")?;
+        }
+
         Ok(())
+    }
+
+    /// Split bindgen's output into the `extern "C" { … }` blocks that declare only fixed-arity
+    /// functions and those that declare a C-variadic one (a `...` parameter).
+    ///
+    /// Blocks that contain no function declaration at all (bindgen's leading comment, for example)
+    /// stay with the fixed-arity output so nothing is lost.
+    fn partition_variadic_declarations(functions: &str) -> (String, String) {
+        let mut fixed = String::with_capacity(functions.len());
+        let mut variadic = String::new();
+
+        let mut rest = functions;
+        while let Some(start) = rest.find("unsafe extern \"C\" {") {
+            // Everything before this block (comments, blank lines) belongs with the fixed output.
+            fixed.push_str(&rest[..start]);
+            rest = &rest[start..];
+
+            // `extern` blocks are not nested, so the first closing brace at the start of a line
+            // ends this one.
+            let end = rest
+                .find("\n}\n")
+                .map_or(rest.len(), |offset| offset + "\n}\n".len());
+            let (block, remainder) = rest.split_at(end);
+            rest = remainder;
+
+            if Self::declares_variadic_function(block) {
+                variadic.push_str(block);
+            } else {
+                fixed.push_str(block);
+            }
+        }
+        fixed.push_str(rest);
+
+        (fixed, variadic)
+    }
+
+    /// Whether an `extern "C" { … }` block declares a C-variadic function.
+    ///
+    /// bindgen emits the variadic marker as a parameter on its own line, so match that line
+    /// exactly: a `...` elsewhere in the block, such as in a doc comment ("@param ... property
+    /// pairs"), must not move a fixed-arity function into `link_variadic!`.
+    fn declares_variadic_function(block: &str) -> bool {
+        block.lines().any(|line| line.trim() == "...")
     }
 
     fn resolve_path(&self, default: &str) -> Result<PathBuf> {
@@ -286,3 +341,186 @@ const OV_SYS_HEADER: &str = "openvino-sys/upstream/src/bindings/c/include/openvi
 const GENAI_OUTPUT: &str = "openvino-genai-sys/src/generated";
 const GENAI_INCLUDE: &str = "openvino-genai-sys/upstream/src/c/include";
 const GENAI_HEADER: &str = "openvino-genai-sys/genai_all.h";
+
+#[cfg(test)]
+mod tests {
+    use super::CodegenCommand;
+    use std::path::PathBuf;
+
+    /// A fixed-arity declaration, formatted the way bindgen emits it.
+    const FIXED: &str = "unsafe extern \"C\" {
+    #[doc = \" @brief Frees a core.\"]
+    pub fn ov_core_free(core: *mut ov_core_t);
+}
+";
+
+    /// A C-variadic declaration, formatted the way bindgen emits it.
+    const VARIADIC: &str = "unsafe extern \"C\" {
+    #[doc = \" @brief Sets properties.\\n @param ... property pairs\"]
+    pub fn ov_core_set_property(
+        core: *const ov_core_t,
+        device_name: *const ::std::os::raw::c_char,
+        ...
+    ) -> ov_status_e;
+}
+";
+
+    /// A fixed-arity declaration whose documentation mentions `...`.
+    const FIXED_WITH_ELLIPSIS_IN_DOC: &str = "unsafe extern \"C\" {
+    #[doc = \" @brief Gets a value.\\n @param ... is not a parameter here\"]
+    pub fn ov_get_value(
+        value: *mut ::std::os::raw::c_char,
+    ) -> ov_status_e;
+}
+";
+
+    const BINDGEN_HEADER: &str = "\n/* automatically generated by rust-bindgen 0.72.0 */\n\n";
+
+    #[test]
+    fn partition_splits_fixed_and_variadic_blocks() {
+        let input = format!("{FIXED}{VARIADIC}{FIXED}");
+        let (fixed, variadic) = CodegenCommand::partition_variadic_declarations(&input);
+        assert_eq!(fixed, format!("{FIXED}{FIXED}"));
+        assert_eq!(variadic, VARIADIC);
+    }
+
+    #[test]
+    fn partition_keeps_text_outside_blocks_with_fixed_output() {
+        let input = format!("{BINDGEN_HEADER}{VARIADIC}{FIXED}\n");
+        let (fixed, variadic) = CodegenCommand::partition_variadic_declarations(&input);
+        assert_eq!(fixed, format!("{BINDGEN_HEADER}{FIXED}\n"));
+        assert_eq!(variadic, VARIADIC);
+    }
+
+    #[test]
+    fn partition_loses_nothing() {
+        let input =
+            format!("{BINDGEN_HEADER}{FIXED}{VARIADIC}{FIXED_WITH_ELLIPSIS_IN_DOC}{VARIADIC}");
+        let (fixed, variadic) = CodegenCommand::partition_variadic_declarations(&input);
+        assert_eq!(fixed.len() + variadic.len(), input.len());
+        assert_eq!(variadic, format!("{VARIADIC}{VARIADIC}"));
+    }
+
+    #[test]
+    fn partition_without_variadic_functions_is_identity() {
+        let input = format!("{BINDGEN_HEADER}{FIXED}{FIXED}");
+        let (fixed, variadic) = CodegenCommand::partition_variadic_declarations(&input);
+        assert_eq!(fixed, input);
+        assert_eq!(variadic, "");
+    }
+
+    #[test]
+    fn partition_of_text_without_blocks_is_identity() {
+        let (fixed, variadic) = CodegenCommand::partition_variadic_declarations(BINDGEN_HEADER);
+        assert_eq!(fixed, BINDGEN_HEADER);
+        assert_eq!(variadic, "");
+    }
+
+    /// A `...` in a doc comment is not a variadic parameter: moving such a function into
+    /// `link_variadic!()` would fail to compile (that macro requires a `, ...` parameter).
+    #[test]
+    fn ellipsis_in_documentation_is_not_variadic() {
+        let (fixed, variadic) =
+            CodegenCommand::partition_variadic_declarations(FIXED_WITH_ELLIPSIS_IN_DOC);
+        assert_eq!(fixed, FIXED_WITH_ELLIPSIS_IN_DOC);
+        assert_eq!(variadic, "");
+    }
+
+    /// Writes `functions` through [`CodegenCommand::write_functions_file()`] and returns the result.
+    fn write_and_read(name: &str, functions: &str) -> String {
+        let path =
+            std::env::temp_dir().join(format!("xtask-codegen-{}-{name}.rs", std::process::id()));
+        CodegenCommand::write_functions_file(&path, functions, "use super::types::*;\n").unwrap();
+        let written = std::fs::read_to_string(&path).unwrap();
+        std::fs::remove_file(&path).unwrap();
+        written
+    }
+
+    #[test]
+    fn write_functions_file_emits_both_macros() {
+        let written = write_and_read("both", &format!("{FIXED}{VARIADIC}"));
+        assert_eq!(
+            written,
+            format!(
+                "use super::types::*;\ncrate::link! {{\n\n{FIXED}\n}}\n\ncrate::link_variadic! {{\n\n{VARIADIC}\n}}\n"
+            )
+        );
+    }
+
+    /// `openvino-genai-sys` has no variadic functions and does not define `link_variadic!()`: the
+    /// generated file must not name it, or that crate would fail to compile.
+    #[test]
+    fn write_functions_file_omits_link_variadic_when_unneeded() {
+        let written = write_and_read("fixed-only", FIXED);
+        assert_eq!(
+            written,
+            format!("use super::types::*;\ncrate::link! {{\n\n{FIXED}\n}}\n")
+        );
+        assert!(!written.contains("link_variadic"));
+    }
+
+    /// The macros are invoked by path so that the generated file does not depend on an import.
+    #[test]
+    fn write_functions_file_does_not_import_macros() {
+        let written = write_and_read("no-import", &format!("{FIXED}{VARIADIC}"));
+        assert!(!written.contains("use crate::link"));
+    }
+
+    fn generated_functions(crate_name: &str) -> String {
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join(crate_name)
+            .join("src/generated/functions.rs");
+        std::fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()))
+    }
+
+    /// Return the body of the `name! { … }` invocation in a generated file, if present.
+    fn macro_body<'a>(file: &'a str, name: &str) -> Option<&'a str> {
+        let open = format!("crate::{name}! {{\n");
+        let start = file.find(&open)? + open.len();
+        // `write_functions_file()` closes the macro on its own line after a blank one; a bare
+        // `\n}\n` would instead match the end of the first `extern` block inside it.
+        let len = file[start..]
+            .find("\n\n}\n")
+            .expect("unterminated macro invocation");
+        Some(&file[start..start + len])
+    }
+
+    /// Guard the checked-in `openvino-sys` bindings: every variadic function must live in
+    /// `link_variadic!()` and nothing else may.
+    #[test]
+    fn checked_in_sys_bindings_are_partitioned() {
+        let file = generated_functions("openvino-sys");
+        let fixed = macro_body(&file, "link").expect("missing `crate::link!`");
+        let variadic = macro_body(&file, "link_variadic").expect("missing `crate::link_variadic!`");
+
+        let (_, misplaced) = CodegenCommand::partition_variadic_declarations(fixed);
+        assert!(
+            misplaced.is_empty(),
+            "variadic functions found in `link!`:\n{}",
+            misplaced
+        );
+        let (stray, _) = CodegenCommand::partition_variadic_declarations(variadic);
+        assert!(
+            !stray.contains("pub fn"),
+            "fixed-arity functions found in `link_variadic!`:\n{}",
+            stray
+        );
+        assert!(variadic.contains("pub fn ov_core_set_property("));
+    }
+
+    #[test]
+    fn checked_in_genai_bindings_have_no_variadic_functions() {
+        let file = generated_functions("openvino-genai-sys");
+        let fixed = macro_body(&file, "link").expect("missing `crate::link!`");
+        let (_, variadic) = CodegenCommand::partition_variadic_declarations(fixed);
+        assert!(
+            variadic.is_empty(),
+            "unexpected variadic functions:\n{}",
+            variadic
+        );
+        assert!(!file.contains("link_variadic"));
+        assert!(!file.contains("use crate::link"));
+    }
+}
